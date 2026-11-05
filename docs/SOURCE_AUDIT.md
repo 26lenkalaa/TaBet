@@ -182,3 +182,55 @@ Wyscout 2017-18 prototype (5 leagues, gameweek 20 onwards):
    deviance alongside outcome log-loss.
 4. Revisit style and cross-league similarity only if an accessible source with 2021-27
    event/possession data becomes available, for example through a provider API key or a licence.
+
+
+## 5. Free downloadable player datasets (audit 2026-11-05, suggested by external review)
+
+### 5.1 `eatpizzanot/soccer-dataset` (Hugging Face)
+- **Access [retrieved]:** public Parquet tables, no login (fixtures, fixture_players, fixture_players_stats_flat,
+  fixture_lineups, match_stats, players, teams; about 210 MB in total). Tagged CC BY 4.0.
+- **Provenance [documented]:** "API-Football + football-data.co.uk". API-Football is a paid commercial API, so it
+  is unclear whether the uploader may republish its data under CC BY.
+- **Coverage for our five leagues [retrieved]:**
+  - **2021-22 → 2024-25:** player rows for every league fixture.
+  - **2025-26:** only 50–66% of fixtures.
+  - **2026-27:** none (the dataset was last updated 2026-07-05).
+- **Quality checks [retrieved]:**
+  - **Fixture joins:** all 1,900 PL fixtures join to our match table with identical scores. La Liga and Serie A join
+    fully (one Serie A score differs). The 44 Bundesliga and 10 Ligue 1 unmatched fixtures are relegation
+    play-offs.
+  - **Structure:** exactly 11 starters per side, median 990 team-minutes, and no duplicate player-match rows. Null
+    minutes are unused substitutes (94,696 rows), plus 44 starters.
+  - **Against FPL** (300 random PL matches, 8,316 appearances, 93.7% name-matched): the starter flag agrees 100%
+    wherever FPL has genuine `starts`; minutes agree within 1 minute for 94.7%; and the number of players used per
+    side matches for 99.3% of 3,540 sides.
+  - **Shots are incomplete:** per-player shots summed to team level run about 3.7 below football-data's team shots
+    per match (correlation 0.91, exact 6.4%). Use them as a relative measure only.
+  - **No player xG/xA.** Team "xG" is a deterministic shots-by-zone formula according to the card.
+- **Fit for TaBet:** historical (2021-25) lineups and minutes for all five leagues, and prior-league player histories
+  for PL arrivals. **It cannot feed live 2026-27 forecasts.**
+
+### 5.2 Top-5 player-season CSV (`m-mahadi/top5-football-dataset`)
+- **Access [retrieved]:** one CSV, 5,693 player-seasons, 220 columns, top five leagues, 2024-25 and 2025-26.
+- **Licence:** none declared. The README says it merges FBref, Understat and SofaScore, the same sites that block our
+  plain requests.
+- **Fields:** Understat xG, npxG and xA (94% non-null), plus per-90 rates, minutes, shooting, passing and
+  defending.
+- **Fit:** season aggregates only. Suitable as a previous-season prior for 2026-27 arrivals (using 2025-26 data),
+  never for predicting matches within the same season. Exclude the `fifa_*` fields, which the publisher says are a
+  current snapshot repeated across seasons.
+
+### 5.3 IMPECT open data (`ImpectAPI/open-data`)
+- **Access [retrieved]:** events, event KPIs, lineups, player KPIs, squads and matches for **Bundesliga 2023-24
+  only**.
+- **Terms:** use is subject to the provider's LICENSE.pdf (not reviewed here).
+- **Fit:** prototyping richer player and defensive profiles only, since it covers one league-season.
+
+### 5.4 Recommended use
+1. **Hugging Face archive:** the historical player-history source for non-PL leagues. Its first use would be the
+   transfer-prior experiment of SPEC §6.3: players moving into the PL in 2022-23 → 2024-25, comparing a position
+   prior with shrunk prior-league per-90 output, judged on their first PL season and then on match log-loss.
+2. **Top-5 CSV:** xG/xA-based priors for current-season arrivals, live only.
+3. **IMPECT:** prototype only.
+
+None of these provides free, validated player-match xG/xA across all five leagues for 2021-27.
