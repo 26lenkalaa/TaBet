@@ -136,7 +136,25 @@ def fpl_players_now(boot: dict) -> pd.DataFrame:
                           "second_name": e["second_name"], "web_name": e["web_name"],
                           "position": {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}.get(e["element_type"]),
                           "status": e["status"], "chance_next": e["chance_of_playing_next_round"],
+                          "chance_this": e["chance_of_playing_this_round"],
                           "news": e["news"]} for e in boot["elements"]])
+
+
+def availability_field(boot: dict, gameweek: int, cutoff: pd.Timestamp) -> str:
+    """Which FPL chance-of-playing field describes `gameweek` at `cutoff`.
+
+    FPL's "next round" moves on at each gameweek deadline. Once the deadline of
+    the fixture's own gameweek has passed, that gameweek is "this round"
+    (protocol amendment A2)."""
+    deadline = {e["id"]: pd.Timestamp(e["deadline_time"]) for e in boot["events"]}.get(int(gameweek))
+    return "chance_this" if deadline is not None and cutoff >= deadline else "chance_next"
+
+
+def unavailable_codes(fp: pd.DataFrame, field: str = "chance_next") -> set[int]:
+    """Frozen rule: status != "a" and chance < 50, where a missing chance counts
+    as 0 for any non-"a" status (injured, suspended, loaned or not in squad)."""
+    chance = fp[field].astype(float).fillna(0.0)
+    return set(fp.loc[(fp["status"] != "a") & (chance < 50), "player_code"])
 
 
 def project_xi(hist: pd.DataFrame, cutoff: pd.Timestamp, teams: list[str], half_life: float = 120.0,

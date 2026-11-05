@@ -4,7 +4,9 @@ name: Prospective forecast log
 # and commits the log back to main. Most hourly runs find nothing due and finish in about a minute.
 on:
   schedule:
-    - cron: "17 * * * *"
+    # Minute changed from :17 on 2026-11-05: the first schedule never fired, and editing the
+    # workflow on main makes GitHub register the schedule again.
+    - cron: "23 * * * *"
   workflow_dispatch:
     inputs:
       mode:

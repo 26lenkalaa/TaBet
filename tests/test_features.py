@@ -90,3 +90,17 @@ def test_unpublished_xg_nulled_but_real_zero_kept():
     out = _null_unpublished_xg(app)
     assert out.loc[out.match_id == "m0", "xg"].isna().all()
     assert out.loc[(out.match_id == "m1") & (out.team_id == "a"), "xg"].eq(0).all()
+
+
+def test_transfer_prior_rates_debutants_and_fades_with_minutes():
+    import pandas as pd
+    from tabet.features import FeatureParams, player_ratings
+    cut = pd.Timestamp("2024-01-01", tz="UTC")
+    h = pd.DataFrame({"player_code": [1, 1, 2], "kickoff_utc": [cut - pd.Timedelta(days=d) for d in (10, 20, 10)],
+                      "minutes": [90.0, 90.0, 90.0], "xg": [0.5, 0.5, 0.1], "xa": [0.0, 0.0, 0.0],
+                      "threat": 0.0, "creativity": 0.0, "influence": 0.0, "position": ["FWD", "FWD", "DEF"]})
+    base = player_ratings(h, cut, FeatureParams(), "position")
+    t = player_ratings(h, cut, FeatureParams(), "transfer", {1: 0.9, 99: 0.7})
+    assert t.loc[99, "rating"] == pytest.approx(0.7)  # debutant
+    assert base.loc[1, "rating"] < t.loc[1, "rating"] < 0.9  # prior raised, data still counts
+    assert t.loc[2, "rating"] == pytest.approx(base.loc[2, "rating"])  # others unchanged
