@@ -154,3 +154,11 @@ amendment `results/prospective/log.jsonl` was empty.
 8. **Live xG snapshots.** Each day the logger re-downloads the four most recent finished
    gameweeks and keeps player xG/xA/xGC in `results/prospective/xg_snapshots/`, so revisions to
    live FPL xG can be measured against the archive values used in the backtests.
+
+## Operations log
+
+- **2026-11-05: Everton v Coventry (fixture 94, kickoff 2026-11-06 20:00 UTC) not logged.** Its window
+  was 18:00–20:00 UTC on 2026-11-05. The scheduled workflow had not fired since it was added, and its
+  first scheduled run came at 21:06 UTC, after the window. Under the logging rule it is not backfilled.
+  A fixture missing entirely does not bias any within-record contrast. Amendment A2 and the
+  re-registered schedule (:23 past each hour) reached `main` at 22:10 UTC.

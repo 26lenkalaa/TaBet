@@ -2,10 +2,9 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-05, before gameweek 10. Since the previous review: league pooling (§5.11),
-> a free player-match archive (§3), transfer priors (§5.12), match-stat analysis (§5.13), and a
-> list of untested candidate factors (§7). Third review answered: protocol amendment and
-> diagnostics in §5.14.
+> Last updated 2026-11-05 (evening), before gameweek 10. Since the last review: the third review's
+> items are done (§5.14–5.18), a market comparison (§5.19) and **an open problem with newly
+> promoted teams (§5.20), which is what I want help with this time (§8).**
 
 ## 1. What the project is
 
@@ -571,6 +570,63 @@ Reading:
 - **Early season:** opposite signs on the two data sets, both inside noise. No support for the
   claim that the largest gains come early.
 
+### 5.19 TaBet vs the betting market on the same fixtures (benchmark only)
+
+Frozen out-of-sample V2x against football-data average odds (margin removed proportionally),
+2022-26, n = 1,520. Pre-closing odds are collected Friday/Tuesday afternoon (*less* information than
+V2x, which sees confirmed XIs); closing odds are at kickoff (*more* information).
+
+| | vs pre-closing | vs closing |
+|---|---|---|
+| Same top pick | 88.5% | 87.4% |
+| Disagreements: TaBet alone right / market alone right / both wrong | 50 / 76 / 48 (n 174) | 52 / 86 / 53 (n 191) |
+| Sign test, TaBet-only vs market-only | p = 0.026 | p = 0.005 |
+| Log-loss TaBet − market, 14-day block CI | +0.0139 [+0.0056, +0.0230] | +0.0188 [+0.0105, +0.0278] |
+| 2024-26 only | +0.0044 [−0.0075, +0.0167] | +0.0080 [−0.0029, +0.0197] |
+
+The six largest disagreements in each direction were all already present in the Dixon-Coles base
+(xG and XI layers moved them by ≤ 4 points), and most involve a promoted or returning team early in
+its season. Script: `prototypes/run_market_comparison.py`.
+
+### 5.20 Open problem: newly promoted teams
+
+**What we know (documented):**
+- **Where we lose to the market.** With a promoted side in its first 10 PL matches, TaBet disagrees
+  with the closing market twice as often (23.4% vs 11.9% of matches) and trails it by +0.030
+  log-loss [−0.016, +0.075] (n 111), against +0.019 [+0.010, +0.028] without a promoted side.
+  The difference is not significant, but the worst individual misses are concentrated here:
+  - Burnley v Sunderland, Aug 2025: TaBet gave Sunderland 74%, the market 30%; Burnley won 2-0.
+  - Man Utd v Sunderland, Oct 2025: TaBet gave Sunderland 42%, the market 19%; Man Utd won 2-0.
+  - Coventry v Hull, Aug 2026: TaBet gave Hull 59%, the market 20%; Hull won 0-1 (the same
+    behaviour, right this time).
+- **How the model treats them now.**
+  - A team never seen before starts at league average (rating 0) and then moves with every result,
+    so two or three early results can swing it a long way.
+  - A *returning* team keeps its decayed ratings from its last PL season, even if that was two
+    seasons and a squad ago. Burnley in 2025-26 was rated partly on its 2023-24 relegation season.
+- **What has failed.**
+  - A shared promoted-team offset (learned from earlier promoted sides: attack about −0.01, defence
+    about −0.17). It helped in 2022-26 and hurt in 2026-27, when promoted sides started well.
+  - Team-specific offsets from Championship shots-on-target strength (§5.15). The slopes shrank to
+    about 0, because 3 promotions a season are too few to learn from.
+  - Faster or dynamic ratings in general (§5.18).
+
+**Candidate approaches (not yet run):**
+
+| # | Idea | Data | What it fixes | Simpler alternative to beat |
+|---|---|---|---|---|
+| R1 | **Reset returning teams:** if a team missed the previous PL season, drop or heavily shrink its old ratings and treat it as newly promoted | have | Stale ratings (Burnley 2025-26) | current decayed ratings |
+| R2 | **Slower early reaction for promoted sides:** a larger L2 penalty on a promoted team's ratings for its first N matches, shrinking toward the promoted prior instead of league average; penalty learned on earlier cohorts | have | Over-reaction to 2–3 results (Sunderland, Hull) | shared offset (D1) |
+| R3 | **Pool five second tiers:** Championship, Segunda, Serie B, 2. Bundesliga and Ligue 2 (football-data files confirmed available) give about 15 promotions a season instead of 3, to learn "second-tier strength → first-season top-flight rating", with league intercepts; scored on PL only | free, not yet ingested | Too few cohorts (§5.15) | PL-only mapping |
+| R4 | **Squad-based prior:** minutes-weighted player ratings of the promoted squad plus summer signings, using the §5.12 mapping for arrivals. The Hugging Face archive lists Championship player tables (not yet validated); it ends mid-2025-26, so live use needs another source | partly free | The prior knows nothing about who is in the squad | R1 + R2 |
+| R5 | **Season-boundary shrinkage for everyone** (your earlier suggestion), with a separate parameter for promoted sides | have | Summer squad change in general | current model |
+
+**Evaluation plan.** Early-promoted matches are about 30 a season, so recent seasons alone cannot
+settle this. The 2015-21 results (§5.16) add 15 promotion cohorts never used for team-strength
+choices, and E1 files exist for those years. I would pre-register a primary contrast on
+early-promoted matches pooled over 2016-26, plus all matches, so that a gain for promoted teams
+cannot hide a loss elsewhere.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -635,21 +691,22 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 
 ## 8. What I want from you (the reviewer)
 
-The predicted-lineup work is now on a fixed prospective schedule (§5.10), so no new results will
-exist for about ten gameweeks. Please give me:
+Your previous requests are done (§5.14–5.18) and the prospective log starts at gameweek 10. This
+time I want help with one problem: **forecasting newly promoted and returning teams** (§5.20).
+Please give me:
 
-1. **A critique of the protocol in §5.10** before data arrives: anything that would bias pα − p0,
-   problems with the horizon or logging rule, and whether the frozen "unavailable" rule and
-   fallbacks are sensible.
-2. **What to do with the waiting time:** up to 3 experiments that use only historical data, don't
-   reuse ideas already tested in §5.5–5.8, and don't touch the 2026-27 gameweek 10+ fixtures
-   reserved for the pre-registered and prospective tests. For each, give the simpler alternative it
+1. **A critique of the diagnosis in §5.20.** Is the problem really early-season over-reaction and
+   stale ratings, or does the evidence point elsewhere (for example promoted sides' home advantage,
+   or ordinary noise in a small subgroup)? What check would distinguish these?
+2. **A ranking of R1–R5** by expected gain per unit of effort, which to combine, and which are likely
+   null. If you would build something not on the list, describe it and the simpler alternative it
    must beat.
-3. **Problems in §5.4–5.8** that remain after the corrections.
-4. **A ranking of §7:** the top 3 by expected gain per unit of effort, which ones are likely null
-   or leakage-prone (especially F5, F12 and F2), and any important factor I have missed.
-5. **§5.12 next step:** how to run the match-level transfer-prior test without reusing the
-   fixtures the gate was chosen on.
+3. **How to learn the promoted prior with so few cohorts:** whether pooling second tiers (R3) is
+   sound given that leagues differ in strength, and how to set the shrinkage for promoted teams'
+   early matches (R2) without fitting it to the same handful of seasons I evaluate on.
+4. **An evaluation design:** a primary contrast and subgroup definition (first N matches? first
+   season?), how to use 2016-21 as clean data, and the power I can expect.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
-bookmaker odds or crowd data as model inputs.
+bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices
+included).
