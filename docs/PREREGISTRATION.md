@@ -67,3 +67,14 @@ An independent replication of the XI-strength effect on seasons never used for a
   XI-deviation band (cut points from 2017-21); 2020-21 flagged as played without crowds.
 - **Expected power.** With a paired SD near 0.047, the SE on 1,140 matches is about 0.0014, so a
   true −0.004 effect would be detected about 80% of the time; a −0.002 effect about 30%.
+
+## Addendum T (2026-11-05, committed before the run): match-level transfer priors
+
+Specified in full in the header of `prototypes/run_transfer_match_test.py`. In short: priors for
+every pre-season-eligible arrival (>= 600 previous-league minutes, no condition on PL minutes) from
+the frozen P1 mapping trained only on earlier cohorts; the prior replaces the position-prior mean in
+the unchanged V2 rating and fades with PL minutes; nothing is tuned (stage-2 L2 = 100).
+**Primary:** V2xT − V2x on 2024-25 + 2025-26; **co-primary:** the same on matches where an arrival
+starts within his first 10 PL appearances. Confirmed if the mean is below 0 and the 14-day block
+bootstrap interval excludes 0. Disclosure: the player-level gate saw the 2023-26 cohorts, and 2024-26
+is reused validation.

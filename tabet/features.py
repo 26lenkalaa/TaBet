@@ -55,9 +55,12 @@ def known(app: pd.DataFrame, cutoff: pd.Timestamp) -> pd.DataFrame:
 # ---- player ratings ---------------------------------------------------------
 
 def player_ratings(hist: pd.DataFrame, cutoff: pd.Timestamp, p: FeatureParams,
-                   prior: str = "position") -> pd.DataFrame:
+                   prior: str = "position", overrides: dict | None = None) -> pd.DataFrame:
     """One row per player_code: decayed minutes, raw and shrunk attack rate
-    (xG+xA per 90), position and the prior used."""
+    (xG+xA per 90), position and the prior used. prior="transfer" is the
+    position prior with the prior mean replaced by `overrides[player_code]`
+    (e.g. a previous-league prediction for new arrivals); it fades at the same
+    rate as PL minutes accumulate."""
     age = (cutoff - hist["kickoff_utc"]).dt.total_seconds() / 86400
     h = hist.assign(w=_w(age, p.player_half_life))
     h["wmin"] = h["w"] * h["minutes"]
@@ -78,6 +81,13 @@ def player_ratings(hist: pd.DataFrame, cutoff: pd.Timestamp, p: FeatureParams,
 
     if prior == "similar":
         pt["prior"] = _similar_prior(pt, p)
+    elif prior == "transfer":
+        o = pd.Series(overrides or {}, dtype=float)
+        new = o.index.difference(pt.index)  # debutants: no PL minutes yet, rating = their prior
+        if len(new):
+            pt = pd.concat([pt, pd.DataFrame(0.0, index=new, columns=pt.columns.drop("position"))])
+        hit = pt.index.intersection(o.index)
+        pt.loc[hit, "prior"] = o[hit].to_numpy()
     elif prior != "position":
         raise ValueError(f"unknown prior {prior!r}")
 
@@ -172,11 +182,12 @@ STYLE_COLS = ["shots_for", "shots_against", "corners_for", "corners_against", "f
 
 def match_features(fixtures: pd.DataFrame, lineups: pd.DataFrame, hist_app: pd.DataFrame,
                    hist_matches: pd.DataFrame, cutoff: pd.Timestamp, p: FeatureParams,
-                   priors: tuple[str, ...] = ("position", "similar")) -> pd.DataFrame:
+                   priors: tuple[str, ...] = ("position", "similar"),
+                   prior_overrides: dict | None = None) -> pd.DataFrame:
     """Two rows per fixture (home scoring, away scoring) with all feature groups.
     `lineups` = appearance rows of the fixtures themselves (for `started` only)."""
     state = team_state(hist_app, hist_matches, cutoff, p)
-    rats = {pr: player_ratings(hist_app, cutoff, p, pr) for pr in priors}
+    rats = {pr: player_ratings(hist_app, cutoff, p, pr, prior_overrides) for pr in priors}
     usage, form, style = state["usage"], state["form"], state["style"]
     cur = sorted(set(fixtures["home_id"]) | set(fixtures["away_id"]) | set(style.index))
     sz = style.reindex(cur)[STYLE_COLS]
