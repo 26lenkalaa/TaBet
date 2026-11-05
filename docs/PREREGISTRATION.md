@@ -78,3 +78,13 @@ the unchanged V2 rating and fades with PL minutes; nothing is tuned (stage-2 L2 
 starts within his first 10 PL appearances. Confirmed if the mean is below 0 and the 14-day block
 bootstrap interval excludes 0. Disclosure: the player-level gate saw the 2023-26 cohorts, and 2024-26
 is reused validation.
+
+## Addendum D (2026-11-05, committed before the run): dynamic team strengths
+
+Specified in full in the header of `prototypes/run_dynamic_ratings.py` (model in `tabet/dynamic.py`).
+Score-driven attack/defence strengths (Koopman & Lit 2019 style) with weekly persistence and an
+offseason factor, same Poisson + Dixon-Coles goal model, static parameters refitted each season
+on earlier matches only. **Primary:** S2 − frozen Dixon-Coles on the clean 2018-21 results
+(n = 1,140); confirmed if the mean is below 0 and the 14-day block bootstrap interval excludes 0.
+Early-season, shorter-half-life, no-summer and recent-season contrasts are secondary; the stage-2
+comparison with adjusted xG is reported, not decisive.
