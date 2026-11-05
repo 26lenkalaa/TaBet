@@ -90,14 +90,16 @@ def proj_usual_codes(hist: pd.DataFrame, cutoff: pd.Timestamp, threshold: float 
 
 
 def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, refresh: bool = True,
-             lineups: bool = True,
+             lineups: bool = True, fixture_ids: list[int] | None = None,
              rows_cache: Path | None = ROOT / "data/processed/forecast_rows.pkl") -> dict:
     cutoff = cutoff or pd.Timestamp.now(tz="UTC").floor("min")
     matches, _ = load_all(ROOT / "res")
     app = load_appearances(matches, ARCHIVE_SEASONS, LIVE_SEASON, refresh_live=refresh)
     fx = upcoming_fixtures(refresh=refresh)
     fx = fx[fx["kickoff_utc"] > cutoff]
-    if gameweeks:
+    if fixture_ids is not None:
+        fx = fx[fx["fpl_fixture"].isin(fixture_ids)]
+    elif gameweeks:
         fx = fx[fx["gameweek"] < fx["gameweek"].min() + gameweeks]
 
     store = MatchStore(matches)
@@ -124,18 +126,28 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     boot = json.loads((fetch_live_season(LIVE_SEASON, refresh=False) / "bootstrap.json").read_text())
     fp = fpl_players_now(boot)
     lineup_snap = snapshot(fp) if lineups else pd.DataFrame()
-    nxt = fx.sort_values("kickoff_utc").groupby("gameweek").head(10)
-    nxt = nxt[nxt["gameweek"] == nxt["gameweek"].min()].assign(match_id=lambda d: d["fpl_fixture"].astype(str))
+    if fixture_ids is not None:
+        nxt = fx.assign(match_id=lambda d: d["fpl_fixture"].astype(str))
+    else:  # the lineup sites only publish each team's next match
+        nxt = fx[fx["gameweek"] == fx["gameweek"].min()].assign(match_id=lambda d: d["fpl_fixture"].astype(str))
     hist = known(app, cutoff)
     unavailable = set(fp.loc[(fp["status"] != "a") & (fp["chance_next"].fillna(100) < 50), "player_code"])
     teams_next = sorted(set(nxt["home_id"]) | set(nxt["away_id"]))
-    proj = project_xi(hist, cutoff, teams_next, unavailable=unavailable,
-                      current_team=dict(zip(fp["player_code"], fp["team_id"])))
+    owner = dict(zip(fp["player_code"], fp["team_id"]))
+    proj = project_xi(hist, cutoff, teams_next, unavailable=unavailable, current_team=owner)
+    proj_hist = project_xi(hist, cutoff, teams_next, current_team=owner)  # same rule, no availability filter
     pos_now = dict(zip(fp["player_code"], fp["position"]))
-    xis = {"fpl_proj": proj}
+    xis = {"fpl_proj": proj, "fpl_proj_hist": proj_hist}
+    unresolved: dict[str, dict[str, int]] = {}
+    updated: dict[str, str] = {}
     for src in ("ffs", "rotowire"):
         if len(lineup_snap) and (lineup_snap["source"] == src).any():
-            x = lineup_snap[(lineup_snap["source"] == src)].dropna(subset=["player_code"]).copy()
+            allx = lineup_snap[lineup_snap["source"] == src]
+            unresolved[src] = allx[allx["player_code"].isna()].groupby("team_id").size().astype(int).to_dict()
+            if "source_updated" in allx:
+                updated.update({f"{src}:{t}": u for t, u in allx.groupby("team_id")["source_updated"].first().items()
+                                if isinstance(u, str)})
+            x = allx.dropna(subset=["player_code"]).copy()
             x["player_code"] = x["player_code"].astype(int)
             x["position"] = x["player_code"].map(pos_now).fillna(x["position"])
             xis[src] = x[["team_id", "player_code", "position"]]
@@ -146,21 +158,35 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
                         for f in nxt.itertuples()], ignore_index=True)
         feats = match_features(nxt, lu, hist, train, cutoff, FeatureParams(), priors=("position",))
         for f in nxt.itertuples():
-            lam = []
+            lam, xfeat = [], {}
             for side, (t, o) in (("H", (f.home_id, f.away_id)), ("A", (f.away_id, f.home_id))):
-                row = feats[(feats["match_id"] == f.match_id) & (feats["side"] == side)].iloc[0]
+                sel = feats[(feats["match_id"] == f.match_id) & (feats["side"] == side)]
+                if xi[xi["team_id"] == t].empty or xi[xi["team_id"] == o].empty:
+                    lam = None  # this source has no XI for one of the teams
+                    break
+                row = sel.iloc[0]
                 x = np.array([xg_r["att"].get(t, 0.0), -xg_r["def"].get(o, 0.0), row["f_xi_position"],
                               row["f_backline_opp"] if pd.notna(row["f_backline_opp"]) else mux["f_backline_opp"]])
                 base = dc.expected_goals(f.home_id, f.away_id, f.season)[0 if side == "H" else 1]
                 lam.append(base * np.exp(bx[0] + ((x - mux.to_numpy()) / sdx.to_numpy()) @ bx[1:]))
+                xfeat[side] = {"f_xi_position": float(row["f_xi_position"]),
+                               "f_backline_opp": None if pd.isna(row["f_backline_opp"]) else float(row["f_backline_opp"])}
+            if lam is None:
+                continue
             hda = _hda(_score_matrix(lam[0], lam[1], dc.rho))
-            d = xi_preds.setdefault(int(f.fpl_fixture), {"sources": {}, "lineups": {}})
+            d = xi_preds.setdefault(int(f.fpl_fixture), {"sources": {}, "lineups": {}, "lineup_codes": {}, "xi_features": {}})
             d["sources"][src] = {"p_home": hda[0], "p_draw": hda[1], "p_away": hda[2], "xg_home": lam[0], "xg_away": lam[1]}
+            d["xi_features"][src] = xfeat
             d["lineups"][src] = {side: [names.get(int(c), str(c)) for c in xi.loc[xi["team_id"] == t, "player_code"]]
                                  for side, t in (("home", f.home_id), ("away", f.away_id))}
+            d["lineup_codes"][src] = {side: [int(c) for c in xi.loc[xi["team_id"] == t, "player_code"]]
+                                      for side, t in (("home", f.home_id), ("away", f.away_id))}
     for d in xi_preds.values():
-        ps = list(d["sources"].values())
-        d["consensus"] = {k: float(np.mean([p[k] for p in ps])) for k in ("p_home", "p_draw", "p_away", "xg_home", "xg_away")}
+        # p_E: the plain average of the two scraped sources' outcome probabilities (benchmark ensemble)
+        ps = [d["sources"][k] for k in ("ffs", "rotowire") if k in d["sources"]]
+        if ps:
+            d["source_average"] = {k: float(np.mean([p[k] for p in ps])) for k in ("p_home", "p_draw", "p_away", "xg_home", "xg_away")}
+            d["source_average_of"] = [k for k in ("ffs", "rotowire") if k in d["sources"]]
         lu = d["lineups"]
         if "ffs" in lu and "rotowire" in lu:
             d["agreement"] = {s: len(set(lu["ffs"][s]) & set(lu["rotowire"][s])) for s in ("home", "away")}
@@ -187,6 +213,9 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
                                                                           for j in range(MAX_GOALS + 1) if i + j > 2)),
             "home_promoted": [f.home_id, f.season] in dc.promoted, "away_promoted": [f.away_id, f.season] in dc.promoted,
             "with_lineups": xi_preds.get(int(f.fpl_fixture)),
+            "components": {"dc_rate_home": lh0, "dc_rate_away": la0, "rho": dc.rho,
+                           "xgadj_home": [float(xg_r["att"].get(f.home_id, 0.0)), -float(xg_r["def"].get(f.away_id, 0.0))],
+                           "xgadj_away": [float(xg_r["att"].get(f.away_id, 0.0)), -float(xg_r["def"].get(f.home_id, 0.0))]},
         })
 
     current = sorted(set(fx["home_id"]) | set(fx["away_id"]))
@@ -201,6 +230,11 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         "settings": {"dixon_coles": vars(Hyperparams()), "xg_half_life_days": XG_HALF_LIFE, "stage2_l2": STAGE2_L2},
         "params": {"home_adv": dc.home_adv, "rho": dc.rho, "mu": dc.mu, "stage2_coef": [float(x) for x in b]},
         "fixtures": preds, "ratings": ratings, "absences": absences,
+        "xi_stage2": {"cols": ADJ + XI, "coef": [float(v) for v in bx], "mean": [float(v) for v in mux],
+                      "sd": [float(v) for v in sdx], "l2": STAGE2_L2_XI},
+        "lineup_unresolved": unresolved, "source_updated": updated,
+        "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "news"]]
+                         .to_dict("records"),
         "lineup_sources": {"retrieved_utc": (lineup_snap["retrieved_utc"].iloc[0] if len(lineup_snap) else None),
                            "available": sorted(xis)},
         "xi_model": "V2x: V1x + XI strength (ratio, position prior); stage 2 trained on confirmed XIs",

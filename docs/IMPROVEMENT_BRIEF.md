@@ -2,7 +2,8 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-05, before gameweek 10. §5.8–5.9 and §6–7 are new since the previous review.
+> Last updated 2026-11-05, before gameweek 10. Since the previous review: corrections in §5.4,
+> §5.6–5.9, and a new prospective protocol in §5.10.
 
 ## 1. What the project is
 
@@ -155,8 +156,16 @@ not strong evidence of systematic under-prediction. On dev: 169 observed vs 167.
 - **Score distribution after stage 2.** The smallest Dixon-Coles correction factor across all
   adjusted predictions is 0.575 (> 0). The score grid is 0–15 goals per side; the largest
   adjusted rate is 5.41, whose tail beyond 15 goals is below 1e-4.
-- **Pre-registration** stays as written: V2 − V1 on 2026-27 matches from gameweek 10 onward,
-  14-day block CI excluding 0. Any revised lineup feature will be reported separately.
+- **Stricter offset audit.** For every one of the 489 Dixon-Coles fits, the latest result in its
+  training set was known at least 13.5 h before that fit's cutoff. Stage-2 training rows are
+  filtered by the same rule (kickoff + 2h30m ≤ cutoff) and checked.
+- **The dev XI contrast restricted to the 457 fixtures where stage 2 is active:** V2 − V1 =
+  +0.00038 (SE 0.0011; 14-day block CI [−0.0008, +0.0014]). On the 303 inactive fixtures the
+  difference is exactly 0. Inactivity does not explain the dev/test difference.
+- **Pre-registration:** the primary contrast stays V2 − V1 (confirmed XIs) on 2026-27 matches
+  from gameweek 10 onward. Secondary contrasts V2x − V1x, V2x − V2 and V1x − V1 were added
+  before gameweek 10 and are labelled secondary. Predicted-lineup forecasts have their own
+  protocol (§5.10).
 
 ### 5.5 Restricted calibration layer (first review's #1)
 
@@ -206,12 +215,14 @@ ledger exactly. Raw and adjusted features correlate at 0.96 (attack) and 0.98 (d
 | descriptive V2x − V2 | −0.0005 | −0.0007, block CI [−0.0013, −0.0001] | −0.0000 |
 
 What this shows:
-- **A small, consistently signed gain** in every split. It is only individually significant on
-  the (already reused) test seasons, and about one tenth the size of the XI-strength effect.
+- **A small gain with the same sign in every aggregate split.** It is only individually
+  significant on the (already reused) test seasons, and about a quarter (23%) of the XI-strength
+  effect.
 - **Using raw and adjusted xG together is worse** than adjusted alone. The two are nearly
   collinear.
-- **Proposed decision:** adopt adjusted xG as the xG reference in place of raw (same number of
-  features, never worse), and report this as development evidence. The pre-registered V2 is
+- **Decision:** adopt adjusted xG as the xG reference in place of raw. It uses the same number of
+  features and was better on every reported aggregate split, which says nothing about every match
+  or future period. This is development evidence. The pre-registered V2 is
   unchanged; V2x would be confirmed separately.
 
 ### 5.7 Review round 2, items #3–#5 (all on the V1x base, identical fixtures)
@@ -247,7 +258,9 @@ What this shows:
   shows a consistent gain.
 
 **Current working model:** Dixon-Coles + opponent-adjusted xG strength + XI-strength ratio
-(position prior), uncalibrated. Its confirmation runs through the pre-registered 2026-27 test.
+(position prior), uncalibrated. The pre-registered primary test confirms only the original
+V2 − V1 contrast. The current model's XI contrast (V2x − V1x) and xG replacement (V2x − V2,
+V1x − V1) are separate secondary contrasts, specified before gameweek 10.
 
 ### 5.8 Projected-lineup mode (XI projected from preceding selections only)
 
@@ -260,14 +273,22 @@ gets about 7.5 of 11 starters right (2022-23: 7.64, 2023-24: 7.46, 2024-25: 7.83
 | Contrast | Dev (760) | Test (760) | 2026-27 (90) |
 |---|---|---|---|
 | **primary** V2x with projected XI − V1x | +0.0004 (SE 0.0015) | +0.0001 (SE 0.0012) | −0.0009 (SE 0.0022) |
-| V2x with confirmed XI − V1x | +0.0003 (SE 0.0007) | **−0.0038 (SE 0.0017)**, block CI [−0.0069, −0.0010] | −0.0043, block CI [−0.0092, −0.0004] |
+| V2x with confirmed XI − V1x (V2x L2 = 100) | +0.0003 (SE 0.0007) | **−0.0038 (SE 0.0017)**, block CI [−0.0069, −0.0010] | −0.0043, block CI [−0.0092, −0.0004] |
 | projected − confirmed | +0.0001 | +0.0039, block CI [+0.0003, +0.0079] | +0.0034 |
 
-What this shows:
-- **A lineup projected from history alone adds nothing over V1x.** The XI gain comes from
-  departures from the usual lineup, which the projection cannot see.
-- **Any useful pre-kickoff lineup signal therefore has to come from team news:** injuries,
-  suspensions, rotation.
+Why §5.7 shows −0.0041 and this table −0.0038 for the same confirmed-XI contrast: §5.7's "Lr"
+re-chose the stage-2 penalty on dev (L2 = 1), while here V2x uses V2's frozen L2 = 100. The
+fixtures, features and cutoffs are identical. Both reproduce exactly: −0.0041 with L2 = 1 and
+−0.0038 with L2 = 100.
+
+What this shows, narrowly:
+- **This particular history-only projection, passed through confirmed-XI coefficients, adds
+  nothing over V1x.** It does not show that every useful early lineup signal must come from
+  external team news.
+- **Two limitations of the projection:**
+  - "Last played for that team" can keep departed players and miss new arrivals. The live
+    version uses current FPL clubs instead.
+  - The top 10 outfielders need not form a plausible formation.
 
 ### 5.9 Predicted lineups from public sources, and live forecasts
 
@@ -279,7 +300,8 @@ The first snapshot (gameweek 10, retrieved 2026-11-05 06:56 UTC) shows:
   fully).
 - **FPL flags** 15 usual starters as unavailable (injury, suspension or loan).
 - **Shift from the lineup-free forecast**, as the mean (max) absolute change in any outcome
-  probability, by lineup source:
+  probability, by lineup source (the dashboard's XI view now shows the plain Scout + RotoWire
+  average, pE):
   - Scout: 1.8 (3.2) points
   - RotoWire: 2.3 (6.8) points
   - our FPL projection that drops flagged absentees: 2.9 (6.7) points
@@ -291,6 +313,31 @@ score:
 
 A dashboard shows V1x forecasts for the next four gameweeks, plus V2x forecasts for the next
 gameweek under each lineup source and their average.
+
+### 5.10 Prospective protocol for predicted lineups (from your last review)
+
+Written before gameweek 10 and summarised here.
+
+- **Horizon:** a fixed forecast time of kickoff − 24 h, logged once per fixture by a run every
+  2 hours.
+- **Each record stores:**
+  - every candidate's probability vector: p0 = V1x; V2x with the Scout XI, the RotoWire XI, and
+    their probability average pE; V2x with our FPL projection with and without the availability
+    filter
+  - lineups as player codes, unresolved names, and each source's own "last updated" text
+  - FPL availability flags
+  - the exact inputs to rebuild every candidate (checked: reconstruction difference 0)
+  - git commit and training cutoff
+- **Raw pages** are kept gzipped and the log is append-only.
+- **Fitting:** gameweeks 10–19 fit a single shrinkage α for pα = (1−α)·p0 + α·pE. α is fitted on
+  earlier logged matches only, then frozen.
+- **Evaluation:** gameweeks 20–29. Primary: pα − p0. Secondary: pE − p0, pα − pE,
+  fpl_proj − fpl_proj_hist, and each source − p0. Each uses its own paired variance, counts each
+  fixture once, and reports 14-day block CIs.
+- **Diagnostics:** correct starters, XI-feature error against the confirmed XI, and a *controlled*
+  comparison (same frozen early model with the confirmed XI substituted), reported separately
+  from any operational confirmed-lineup forecast.
+- **Frozen "unavailable" rule:** FPL status not "a" and chance of playing < 50.
 
 ## 6. Known weaknesses and open questions
 
@@ -309,13 +356,8 @@ gameweek under each lineup source and their average.
    Goal deviance is a diagnostic, not extra independent matches.
 2. **Player defence.** We have no good per-player defensive rating; FPL xG-conceded is a team
    quantity while on the pitch. Defensive actions exist only from 2025-26.
-3. **Lineups before team news.** Confirmed XIs carry the XI gain; history-only projections do not
-   (§5.8). Scraped predicted XIs include team news but have no history, so they can only be
-   evaluated prospectively. Open questions:
-   - Should a predicted-XI forecast be shrunk toward V1x in proportion to lineup uncertainty,
-     e.g. using source disagreement or each source's measured accuracy?
-   - Is it valid to apply coefficients trained on confirmed XIs to predicted XIs?
-   - How many gameweeks of snapshots are needed to rank the sources?
+3. **Lineups before team news.** Being handled by the protocol in §5.10. It will produce
+   evidence from gameweek 20 onward. Until then V1x stays the default early forecast.
 4. **XI gain: development and test seasons disagree.** The gain is null on 2022-24 (where stage 2
    is active for only 457 of 760 matches) and about −0.004 on 2024-26 and 2026-27. Is there a
    principled way to tell a real regime difference from noise, beyond the pre-registered test?
@@ -328,21 +370,17 @@ gameweek under each lineup source and their average.
 
 ## 7. What I want from you (the reviewer)
 
-Please give me:
+The predicted-lineup work is now on a fixed prospective schedule (§5.10), so no new results will
+exist for about ten gameweeks. Please give me:
 
-1. **How to use predicted lineups (§5.9, question 6.3):** a concrete, testable method for
-   turning one or more predicted XIs into a forecast, such as shrinkage toward V1x, weighting
-   sources, or using FPL availability flags only. Also a protocol for scoring the sources
-   prospectively, with the minimum number of gameweeks you would want.
-2. **The 5 highest-value improvements** to try next, ranked by expected log-loss gain relative to
-   effort, each with *why* it should help, *what data* it needs (only from the sources in §3, or a
-   named source that allows plain programmatic access), and *how to test it* under the rules in §2.
-   Please don't repeat ideas already tested in §5.5–5.8 unless you think the test was flawed, and
-   say how.
-3. **Problems with the evaluation design** in §4–5, especially the projected-lineup test (§5.8)
-   and live forecasting (§5.9): leakage risks, multiple-comparison issues, anything that would
-   make the reported gains unreliable.
-4. For each suggestion, the **simpler alternative it must beat** on identical chronological fixtures.
+1. **A critique of the protocol in §5.10** before data arrives: anything that would bias pα − p0,
+   problems with the horizon or logging rule, and whether the frozen "unavailable" rule and
+   fallbacks are sensible.
+2. **What to do with the waiting time:** up to 3 experiments that use only historical data, don't
+   reuse ideas already tested in §5.5–5.8, and don't touch the 2026-27 gameweek 10+ fixtures
+   reserved for the pre-registered and prospective tests. For each, give the simpler alternative it
+   must beat.
+3. **Problems in §5.4–5.8** that remain after the corrections.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs.

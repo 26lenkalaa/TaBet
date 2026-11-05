@@ -58,11 +58,13 @@ def parse_ffs(page: str) -> pd.DataFrame:
     for blk in re.split(r'class="team-news-item"', page)[1:]:
         name = re.search(r"<h2[^>]*>\s*([^<]+?)\s*</h2>", blk)
         team = try_resolve_team(html.unescape(name.group(1))) if name else None
+        upd = re.search(r"(?i)last updated:?\s*([^<]{4,40})", blk)
+        upd_txt = upd.group(1).strip() if upd else None
         pitch = blk.split("scout-picks-pitch", 1)[-1].split("</div>", 1)[0] if "scout-picks-pitch" in blk else ""
         for row, ul in re.findall(r'<ul class="row-(\d)">(.*?)</ul>', pitch, re.S):
             for code, pname in re.findall(r"players/110x140/(\d+)\.png.*?player-name[^>]*>([^<]+)<", ul, re.S):
                 rows.append({"team_id": team, "player_code": int(code), "source_name": html.unescape(pname).strip(),
-                             "row": int(row)})
+                             "row": int(row), "source_updated": upd_txt})
     df = pd.DataFrame(rows)
     if len(df):
         df["position"] = df["row"].map(lambda r: "GK" if r == 1 else None)  # outfield roles come from FPL

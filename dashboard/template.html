@@ -186,14 +186,14 @@ const fmtPct = x => (x * 100).toFixed(0) + "%";
 const tz = "Europe/London";
 const ko = iso => new Date(iso).toLocaleString("en-GB", { timeZone: tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const short = n => n.replace("Brighton & Hove Albion", "Brighton").replace("Wolverhampton Wanderers", "Wolves").replace("Nottingham Forest", "Nott'm Forest").replace("Manchester United", "Man United").replace("Manchester City", "Man City").replace("Tottenham Hotspur", "Spurs").replace("Newcastle United", "Newcastle");
-const SRC_NAME = { consensus: "Consensus", ffs: "Fantasy Football Scout", rotowire: "RotoWire", fpl_proj: "FPL projection" };
+const SRC_NAME = { source_average: "Scout + RotoWire average", ffs: "Fantasy Football Scout", rotowire: "RotoWire", fpl_proj: "FPL projection, absentees removed", fpl_proj_hist: "FPL projection, no team news" };
 
 const gws = [...new Set(DATA.fixtures.map(f => f.gameweek))].sort((a, b) => a - b);
 let state = { gw: gws[0], model: "free", view: "cards", open: null };
 try { const h = location.hash.match(/^#gw(\d+)$/); if (h && gws.includes(+h[1])) state.gw = +h[1]; } catch (e) {}
 
 function probs(f) {
-  if (state.model === "xi" && f.with_lineups) return f.with_lineups.consensus;
+  if (state.model === "xi" && f.with_lineups && f.with_lineups.source_average) return f.with_lineups.source_average;
   return f;
 }
 function delta(f) {
@@ -237,11 +237,11 @@ function drawer(f) {
   const top = f.top_scores.map(s => `<dt>${s.score}</dt><dd>${fmtPct(s.p)}</dd>`).join("");
   let src = "";
   if (w) {
-    const order = ["consensus", ...Object.keys(w.sources)];
+    const order = [...(w.source_average ? ["source_average"] : []), ...Object.keys(w.sources)];
     src = `<div class="panel"><h4>Forecast by lineup source</h4><div class="src">
       <span class="h">Source</span><span class="h">Home</span><span class="h">Draw</span><span class="h">Away</span>
       <span>Lineup-free</span><span>${fmtPct(f.p_home)}</span><span>${fmtPct(f.p_draw)}</span><span>${fmtPct(f.p_away)}</span>
-      ${order.map(k => { const s = k === "consensus" ? w.consensus : w.sources[k]; return `<span>${SRC_NAME[k]}</span><span>${fmtPct(s.p_home)}</span><span>${fmtPct(s.p_draw)}</span><span>${fmtPct(s.p_away)}</span>`; }).join("")}
+      ${order.map(k => { const s = k === "source_average" ? w.source_average : w.sources[k]; return `<span>${SRC_NAME[k]}</span><span>${fmtPct(s.p_home)}</span><span>${fmtPct(s.p_draw)}</span><span>${fmtPct(s.p_away)}</span>`; }).join("")}
     </div>${w.agreement ? `<p class="note">Scout and RotoWire agree on ${w.agreement.home}/11 ${short(f.home)} and ${w.agreement.away}/11 ${short(f.away)} starters.</p>` : ""}</div>`;
     const srcs = Object.keys(w.lineups);
     src += `<div class="panel"><h4>Predicted XI <select id="xisrc" aria-label="Lineup source">${srcs.map(s => `<option value="${s}">${SRC_NAME[s]}</option>`).join("")}</select></h4><div class="xi" id="xilist"></div>
@@ -254,7 +254,7 @@ function drawer(f) {
       <div class="panel"><h4>How the forecast is built</h4><div class="kv">
         <dt>Team ratings + home advantage</dt><dd>${fmtPct(f.base_home)} / ${fmtPct(f.base_draw)} / ${fmtPct(f.base_away)}</dd>
         <dt>+ opponent-adjusted xG form</dt><dd>${fmtPct(f.p_home)} / ${fmtPct(f.p_draw)} / ${fmtPct(f.p_away)}</dd>
-        ${w ? `<dt>+ predicted XIs (consensus)</dt><dd>${fmtPct(w.consensus.p_home)} / ${fmtPct(w.consensus.p_draw)} / ${fmtPct(w.consensus.p_away)}</dd>` : `<dt>+ predicted XIs</dt><dd class="note" style="font-weight:500">from the next gameweek only</dd>`}
+        ${w && w.source_average ? `<dt>+ predicted XIs (Scout + RotoWire)</dt><dd>${fmtPct(w.source_average.p_home)} / ${fmtPct(w.source_average.p_draw)} / ${fmtPct(w.source_average.p_away)}</dd>` : `<dt>+ predicted XIs</dt><dd class="note" style="font-weight:500">from the next gameweek only</dd>`}
       </div></div>
       <div class="panel"><h4>Goals</h4><div class="kv">
         <dt>Expected goals</dt><dd>${p.xg_home.toFixed(2)} – ${p.xg_away.toFixed(2)}</dd>
@@ -280,13 +280,13 @@ function renderTable(list) {
 function render() {
   renderMeta();
   const list = DATA.fixtures.filter(f => f.gameweek === state.gw);
-  const xiAvail = list.some(f => f.with_lineups);
+  const xiAvail = list.some(f => f.with_lineups && f.with_lineups.source_average);
   $("#m-xi").disabled = !xiAvail;
   if (!xiAvail && state.model === "xi") state.model = "free";
   $("#m-free").setAttribute("aria-pressed", state.model === "free"); $("#m-xi").setAttribute("aria-pressed", state.model === "xi");
   $("#v-cards").setAttribute("aria-pressed", state.view === "cards"); $("#v-table").setAttribute("aria-pressed", state.view === "table");
   $("#modelnote").textContent = state.model === "xi"
-    ? "Change vs lineup-free, in points. XI model averaged over three lineup sources."
+    ? "Change vs lineup-free, in points. Average of the Scout and RotoWire XI forecasts; experimental, no track record yet."
     : "Change vs team ratings alone, in points." + (xiAvail ? "" : " Predicted XIs are only published for the next gameweek.");
   $("#cards").hidden = state.view !== "cards"; $("#table").hidden = state.view !== "table";
   $("#cards").innerHTML = list.map(card).join("");

@@ -84,6 +84,33 @@ def cmd_history(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_forecast(args: argparse.Namespace) -> int:
+    from .forecast import forecast, save
+    fc = forecast(gameweeks=args.gameweeks, refresh=True, lineups=not args.no_lineups)
+    print(f"saved {save(fc)}")
+    return 0
+
+
+def cmd_log_forecasts(args: argparse.Namespace) -> int:
+    from .prospective import log_due
+    recs = log_due(horizon_h=args.horizon, every_h=args.every, dry_run=args.dry_run)
+    if args.dry_run:
+        print(f"{len(recs)} fixture(s) due:", [f"{r['home_id']} v {r['away_id']}" for r in recs])
+    else:
+        print(f"logged {len(recs)} fixture(s)")
+    return 0
+
+
+def cmd_score_forecasts(args: argparse.Namespace) -> int:
+    from .prospective import score, summarise
+    s = score()
+    if s.empty:
+        print("nothing to score yet")
+        return 0
+    print(summarise(s, args.horizon).round(4).to_string(index=False))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tabet", description="TaBet data pipeline")
     p.add_argument("--res", type=Path, default=Path("res"), help="directory of season CSVs")
@@ -100,6 +127,21 @@ def main(argv: list[str] | None = None) -> int:
     h.add_argument("--cutoff", required=True, help="ISO time with timezone, e.g. 2026-01-01T12:00Z")
     h.add_argument("--last", type=int, default=None)
     h.set_defaults(func=cmd_history)
+
+    f = sub.add_parser("forecast", help="forecast upcoming fixtures and save the result")
+    f.add_argument("--gameweeks", type=int, default=4)
+    f.add_argument("--no-lineups", action="store_true")
+    f.set_defaults(func=cmd_forecast)
+
+    lg = sub.add_parser("log-forecasts", help="log forecasts for fixtures due at the fixed horizon (run every 2h)")
+    lg.add_argument("--horizon", type=float, default=24.0, help="hours before kickoff")
+    lg.add_argument("--every", type=float, default=2.0, help="hours between scheduled runs")
+    lg.add_argument("--dry-run", action="store_true")
+    lg.set_defaults(func=cmd_log_forecasts)
+
+    sc = sub.add_parser("score-forecasts", help="score logged forecasts against confirmed XIs and results")
+    sc.add_argument("--horizon", type=float, default=24.0)
+    sc.set_defaults(func=cmd_score_forecasts)
 
     args = p.parse_args(argv)
     return args.func(args)

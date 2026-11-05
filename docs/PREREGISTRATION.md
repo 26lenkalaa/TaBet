@@ -25,3 +25,17 @@ confirmatory test on fixtures nobody has seen.
   generated and stored before each matchday, with cutoff, feature snapshot and model version.
   Until that logger exists, the evaluation will be a replay with the frozen code, and must be
   labelled that way.
+
+## Addendum (2026-11-05, before any gameweek-10 kickoff): secondary contrasts
+
+The primary contrast above (V2 − V1, confirmed XIs) is unchanged. The model has since been
+revised (opponent-adjusted xG, §5.6 of the brief), so these **secondary** contrasts are specified
+now, on the same fixtures, with the same 14-day block bootstrap. They do not change the primary
+decision.
+
+- **S1: V2x − V1x.** XI strength conditional on adjusted xG. Settings: xG half-life 90 days, V1x
+  L2 = 1, V2x L2 = 100 (frozen V2 value).
+- **S2: V2x − V2.** Adjusted xG conditional on XI features.
+- **S3: V1x − V1.** Adjusted xG replacing raw xG form.
+
+Predicted-lineup forecasts are covered by `docs/PROSPECTIVE_PROTOCOL.md`, not by this document.
