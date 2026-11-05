@@ -1,0 +1,1605 @@
+{
+  "lambda_chosen_on_dev": {
+    "V0 Dixon-Coles | identity": null,
+    "V0 Dixon-Coles | temperature": 1000.0,
+    "V0 Dixon-Coles | temperature+draw": 1000.0,
+    "V1 + team xG form | identity": null,
+    "V1 + team xG form | temperature": 1000.0,
+    "V1 + team xG form | temperature+draw": 1000.0,
+    "V1c = V1 + back-line continuity | identity": null,
+    "V1c = V1 + back-line continuity | temperature": 1000.0,
+    "V1c = V1 + back-line continuity | temperature+draw": 1000.0,
+    "V1s = V1 + style main effects | identity": null,
+    "V1s = V1 + style main effects | temperature": 1000.0,
+    "V1s = V1 + style main effects | temperature+draw": 1000.0,
+    "V2 + XI strength (position prior) | identity": null,
+    "V2 + XI strength (position prior) | temperature": 1000.0,
+    "V2 + XI strength (position prior) | temperature+draw": 1000.0,
+    "V3 + XI strength (similar-player prior) | identity": null,
+    "V3 + XI strength (similar-player prior) | temperature": 1000.0,
+    "V3 + XI strength (similar-player prior) | temperature+draw": 1000.0,
+    "V4 = V2 + style main effects | identity": null,
+    "V4 = V2 + style main effects | temperature": 1000.0,
+    "V4 = V2 + style main effects | temperature+draw": 1000.0,
+    "V5 = V4 + style interactions | identity": null,
+    "V5 = V4 + style interactions | temperature": 1000.0,
+    "V5 = V4 + style interactions | temperature+draw": 1000.0
+  },
+  "dev": {
+    "scores": {
+      "V0 Dixon-Coles | identity": {
+        "log_loss": 0.9623700061547688,
+        "brier": 0.5700490137340504,
+        "rps": 0.1989593701423682,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V0 Dixon-Coles | temperature": {
+        "log_loss": 0.9623743626981005,
+        "brier": 0.5700512456961095,
+        "rps": 0.1989570245043603,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "log_loss": 0.9624103725921812,
+        "brier": 0.5700662487156051,
+        "rps": 0.19895910524760993,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V1 + team xG form | identity": {
+        "log_loss": 0.9612766186198811,
+        "brier": 0.5692443498627201,
+        "rps": 0.19852920738288798,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V1 + team xG form | temperature": {
+        "log_loss": 0.9613107001477601,
+        "brier": 0.5692661746068528,
+        "rps": 0.19853652486911297,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V1 + team xG form | temperature+draw": {
+        "log_loss": 0.9613456507870589,
+        "brier": 0.5692816142802909,
+        "rps": 0.19853915999789198,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "log_loss": 0.9617193065950729,
+        "brier": 0.5695349798624442,
+        "rps": 0.19865314592639466,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "log_loss": 0.9617544841031872,
+        "brier": 0.5695575342001322,
+        "rps": 0.19866084986491345,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "log_loss": 0.9617894523317354,
+        "brier": 0.5695729613310533,
+        "rps": 0.1986634832804235,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | identity": {
+        "log_loss": 0.9603345059053765,
+        "brier": 0.5686010606519192,
+        "rps": 0.19818655851191275,
+        "accuracy": 0.5552631578947368,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "log_loss": 0.9603861673932658,
+        "brier": 0.5686322009329563,
+        "rps": 0.19820030281710807,
+        "accuracy": 0.5552631578947368,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "log_loss": 0.9604186268314633,
+        "brier": 0.5686472850879104,
+        "rps": 0.1982031730812952,
+        "accuracy": 0.5552631578947368,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "log_loss": 0.9615060989270815,
+        "brier": 0.5692405217011373,
+        "rps": 0.198519977075069,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "log_loss": 0.9615383908085625,
+        "brier": 0.5692613780154454,
+        "rps": 0.19852665890074772,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "log_loss": 0.9615734818095806,
+        "brier": 0.5692766783706723,
+        "rps": 0.19852920117865094,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "log_loss": 0.9612294594941294,
+        "brier": 0.5691000693558732,
+        "rps": 0.19850692426206099,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "log_loss": 0.9612618666809463,
+        "brier": 0.5691208300673656,
+        "rps": 0.19851357413916726,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "log_loss": 0.9612968107459445,
+        "brier": 0.5691363636065022,
+        "rps": 0.1985162049638532,
+        "accuracy": 0.5526315789473685,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | identity": {
+        "log_loss": 0.9605470568196447,
+        "brier": 0.5686068655973842,
+        "rps": 0.1981802901116643,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "log_loss": 0.9605992764876874,
+        "brier": 0.568639258201572,
+        "rps": 0.19819446633737192,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "log_loss": 0.9606318818756325,
+        "brier": 0.5686542807193242,
+        "rps": 0.19819730548143694,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | identity": {
+        "log_loss": 0.9602319431400248,
+        "brier": 0.568708175309368,
+        "rps": 0.19812965775753064,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "log_loss": 0.9602836176946431,
+        "brier": 0.5687398335305462,
+        "rps": 0.19814346021782847,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "log_loss": 0.960315723105963,
+        "brier": 0.5687542233270972,
+        "rps": 0.19814619374217887,
+        "accuracy": 0.5539473684210526,
+        "n": 760
+      }
+    },
+    "calibration_contrasts": {
+      "V0 Dixon-Coles: temperature - identity": {
+        "mean": 4.356543331721122e-06,
+        "fixture_ci": [
+          -6.858449683064227e-05,
+          7.30383616282236e-05
+        ],
+        "block14d_ci": [
+          -6.641211085184428e-05,
+          6.880235101756286e-05
+        ],
+        "se": 3.678265476301315e-05
+      },
+      "V0 Dixon-Coles: temperature+draw - temperature": {
+        "mean": 3.600989408073529e-05,
+        "fixture_ci": [
+          -5.742635258719018e-06,
+          7.832951929100075e-05
+        ],
+        "block14d_ci": [
+          -7.343970930856459e-07,
+          7.585074955501934e-05
+        ],
+        "se": 2.1799421748723516e-05
+      },
+      "V0 Dixon-Coles: temperature+draw - identity": {
+        "mean": 4.0366437412456414e-05,
+        "fixture_ci": [
+          -5.941990066525735e-05,
+          0.00013483468038780083
+        ],
+        "block14d_ci": [
+          -3.5105623120501124e-05,
+          0.00011498357420340903
+        ],
+        "se": 5.01481005705826e-05
+      },
+      "V2 + XI strength (position prior): temperature - identity": {
+        "mean": 3.229188148098585e-05,
+        "fixture_ci": [
+          -2.5498632913038824e-05,
+          8.752242907060654e-05
+        ],
+        "block14d_ci": [
+          -1.5716259334241446e-05,
+          8.01614392775862e-05
+        ],
+        "se": 2.8977714364095717e-05
+      },
+      "V2 + XI strength (position prior): temperature+draw - temperature": {
+        "mean": 3.509100101787151e-05,
+        "fixture_ci": [
+          -4.965978562090383e-06,
+          7.48696961894545e-05
+        ],
+        "block14d_ci": [
+          -7.670218251241525e-08,
+          7.55614239465591e-05
+        ],
+        "se": 2.0497109391524624e-05
+      },
+      "V2 + XI strength (position prior): temperature+draw - identity": {
+        "mean": 6.738288249885737e-05,
+        "fixture_ci": [
+          -1.5031262127852843e-05,
+          0.0001433120120495719
+        ],
+        "block14d_ci": [
+          8.62418261931055e-06,
+          0.00012878302495169467
+        ],
+        "se": 4.096087153333483e-05
+      }
+    },
+    "feature_contrasts_by_mode": {
+      "V2 - V1 | identity": {
+        "mean": 0.0002294803072005399,
+        "fixture_ci": [
+          -0.0010209973238639884,
+          0.00150975785307382
+        ],
+        "block14d_ci": [
+          -0.0009134204757775906,
+          0.001337036088642172
+        ]
+      },
+      "V2 - V1 | temperature": {
+        "mean": 0.00022769066080242107,
+        "fixture_ci": [
+          -0.0010231561632364145,
+          0.0015086745537587175
+        ],
+        "block14d_ci": [
+          -0.0009157107444501191,
+          0.0013359309564034757
+        ]
+      },
+      "V2 - V1 | temperature+draw": {
+        "mean": 0.00022783102252141118,
+        "fixture_ci": [
+          -0.0010228290189749412,
+          0.0015081219589176958
+        ],
+        "block14d_ci": [
+          -0.0009159231188319164,
+          0.001336162216230061
+        ]
+      }
+    },
+    "draws": {
+      "V0 Dixon-Coles | identity": {
+        "predicted": 169.80474073850422,
+        "observed": 169
+      },
+      "V0 Dixon-Coles | temperature": {
+        "predicted": 169.69740020949246,
+        "observed": 169
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "predicted": 169.59415544104593,
+        "observed": 169
+      },
+      "V1 + team xG form | identity": {
+        "predicted": 167.35850801847246,
+        "observed": 169
+      },
+      "V1 + team xG form | temperature": {
+        "predicted": 167.30727368911778,
+        "observed": 169
+      },
+      "V1 + team xG form | temperature+draw": {
+        "predicted": 167.23517547238527,
+        "observed": 169
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "predicted": 167.3759629852312,
+        "observed": 169
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "predicted": 167.32822849463128,
+        "observed": 169
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "predicted": 167.25501079046666,
+        "observed": 169
+      },
+      "V1s = V1 + style main effects | identity": {
+        "predicted": 165.67653578687748,
+        "observed": 169
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "predicted": 165.72135828983784,
+        "observed": 169
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "predicted": 165.67817081539198,
+        "observed": 169
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "predicted": 167.52013327373524,
+        "observed": 169
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "predicted": 167.46356333426777,
+        "observed": 169
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "predicted": 167.38834359216202,
+        "observed": 169
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "predicted": 167.40267882800467,
+        "observed": 169
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "predicted": 167.34479285253724,
+        "observed": 169
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "predicted": 167.27109319407998,
+        "observed": 169
+      },
+      "V4 = V2 + style main effects | identity": {
+        "predicted": 165.75563178364322,
+        "observed": 169
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "predicted": 165.80127206484028,
+        "observed": 169
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "predicted": 165.7565822870564,
+        "observed": 169
+      },
+      "V5 = V4 + style interactions | identity": {
+        "predicted": 165.50258895180835,
+        "observed": 169
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "predicted": 165.55144122932217,
+        "observed": 169
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "predicted": 165.50975823587592,
+        "observed": 169
+      }
+    },
+    "params": {
+      "V0 Dixon-Coles | temperature": {
+        "T_last": 0.9959679164848533,
+        "delta_last": 0.0,
+        "T_mean": 0.9984016067318944,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "T_last": 0.9959409919131706,
+        "delta_last": 0.0007258695046754183,
+        "T_mean": 0.998425689399382,
+        "delta_mean": -0.0011405055545572976,
+        "share_active": 0.7368421052631579
+      },
+      "V1 + team xG form | temperature": {
+        "T_last": 0.9981934089667885,
+        "delta_last": 0.0,
+        "T_mean": 0.9993011821837031,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V1 + team xG form | temperature+draw": {
+        "T_last": 0.9981290408074799,
+        "delta_last": 0.00175209637746026,
+        "T_mean": 0.99931488612772,
+        "delta_mean": -0.0008046362726962549,
+        "share_active": 0.7368421052631579
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "T_last": 0.9983209203298369,
+        "delta_last": 0.0,
+        "T_mean": 0.9993524850341586,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "T_last": 0.9982567136304821,
+        "delta_last": 0.0017397329086936027,
+        "T_mean": 0.9993665169641007,
+        "delta_mean": -0.000816792060219648,
+        "share_active": 0.7368421052631579
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "T_last": 1.0016520153105606,
+        "delta_last": 0.0,
+        "T_mean": 1.0007402869645443,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "T_last": 1.001561648981102,
+        "delta_last": 0.0023901651715024976,
+        "T_mean": 1.000744654645337,
+        "delta_mean": -0.0004873365670633936,
+        "share_active": 0.7368421052631579
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "T_last": 0.9979617755355179,
+        "delta_last": 0.0,
+        "T_mean": 0.9992182208056083,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "T_last": 0.9978984806989846,
+        "delta_last": 0.0016838056341265514,
+        "T_mean": 0.9992328483892812,
+        "delta_mean": -0.0008373167421750375,
+        "share_active": 0.7368421052631579
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "T_last": 0.9980093905514271,
+        "delta_last": 0.0,
+        "T_mean": 0.9991983589769721,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "T_last": 0.9979441352565567,
+        "delta_last": 0.0017357326159050982,
+        "T_mean": 0.9992124508038941,
+        "delta_mean": -0.0008207171001079849,
+        "share_active": 0.7368421052631579
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "T_last": 1.0016131068706864,
+        "delta_last": 0.0,
+        "T_mean": 1.0007496705669408,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "T_last": 1.001524068134875,
+        "delta_last": 0.0023545224582357067,
+        "T_mean": 1.0007545169563872,
+        "delta_mean": -0.0005028595947271614,
+        "share_active": 0.7368421052631579
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "T_last": 1.002181004127764,
+        "delta_last": 0.0,
+        "T_mean": 1.0007993149093115,
+        "delta_mean": 0.0,
+        "share_active": 0.7368421052631579
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "T_last": 1.0020884995035257,
+        "delta_last": 0.0024426892569767845,
+        "T_mean": 1.000803066311444,
+        "delta_mean": -0.0004652837988517685,
+        "share_active": 0.7368421052631579
+      }
+    }
+  },
+  "test": {
+    "scores": {
+      "V0 Dixon-Coles | identity": {
+        "log_loss": 1.0042098905140262,
+        "brier": 0.6010296239468491,
+        "rps": 0.204967606128102,
+        "accuracy": 0.4921052631578947,
+        "n": 760
+      },
+      "V0 Dixon-Coles | temperature": {
+        "log_loss": 1.004259264788511,
+        "brier": 0.6010748510947344,
+        "rps": 0.2049743770363172,
+        "accuracy": 0.4921052631578947,
+        "n": 760
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "log_loss": 1.0042491696118396,
+        "brier": 0.6010684179573295,
+        "rps": 0.2049722496397419,
+        "accuracy": 0.4921052631578947,
+        "n": 760
+      },
+      "V1 + team xG form | identity": {
+        "log_loss": 1.0019683359123013,
+        "brier": 0.5995627015826869,
+        "rps": 0.20415723395230195,
+        "accuracy": 0.49736842105263157,
+        "n": 760
+      },
+      "V1 + team xG form | temperature": {
+        "log_loss": 1.0020200974733116,
+        "brier": 0.5996000780397002,
+        "rps": 0.20416713620747254,
+        "accuracy": 0.49736842105263157,
+        "n": 760
+      },
+      "V1 + team xG form | temperature+draw": {
+        "log_loss": 1.0019587497853162,
+        "brier": 0.599564211178489,
+        "rps": 0.20415907484673662,
+        "accuracy": 0.49736842105263157,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "log_loss": 1.001092050155241,
+        "brier": 0.598924216656896,
+        "rps": 0.2038456604457274,
+        "accuracy": 0.5,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "log_loss": 1.0011432733616052,
+        "brier": 0.5989607780156179,
+        "rps": 0.20385511175617343,
+        "accuracy": 0.5,
+        "n": 760
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "log_loss": 1.0010837857197223,
+        "brier": 0.5989265215868768,
+        "rps": 0.20384742972329878,
+        "accuracy": 0.5,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | identity": {
+        "log_loss": 1.0046994747638727,
+        "brier": 0.6016029940125991,
+        "rps": 0.2051146878831437,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "log_loss": 1.004680393520582,
+        "brier": 0.6015849326458964,
+        "rps": 0.205110231853323,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "log_loss": 1.0046068580384,
+        "brier": 0.6015408906641866,
+        "rps": 0.20510017117373924,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "log_loss": 0.9979840054567136,
+        "brier": 0.5967191490616933,
+        "rps": 0.20286196084854993,
+        "accuracy": 0.5052631578947369,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "log_loss": 0.9980400907468364,
+        "brier": 0.5967599970993285,
+        "rps": 0.20287228060483634,
+        "accuracy": 0.5052631578947369,
+        "n": 760
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "log_loss": 0.9979821503812513,
+        "brier": 0.596728220255212,
+        "rps": 0.20286556408773246,
+        "accuracy": 0.5052631578947369,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "log_loss": 0.9982270882027401,
+        "brier": 0.5968804704125157,
+        "rps": 0.2028682958124083,
+        "accuracy": 0.5039473684210526,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "log_loss": 0.9982833249231609,
+        "brier": 0.5969210674842164,
+        "rps": 0.20287888207869792,
+        "accuracy": 0.5039473684210526,
+        "n": 760
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "log_loss": 0.9982239676916285,
+        "brier": 0.5968882544945189,
+        "rps": 0.20287179176790482,
+        "accuracy": 0.5039473684210526,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | identity": {
+        "log_loss": 1.0003414868936682,
+        "brier": 0.5984991498583108,
+        "rps": 0.20369235075787706,
+        "accuracy": 0.5013157894736842,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "log_loss": 1.0003429432059272,
+        "brier": 0.5984962160342143,
+        "rps": 0.20369374261766604,
+        "accuracy": 0.5013157894736842,
+        "n": 760
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "log_loss": 1.0002707944816895,
+        "brier": 0.5984550746510694,
+        "rps": 0.20368483295956416,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | identity": {
+        "log_loss": 0.9985476468567385,
+        "brier": 0.5969227612643426,
+        "rps": 0.20284003106822648,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "log_loss": 0.9985415974266412,
+        "brier": 0.5969155206866051,
+        "rps": 0.20284079509992575,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "log_loss": 0.9984609282563711,
+        "brier": 0.5968700316052711,
+        "rps": 0.202831382740496,
+        "accuracy": 0.5026315789473684,
+        "n": 760
+      }
+    },
+    "calibration_contrasts": {
+      "V0 Dixon-Coles: temperature - identity": {
+        "mean": 4.9374274484846255e-05,
+        "fixture_ci": [
+          -0.00012164742761943309,
+          0.0002283293761523436
+        ],
+        "block14d_ci": [
+          -7.798786076162534e-05,
+          0.00019567460123311298
+        ],
+        "se": 8.874303567987823e-05
+      },
+      "V0 Dixon-Coles: temperature+draw - temperature": {
+        "mean": -1.009517667125981e-05,
+        "fixture_ci": [
+          -0.00010237529830600271,
+          7.670129239122891e-05
+        ],
+        "block14d_ci": [
+          -0.00010900437676485132,
+          8.576620873276506e-05
+        ],
+        "se": 4.6775664076100044e-05
+      },
+      "V0 Dixon-Coles: temperature+draw - identity": {
+        "mean": 3.927909781358645e-05,
+        "fixture_ci": [
+          -0.00011653100904986372,
+          0.00020934743647040875
+        ],
+        "block14d_ci": [
+          -0.00010048631363453635,
+          0.0001844181006014355
+        ],
+        "se": 8.371747301691578e-05
+      },
+      "V2 + XI strength (position prior): temperature - identity": {
+        "mean": 5.608529012270729e-05,
+        "fixture_ci": [
+          -2.8597015238595722e-05,
+          0.0001509745373016777
+        ],
+        "block14d_ci": [
+          -3.2969818371376505e-06,
+          0.00011962558306822369
+        ],
+        "se": 4.403060823969841e-05
+      },
+      "V2 + XI strength (position prior): temperature+draw - temperature": {
+        "mean": -5.7940365585069654e-05,
+        "fixture_ci": [
+          -0.0002029467399452232,
+          8.299706143491486e-05
+        ],
+        "block14d_ci": [
+          -0.00021746568961877476,
+          9.615508686157177e-05
+        ],
+        "se": 7.512109622134182e-05
+      },
+      "V2 + XI strength (position prior): temperature+draw - identity": {
+        "mean": -1.8550754623623676e-06,
+        "fixture_ci": [
+          -0.00014125284925121844,
+          0.0001355051136247966
+        ],
+        "block14d_ci": [
+          -0.0001623110685994791,
+          0.0001440775978929192
+        ],
+        "se": 7.343289898438171e-05
+      }
+    },
+    "feature_contrasts_by_mode": {
+      "V2 - V1 | identity": {
+        "mean": -0.0039843304555877285,
+        "fixture_ci": [
+          -0.007349262414431122,
+          -0.0006283309419117747
+        ],
+        "block14d_ci": [
+          -0.007035188166419122,
+          -0.0011736894735453005
+        ]
+      },
+      "V2 - V1 | temperature": {
+        "mean": -0.003980006726475107,
+        "fixture_ci": [
+          -0.007347671170164862,
+          -0.0006372979404532871
+        ],
+        "block14d_ci": [
+          -0.00702914434459214,
+          -0.0011686065843410833
+        ]
+      },
+      "V2 - V1 | temperature+draw": {
+        "mean": -0.003976599404064777,
+        "fixture_ci": [
+          -0.007343847765931361,
+          -0.0006305002178798278
+        ],
+        "block14d_ci": [
+          -0.007028284984663455,
+          -0.0011631328226264905
+        ]
+      }
+    },
+    "draws": {
+      "V0 Dixon-Coles | identity": {
+        "predicted": 183.79362981350593,
+        "observed": 197
+      },
+      "V0 Dixon-Coles | temperature": {
+        "predicted": 183.37591571129724,
+        "observed": 197
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "predicted": 183.7311357437246,
+        "observed": 197
+      },
+      "V1 + team xG form | identity": {
+        "predicted": 179.76143178755703,
+        "observed": 197
+      },
+      "V1 + team xG form | temperature": {
+        "predicted": 179.62722902004856,
+        "observed": 197
+      },
+      "V1 + team xG form | temperature+draw": {
+        "predicted": 180.2482836938406,
+        "observed": 197
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "predicted": 179.92146209378615,
+        "observed": 197
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "predicted": 179.78747582994583,
+        "observed": 197
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "predicted": 180.4058898068112,
+        "observed": 197
+      },
+      "V1s = V1 + style main effects | identity": {
+        "predicted": 179.36689966111703,
+        "observed": 197
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "predicted": 179.58159365856102,
+        "observed": 197
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "predicted": 180.28443519845547,
+        "observed": 197
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "predicted": 180.1746699539911,
+        "observed": 197
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "predicted": 179.9949665186212,
+        "observed": 197
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "predicted": 180.6040615104175,
+        "observed": 197
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "predicted": 180.06196896702554,
+        "observed": 197
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "predicted": 179.89565868857972,
+        "observed": 197
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "predicted": 180.5147432495296,
+        "observed": 197
+      },
+      "V4 = V2 + style main effects | identity": {
+        "predicted": 179.61254371378448,
+        "observed": 197
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "predicted": 179.79957502069374,
+        "observed": 197
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "predicted": 180.49759473961944,
+        "observed": 197
+      },
+      "V5 = V4 + style interactions | identity": {
+        "predicted": 178.99338168701684,
+        "observed": 197
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "predicted": 179.23607063199856,
+        "observed": 197
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "predicted": 179.95686012856262,
+        "observed": 197
+      }
+    },
+    "params": {
+      "V0 Dixon-Coles | temperature": {
+        "T_last": 0.9952072371087695,
+        "delta_last": 0.0,
+        "T_mean": 0.9942218397322512,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "T_last": 0.9948264089778626,
+        "delta_last": 0.005693921851945938,
+        "T_mean": 0.9940769867179705,
+        "delta_mean": 0.0025907199952872367,
+        "share_active": 1.0
+      },
+      "V1 + team xG form | temperature": {
+        "T_last": 1.0006252087364131,
+        "delta_last": 0.0,
+        "T_mean": 0.9983501705980532,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1 + team xG form | temperature+draw": {
+        "T_last": 1.0000693278439041,
+        "delta_last": 0.00820510980007899,
+        "T_mean": 0.9980882245268164,
+        "delta_mean": 0.004631875154808463,
+        "share_active": 1.0
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "T_last": 1.0005773263828117,
+        "delta_last": 0.0,
+        "T_mean": 0.998341741262558,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "T_last": 1.0000275104325758,
+        "delta_last": 0.008127536787902439,
+        "T_mean": 0.9980813314969756,
+        "delta_mean": 0.004610227964646544,
+        "share_active": 1.0
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "T_last": 1.0057304582647024,
+        "delta_last": 0.0,
+        "T_mean": 1.0030759603820278,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "T_last": 1.0051355635529038,
+        "delta_last": 0.008772940295034413,
+        "T_mean": 1.0027799415945173,
+        "delta_mean": 0.005254429650418456,
+        "share_active": 1.0
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "T_last": 0.9991589194909274,
+        "delta_last": 0.0,
+        "T_mean": 0.9976871817688084,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "T_last": 0.9986128345077901,
+        "delta_last": 0.008068706374656452,
+        "T_mean": 0.9974308210472372,
+        "delta_mean": 0.004537753925272162,
+        "share_active": 1.0
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "T_last": 0.9997253573920053,
+        "delta_last": 0.0,
+        "T_mean": 0.997889118510332,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "T_last": 0.999175242686607,
+        "delta_last": 0.008128118864765495,
+        "T_mean": 0.997628476035623,
+        "delta_mean": 0.004615890795819393,
+        "share_active": 1.0
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "T_last": 1.0045709400752518,
+        "delta_last": 0.0,
+        "T_mean": 1.0026663286741897,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "T_last": 1.0039795196017767,
+        "delta_last": 0.008725310471148122,
+        "T_mean": 1.0023726357448441,
+        "delta_mean": 0.005216900719730684,
+        "share_active": 1.0
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "T_last": 1.0052462945055833,
+        "delta_last": 0.0,
+        "T_mean": 1.0033744881063553,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "T_last": 1.0046297243577398,
+        "delta_last": 0.009062324978075059,
+        "T_mean": 1.0030693670561408,
+        "delta_mean": 0.005403811330082404,
+        "share_active": 1.0
+      }
+    }
+  },
+  "forward_2026_27": {
+    "scores": {
+      "V0 Dixon-Coles | identity": {
+        "log_loss": 1.03618486826168,
+        "brier": 0.6201076953664101,
+        "rps": 0.21220228494288992,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V0 Dixon-Coles | temperature": {
+        "log_loss": 1.0362595871955556,
+        "brier": 0.6201442291150261,
+        "rps": 0.21222329150342942,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "log_loss": 1.0362555580267592,
+        "brier": 0.620102639555795,
+        "rps": 0.2122111758703501,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1 + team xG form | identity": {
+        "log_loss": 1.035940839552626,
+        "brier": 0.6197026485128313,
+        "rps": 0.21198864016808092,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1 + team xG form | temperature": {
+        "log_loss": 1.0359446109241799,
+        "brier": 0.6197068237121439,
+        "rps": 0.21198613448329331,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1 + team xG form | temperature+draw": {
+        "log_loss": 1.0359024671134243,
+        "brier": 0.6196269018284939,
+        "rps": 0.21196564407323223,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "log_loss": 1.0378201552150659,
+        "brier": 0.6216984161407296,
+        "rps": 0.21287365908279526,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "log_loss": 1.0378203161670319,
+        "brier": 0.6216984185896964,
+        "rps": 0.21286911643830284,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "log_loss": 1.0377771796882007,
+        "brier": 0.6216153389332059,
+        "rps": 0.21284675751992085,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V1s = V1 + style main effects | identity": {
+        "log_loss": 1.0442647898897062,
+        "brier": 0.6246179212403422,
+        "rps": 0.2144079909185676,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "log_loss": 1.0441056413812009,
+        "brier": 0.6245387365553455,
+        "rps": 0.21435804402014075,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "log_loss": 1.0440641999702778,
+        "brier": 0.6244440204549242,
+        "rps": 0.21433142878241576,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "log_loss": 1.0315022904127258,
+        "brier": 0.6171922138444698,
+        "rps": 0.21069554063837181,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "log_loss": 1.0315306366138894,
+        "brier": 0.6172085491493225,
+        "rps": 0.2107005299971928,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "log_loss": 1.0314885031075072,
+        "brier": 0.617133015090098,
+        "rps": 0.21068157396605128,
+        "accuracy": 0.4444444444444444,
+        "n": 90
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "log_loss": 1.0278537247155841,
+        "brier": 0.6147308954760434,
+        "rps": 0.2094084529384099,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "log_loss": 1.0278791239084446,
+        "brier": 0.6147454848625487,
+        "rps": 0.20941229078041412,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "log_loss": 1.027839799755261,
+        "brier": 0.6146777233419172,
+        "rps": 0.20939578498679634,
+        "accuracy": 0.43333333333333335,
+        "n": 90
+      },
+      "V4 = V2 + style main effects | identity": {
+        "log_loss": 1.0389117470972886,
+        "brier": 0.6215479912239996,
+        "rps": 0.21293509602939378,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "log_loss": 1.0388174948518945,
+        "brier": 0.6214983303347754,
+        "rps": 0.21290025249590372,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "log_loss": 1.0387728979435453,
+        "brier": 0.6214055259287036,
+        "rps": 0.21287485682433066,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      },
+      "V5 = V4 + style interactions | identity": {
+        "log_loss": 1.0455394734989498,
+        "brier": 0.6266501519737135,
+        "rps": 0.21563033822546196,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "log_loss": 1.0453592788442754,
+        "brier": 0.6265397188601924,
+        "rps": 0.21556427697828545,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "log_loss": 1.0453061350933597,
+        "brier": 0.6264225830243574,
+        "rps": 0.21553050707487395,
+        "accuracy": 0.4111111111111111,
+        "n": 90
+      }
+    },
+    "calibration_contrasts": {
+      "V0 Dixon-Coles: temperature - identity": {
+        "mean": 7.471893387567294e-05,
+        "fixture_ci": [
+          -0.0002483746566759522,
+          0.000435538627910919
+        ],
+        "block14d_ci": [
+          -0.00022795495917742604,
+          0.00040460837357051907
+        ],
+        "se": 0.00017828875127744707
+      },
+      "V0 Dixon-Coles: temperature+draw - temperature": {
+        "mean": -4.029168796669998e-06,
+        "fixture_ci": [
+          -0.0005671683692422259,
+          0.0005184799198775384
+        ],
+        "block14d_ci": [
+          -0.000670207613808278,
+          0.00046509791780429316
+        ],
+        "se": 0.0002871602379069124
+      },
+      "V0 Dixon-Coles: temperature+draw - identity": {
+        "mean": 7.068976507900295e-05,
+        "fixture_ci": [
+          -0.0004963682017331942,
+          0.0006613233034072945
+        ],
+        "block14d_ci": [
+          -0.00047253070180426046,
+          0.0006764920014210776
+        ],
+        "se": 0.00029261457858993764
+      },
+      "V2 + XI strength (position prior): temperature - identity": {
+        "mean": 2.8346201163402684e-05,
+        "fixture_ci": [
+          -2.0853222228638684e-05,
+          8.77783133189344e-05
+        ],
+        "block14d_ci": [
+          -2.601356041940299e-05,
+          8.745456527539941e-05
+        ],
+        "se": 2.8082580936292872e-05
+      },
+      "V2 + XI strength (position prior): temperature+draw - temperature": {
+        "mean": -4.2133506382164964e-05,
+        "fixture_ci": [
+          -0.0008306179706465331,
+          0.0006772328791532702
+        ],
+        "block14d_ci": [
+          -0.000975264442382063,
+          0.0006093742171463332
+        ],
+        "se": 0.000395959372245191
+      },
+      "V2 + XI strength (position prior): temperature+draw - identity": {
+        "mean": -1.3787305218762282e-05,
+        "fixture_ci": [
+          -0.000795577560059115,
+          0.0006990489556057695
+        ],
+        "block14d_ci": [
+          -0.0009242334807805376,
+          0.0006459366510986359
+        ],
+        "se": 0.0003929702294741242
+      }
+    },
+    "feature_contrasts_by_mode": {
+      "V2 - V1 | identity": {
+        "mean": -0.004438549139899935,
+        "fixture_ci": [
+          -0.015992690976996078,
+          0.007692091028283688
+        ],
+        "block14d_ci": [
+          -0.00898079812618607,
+          -0.0009324944733160681
+        ]
+      },
+      "V2 - V1 | temperature": {
+        "mean": -0.004413974310290576,
+        "fixture_ci": [
+          -0.015956762509198204,
+          0.0077031913245127395
+        ],
+        "block14d_ci": [
+          -0.009015351319331373,
+          -0.0008454800219501834
+        ]
+      },
+      "V2 - V1 | temperature+draw": {
+        "mean": -0.004413964005916842,
+        "fixture_ci": [
+          -0.015960090748493316,
+          0.007729230839706016
+        ],
+        "block14d_ci": [
+          -0.009028226070794003,
+          -0.0008316765628288713
+        ]
+      }
+    },
+    "draws": {
+      "V0 Dixon-Coles | identity": {
+        "predicted": 23.931370473101833,
+        "observed": 25
+      },
+      "V0 Dixon-Coles | temperature": {
+        "predicted": 23.902588024947192,
+        "observed": 25
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "predicted": 24.01024884002283,
+        "observed": 25
+      },
+      "V1 + team xG form | identity": {
+        "predicted": 23.73606469140794,
+        "observed": 25
+      },
+      "V1 + team xG form | temperature": {
+        "predicted": 23.744387683340342,
+        "observed": 25
+      },
+      "V1 + team xG form | temperature+draw": {
+        "predicted": 23.894342455626404,
+        "observed": 25
+      },
+      "V1c = V1 + back-line continuity | identity": {
+        "predicted": 23.702785147879197,
+        "observed": 25
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "predicted": 23.711231620982186,
+        "observed": 25
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "predicted": 23.859922723096258,
+        "observed": 25
+      },
+      "V1s = V1 + style main effects | identity": {
+        "predicted": 23.70043564883921,
+        "observed": 25
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "predicted": 23.745866984080283,
+        "observed": 25
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "predicted": 23.904909979011524,
+        "observed": 25
+      },
+      "V2 + XI strength (position prior) | identity": {
+        "predicted": 23.75696466810012,
+        "observed": 25
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "predicted": 23.75491671367744,
+        "observed": 25
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "predicted": 23.902509078459,
+        "observed": 25
+      },
+      "V3 + XI strength (similar-player prior) | identity": {
+        "predicted": 23.820747196734683,
+        "observed": 25
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "predicted": 23.821950359975364,
+        "observed": 25
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "predicted": 23.97076666798012,
+        "observed": 25
+      },
+      "V4 = V2 + style main effects | identity": {
+        "predicted": 23.706262590161046,
+        "observed": 25
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "predicted": 23.74325299251426,
+        "observed": 25
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "predicted": 23.90148808753028,
+        "observed": 25
+      },
+      "V5 = V4 + style interactions | identity": {
+        "predicted": 23.581829172582566,
+        "observed": 25
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "predicted": 23.625311133663505,
+        "observed": 25
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "predicted": 23.788794187546703,
+        "observed": 25
+      }
+    },
+    "params": {
+      "V0 Dixon-Coles | temperature": {
+        "T_last": 0.9962290599065398,
+        "delta_last": 0.0,
+        "T_mean": 0.995733726737169,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V0 Dixon-Coles | temperature+draw": {
+        "T_last": 0.9957925918030038,
+        "delta_last": 0.006306465506902967,
+        "T_mean": 0.9953039144846089,
+        "delta_mean": 0.006320853429279141,
+        "share_active": 1.0
+      },
+      "V1 + team xG form | temperature": {
+        "T_last": 1.001791926648964,
+        "delta_last": 0.0,
+        "T_mean": 1.0012461062993008,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1 + team xG form | temperature+draw": {
+        "T_last": 1.0011666744014502,
+        "delta_last": 0.008860559443729328,
+        "T_mean": 1.0006322778343524,
+        "delta_mean": 0.008854229443185094,
+        "share_active": 1.0
+      },
+      "V1c = V1 + back-line continuity | temperature": {
+        "T_last": 1.0018674156922502,
+        "delta_last": 0.0,
+        "T_mean": 1.0012643969522796,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1c = V1 + back-line continuity | temperature+draw": {
+        "T_last": 1.0012477572690475,
+        "delta_last": 0.008792278660807262,
+        "T_mean": 1.0006558818097835,
+        "delta_mean": 0.008788383209103126,
+        "share_active": 1.0
+      },
+      "V1s = V1 + style main effects | temperature": {
+        "T_last": 1.0073898774583556,
+        "delta_last": 0.0,
+        "T_mean": 1.0066248094791987,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V1s = V1 + style main effects | temperature+draw": {
+        "T_last": 1.006726945603735,
+        "delta_last": 0.009389008845657404,
+        "T_mean": 1.0059731462600006,
+        "delta_mean": 0.009394729704214925,
+        "share_active": 1.0
+      },
+      "V2 + XI strength (position prior) | temperature": {
+        "T_last": 1.0002051891475479,
+        "delta_last": 0.0,
+        "T_mean": 0.9997426146098181,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V2 + XI strength (position prior) | temperature+draw": {
+        "T_last": 0.9995907748132628,
+        "delta_last": 0.008716949976528587,
+        "T_mean": 0.9991391988583088,
+        "delta_mean": 0.008713089613000592,
+        "share_active": 1.0
+      },
+      "V3 + XI strength (similar-player prior) | temperature": {
+        "T_last": 1.0005447993284875,
+        "delta_last": 0.0,
+        "T_mean": 1.0002122442224644,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V3 + XI strength (similar-player prior) | temperature+draw": {
+        "T_last": 0.9999270844904056,
+        "delta_last": 0.008765519671938268,
+        "T_mean": 0.9996051156450388,
+        "delta_mean": 0.008767419587380223,
+        "share_active": 1.0
+      },
+      "V4 = V2 + style main effects | temperature": {
+        "T_last": 1.006067229093959,
+        "delta_last": 0.0,
+        "T_mean": 1.0054090024088491,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V4 = V2 + style main effects | temperature+draw": {
+        "T_last": 1.005407796496671,
+        "delta_last": 0.00934404071785849,
+        "T_mean": 1.0047607847558908,
+        "delta_mean": 0.009348942194797137,
+        "share_active": 1.0
+      },
+      "V5 = V4 + style interactions | temperature": {
+        "T_last": 1.0070859205172662,
+        "delta_last": 0.0,
+        "T_mean": 1.0062224772229138,
+        "delta_mean": 0.0,
+        "share_active": 1.0
+      },
+      "V5 = V4 + style interactions | temperature+draw": {
+        "T_last": 1.006397907576019,
+        "delta_last": 0.009708759388997724,
+        "T_mean": 1.0055473719014154,
+        "delta_mean": 0.009698509228487862,
+        "share_active": 1.0
+      }
+    }
+  },
+  "favourite_reliability_V2_test": {
+    "identity": [
+      {
+        "bin": "(0.0, 0.4]",
+        "n": "109",
+        "mean_pred": "0.38",
+        "observed": "0.358"
+      },
+      {
+        "bin": "(0.4, 0.5]",
+        "n": "273",
+        "mean_pred": "0.449",
+        "observed": "0.418"
+      },
+      {
+        "bin": "(0.5, 0.6]",
+        "n": "192",
+        "mean_pred": "0.545",
+        "observed": "0.552"
+      },
+      {
+        "bin": "(0.6, 0.7]",
+        "n": "113",
+        "mean_pred": "0.643",
+        "observed": "0.637"
+      },
+      {
+        "bin": "(0.7, 1.0]",
+        "n": "73",
+        "mean_pred": "0.77",
+        "observed": "0.726"
+      }
+    ],
+    "temperature": [
+      {
+        "bin": "(0.0, 0.4]",
+        "n": "109",
+        "mean_pred": "0.38",
+        "observed": "0.358"
+      },
+      {
+        "bin": "(0.4, 0.5]",
+        "n": "273",
+        "mean_pred": "0.449",
+        "observed": "0.418"
+      },
+      {
+        "bin": "(0.5, 0.6]",
+        "n": "191",
+        "mean_pred": "0.545",
+        "observed": "0.55"
+      },
+      {
+        "bin": "(0.6, 0.7]",
+        "n": "112",
+        "mean_pred": "0.642",
+        "observed": "0.634"
+      },
+      {
+        "bin": "(0.7, 1.0]",
+        "n": "75",
+        "mean_pred": "0.769",
+        "observed": "0.733"
+      }
+    ],
+    "temperature+draw": [
+      {
+        "bin": "(0.0, 0.4]",
+        "n": "110",
+        "mean_pred": "0.38",
+        "observed": "0.364"
+      },
+      {
+        "bin": "(0.4, 0.5]",
+        "n": "272",
+        "mean_pred": "0.449",
+        "observed": "0.415"
+      },
+      {
+        "bin": "(0.5, 0.6]",
+        "n": "192",
+        "mean_pred": "0.544",
+        "observed": "0.552"
+      },
+      {
+        "bin": "(0.6, 0.7]",
+        "n": "111",
+        "mean_pred": "0.642",
+        "observed": "0.631"
+      },
+      {
+        "bin": "(0.7, 1.0]",
+        "n": "75",
+        "mean_pred": "0.768",
+        "observed": "0.733"
+      }
+    ]
+  }
+}
