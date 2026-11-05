@@ -328,6 +328,17 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
         cc = d[basis == "ffs+rotowire"]
         out.update({"n_complete": int(len(cc)), "mean_complete_case": float(cc.mean()) if len(cc) else None})
     out["leave_one_gameweek_out"] = {int(g): float(d[gw != g].mean()) for g in sorted(gw.unique())}
+    # paired SE (primary at this sample size) and a gameweek-clustered SE with a t reference on G - 1 df
+    from scipy.stats import t as tdist
+    out["se_paired"] = float(d.std(ddof=1) / np.sqrt(len(d))) if len(d) > 1 else None
+    g = d.groupby(gw.to_numpy())
+    G = g.ngroups
+    if G > 1:
+        resid = (g.sum() - g.size() * d.mean())
+        se_c = float(np.sqrt(G / (G - 1) * (resid ** 2).sum()) / len(d))
+        q = float(tdist.ppf(0.975, G - 1))
+        out.update({"se_gameweek_clustered": se_c, "ci_gameweek_clustered": [float(d.mean() - q * se_c), float(d.mean() + q * se_c)],
+                    "n_gameweeks": int(G)})
     return out
 
 

@@ -607,6 +607,10 @@ V2x, which sees confirmed XIs); closing odds are at kickoff (*more* information)
 | Log-loss TaBet − market, 14-day block CI | +0.0139 [+0.0056, +0.0230] | +0.0188 [+0.0105, +0.0278] |
 | 2024-26 only | +0.0044 [−0.0075, +0.0167] | +0.0080 [−0.0029, +0.0197] |
 
+**Margin removal does not matter here.** The averaged odds carry about a 5% margin. With power or
+Shin normalisation instead of proportional, market log-loss moves by at most 0.0003, and TaBet −
+market stays at +0.014 (pre-closing) and +0.019 (closing) with the same intervals.
+
 The six largest disagreements in each direction were all already present in the Dixon-Coles base
 (xG and XI layers moved them by ≤ 4 points), and most involve a promoted or returning team early in
 its season. Script: `prototypes/run_market_comparison.py`.
@@ -660,11 +664,12 @@ change the conclusion, since Elo alone already trails Dixon-Coles.
 | R2 | **Slower early reaction for promoted sides:** a larger L2 penalty on a promoted team's ratings for its first N matches, shrinking toward the promoted prior instead of league average; penalty learned on earlier cohorts | have | Over-reaction to 2–3 results (Sunderland, Hull) | shared offset (D1) |
 | R3 | **Pool five second tiers:** Championship, Segunda, Serie B, 2. Bundesliga and Ligue 2 (football-data files confirmed available) give about 15 promotions a season instead of 3, to learn "second-tier strength → first-season top-flight rating", with league intercepts; scored on PL only | free, not yet ingested | Too few cohorts (§5.15) | PL-only mapping |
 | R4 | **Squad-based prior:** minutes-weighted player ratings of the promoted squad plus summer signings, using the §5.12 mapping for arrivals. The Hugging Face archive lists Championship player tables (not yet validated); it ends mid-2025-26, so live use needs another source | partly free | The prior knows nothing about who is in the squad | R1 + R2 |
+| R6 | **Long history for the Championship mapping:** football-data has Premier League and Championship results with shots on target from 2000-01 (checked), about 75 promotion cohorts instead of 18. Refit the §5.15 mapping (Championship SoT and goal strength → first-season PL attack and defence, used as the prior mean the L2 penalty shrinks toward), trained only on earlier promotions | free, confirmed available | §5.15 failed for lack of cohorts, not necessarily signal | shared offset (D1) and no prior |
 | R5 | **Season-boundary shrinkage for everyone** (your earlier suggestion), with a separate parameter for promoted sides | have | Summer squad change in general | current model |
 
 **Evaluation plan.** Early-promoted matches are about 30 a season, so recent seasons alone cannot
-settle this. The 2015-21 results (§5.16) add 15 promotion cohorts never used for team-strength
-choices, and E1 files exist for those years. I would pre-register a primary contrast on
+settle this. Results-only ideas (R1, R2, R3, R5, R6) can use 2000-01 onward, roughly 750
+early-promoted matches, with older seasons for choices and later ones scored once. I would pre-register a primary contrast on
 early-promoted matches pooled over 2016-26, plus all matches, so that a gain for promoted teams
 cannot hide a loss elsewhere.
 
@@ -744,7 +749,7 @@ Please give me:
 1. **A critique of the diagnosis in §5.21.** Is the problem really early-season over-reaction and
    stale ratings, or does the evidence point elsewhere (for example promoted sides' home advantage,
    or ordinary noise in a small subgroup)? What check would distinguish these?
-2. **A ranking of R1–R5** by expected gain per unit of effort, which to combine, and which are likely
+2. **A ranking of R1–R6** by expected gain per unit of effort, which to combine, and which are likely
    null. If you would build something not on the list, describe it and the simpler alternative it
    must beat.
 3. **How to learn the promoted prior with so few cohorts:** whether pooling second tiers (R3) is
