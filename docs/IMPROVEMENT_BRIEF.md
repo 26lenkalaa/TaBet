@@ -455,6 +455,34 @@ live model keeps 90 days (frozen by the protocol).
 gameweeks 1–9, so those are treated as **reused validation**. The only clean confirmatory data is
 2026-27 gameweek 10 onward plus the pre-xG-era replication.
 
+### 5.15 Promoted-team prior from Championship data (F4, your top pick)
+
+All 18 promotions 2021-22 → 2026-27 identified from football-data E1 files (team in the PL season,
+in the Championship the season before). Championship feature: opponent-adjusted shots-on-target
+attack and defence over the promotion season (§5.11 model, half-life 90 days, not tuned).
+
+Implemented inside the Dixon-Coles fit, not as a separate regression: a promoted side's offset is
+`promo_att + b_att·x_att` and `promo_def + b_def·x_def`, learned walk-forward from earlier promoted
+sides' matches with the same L2 as the ratings. The team's own ratings still start at 0 and take
+over as matches accumulate, so the offset is a prior mean that fades. D0 reproduces frozen V0
+exactly.
+
+| Contrast (log-loss) | 2022-26 | 2026-27 GW1–9 |
+|---|---|---|
+| **primary** D2 − D0, early promoted (a promoted side in its first 10 PL matches; n 111 / 25) | −0.0134 (SE 0.0228) [−0.058, +0.028] | +0.0654 (SE 0.0501) |
+| D2 − D1 (Championship slopes over a shared offset), same subset | +0.0004 [−0.0002, +0.0010] | +0.0028 |
+| D1 − D0 (shared offset only), same subset | −0.0138 [−0.058, +0.028] | +0.0627 |
+| D2 − D0, all matches (n 1,520 / 90) | −0.0008 [−0.0048, +0.0027] | +0.0211 |
+
+**Null.** The learned slopes shrink to about zero (final fit −0.04 and −0.16). Every gain or loss
+comes from the shared offset: about −0.17 on promoted defence, which helped in 2022-26 and hurt in
+2026-27, when the promoted sides started better than usual. Descriptively, across the 12 promoted
+team-seasons of 2022-26, Championship shots-on-target attack correlates 0.10 with PL attack, and
+Championship defence correlates 0.26 with PL defence. Promotion-season goal difference does
+little better (0.39 / 0.20, not tested). With 3 promotions a season there are too few cohorts to
+learn a mapping; pooling other leagues' second tiers would be the only way to get more, which I
+have not done.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -497,7 +525,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F1 | **Rest and congestion:** days since each team's last match, matches in the last 14 days, rest difference | stage-2 features | PL dates [have]; European and cup dates [free, not retrieved: the HF fixtures table or openfootball may have them] | V1x |
 | F2 | **XI fatigue:** starters' minutes in the previous 7/14 days | XI-level feature in V2x | PL minutes [have]; other competitions [none] | V2x |
 | F3 | **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
-| F4 | **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
+| F4 | **[done, §5.15: null]** **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
 | F5 | **Manager change:** days since a new permanent manager, decayed | stage-2 feature, or faster DC decay after a change | appointment dates [free: Wikipedia lists, not checked] | DC time decay alone |
 | F6 | **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
 | F7 | **Goalkeeper quality:** saves and goals conceded relative to opponent shots on target, shrunk; flag when the usual keeper is out | XI-level feature | FPL saves and goals conceded [have]; no post-shot xG [none] | V2x (outfielders only) |

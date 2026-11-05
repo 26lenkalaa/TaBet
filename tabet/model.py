@@ -16,6 +16,13 @@ promo_def) in the season it was promoted. The offset is estimated from earlier
 promoted sides' first-season matches, so a newly promoted team starts from
 "how promoted teams usually do" instead of from league average.
 
+Promoted-team features (optional): with `promo_x` = {(team, season): (x_att,
+x_def)} from the team's previous (second-tier) season, the offset becomes
+team-specific: promo_att + b_att * x_att and promo_def + b_def * x_def. The
+slopes are learned in the same fit from earlier promoted sides' matches, with
+the same L2 penalty as the ratings. The team's own ratings still start at 0 and
+take over as its matches accumulate, so the offset acts as a prior mean.
+
 The fit only sees the matches it is given. Callers pass
 MatchStore.completed_before(cutoff), and stamp the model with that cutoff.
 """
@@ -82,11 +89,15 @@ class DixonColes:
     attack: dict[str, float] = field(default_factory=dict)
     defence: dict[str, float] = field(default_factory=dict)
     promoted: list[list[str]] = field(default_factory=list)  # [team_id, season] pairs
+    promo_b_att: float = 0.0
+    promo_b_def: float = 0.0
+    promo_x: dict[str, list[float]] = field(default_factory=dict)  # "team|season" -> [x_att, x_def]
 
     # ---- fitting -------------------------------------------------------
 
     def fit(self, train: pd.DataFrame, cutoff: pd.Timestamp,
-            promoted: set[tuple[str, str]] | None = None) -> "DixonColes":
+            promoted: set[tuple[str, str]] | None = None,
+            promo_x: dict[tuple[str, str], tuple[float, float]] | None = None) -> "DixonColes":
         """Fit on completed matches, weighting each by its age at `cutoff`.
         `promoted` may include seasons beyond the training data (e.g. the
         season being predicted), which is why it is passed in separately."""
@@ -97,7 +108,8 @@ class DixonColes:
             raise ValueError("no completed matches to train on")
         promoted = promoted if promoted is not None else promoted_team_seasons(train)
         if not self.hyper.promoted_prior:
-            promoted = set()
+            promoted, promo_x = set(), None
+        px = promo_x or {}
 
         teams = sorted(set(train["home_id"]) | set(train["away_id"]))
         idx = {t: i for i, t in enumerate(teams)}
@@ -108,6 +120,10 @@ class DixonColes:
         y = train["away_goals"].to_numpy(dtype=float)
         ph = np.array([(t, s) in promoted for t, s in zip(train["home_id"], train["season"])], dtype=float)
         pa = np.array([(t, s) in promoted for t, s in zip(train["away_id"], train["season"])], dtype=float)
+        xh = np.array([px.get((t, s), (0.0, 0.0)) if (t, s) in promoted else (0.0, 0.0)
+                       for t, s in zip(train["home_id"], train["season"])], dtype=float).reshape(-1, 2)
+        xa = np.array([px.get((t, s), (0.0, 0.0)) if (t, s) in promoted else (0.0, 0.0)
+                       for t, s in zip(train["away_id"], train["season"])], dtype=float).reshape(-1, 2)
         age = (cutoff - train["kickoff_utc"]).dt.total_seconds().to_numpy() / 86400
         w = np.exp(-self.hyper.xi * age)
         w = w / w.mean()
@@ -118,14 +134,14 @@ class DixonColes:
         c10 = (x == 1) & (y == 0)
         c11 = (x == 1) & (y == 1)
 
-        # params: mu, home, rho, promo_att, promo_def, attack[n], defence[n]
+        # params: mu, home, rho, promo_att, promo_def, attack[n], defence[n], b_att, b_def
         def unpack(p):
-            return p[0], p[1], p[2], p[3], p[4], p[5:5 + n], p[5 + n:]
+            return p[0], p[1], p[2], p[3], p[4], p[5:5 + n], p[5 + n:5 + 2 * n], p[5 + 2 * n], p[6 + 2 * n]
 
         def nll(p):
-            mu, h, rho, pat, pdf, a, d = unpack(p)
-            ll_h = mu + h + a[hi] + pat * ph - d[ai] - pdf * pa  # log home rate
-            ll_a = mu + a[ai] + pat * pa - d[hi] - pdf * ph  # log away rate
+            mu, h, rho, pat, pdf, a, d, ba, bd = unpack(p)
+            ll_h = mu + h + a[hi] + pat * ph + ba * xh[:, 0] - d[ai] - pdf * pa - bd * xa[:, 1]  # log home rate
+            ll_a = mu + a[ai] + pat * pa + ba * xa[:, 0] - d[hi] - pdf * ph - bd * xh[:, 1]  # log away rate
             lh, la = np.exp(ll_h), np.exp(ll_a)
 
             tau = np.ones_like(lh)
@@ -136,7 +152,7 @@ class DixonColes:
             tau = np.maximum(tau, 1e-10)
 
             ll = x * ll_h - lh + y * ll_a - la + np.log(tau)
-            f = -(w * ll).sum() + l2 * (a @ a + d @ d)
+            f = -(w * ll).sum() + l2 * (a @ a + d @ d + ba * ba + bd * bd)
 
             # d(log-lik)/d(log rate), Poisson part plus tau part
             gh = x - lh
@@ -159,23 +175,29 @@ class DixonColes:
             g[3] = (gh * ph).sum() + (ga * pa).sum()
             g[4] = -(gh * pa).sum() - (ga * ph).sum()
             g[5:5 + n] = np.bincount(hi, gh, n) + np.bincount(ai, ga, n)
-            g[5 + n:] = -np.bincount(ai, gh, n) - np.bincount(hi, ga, n)
+            g[5 + n:5 + 2 * n] = -np.bincount(ai, gh, n) - np.bincount(hi, ga, n)
+            g[5 + 2 * n] = (gh * xh[:, 0]).sum() + (ga * xa[:, 0]).sum()
+            g[6 + 2 * n] = -(gh * xa[:, 1]).sum() - (ga * xh[:, 1]).sum()
             g = -g
             g[5:5 + n] += 2 * l2 * a
-            g[5 + n:] += 2 * l2 * d
+            g[5 + n:5 + 2 * n] += 2 * l2 * d
+            g[5 + 2 * n] += 2 * l2 * ba
+            g[6 + 2 * n] += 2 * l2 * bd
             return f, g
 
-        p0 = np.zeros(5 + 2 * n)
+        p0 = np.zeros(7 + 2 * n)
         p0[0] = np.log(max((w * (x + y)).sum() / (2 * w.sum()), 0.1))
-        bounds = [(None, None), (None, None), (-RHO_BOUND, RHO_BOUND)] + [(None, None)] * (2 + 2 * n)
+        bounds = [(None, None), (None, None), (-RHO_BOUND, RHO_BOUND)] + [(None, None)] * (4 + 2 * n)
         if not promoted:
             bounds[3] = bounds[4] = (0.0, 0.0)
+        if not px:
+            bounds[5 + 2 * n] = bounds[6 + 2 * n] = (0.0, 0.0)
         res = minimize(nll, p0, jac=True, method="L-BFGS-B", bounds=bounds,
                        options={"maxiter": 2000})
         if not res.success:
             raise RuntimeError(f"Dixon-Coles fit did not converge: {res.message}")
 
-        mu, h, rho, pat, pdf, a, d = unpack(res.x)
+        mu, h, rho, pat, pdf, a, d, ba, bd = unpack(res.x)
         self.trained_cutoff = cutoff.isoformat()
         self.n_train = int(len(train))
         self.mu, self.home_adv, self.rho = float(mu), float(h), float(rho)
@@ -183,6 +205,8 @@ class DixonColes:
         self.attack = {t: float(v) for t, v in zip(teams, a)}
         self.defence = {t: float(v) for t, v in zip(teams, d)}
         self.promoted = sorted([t, s] for t, s in promoted)
+        self.promo_b_att, self.promo_b_def = float(ba), float(bd)
+        self.promo_x = {f"{t}|{s}": [float(v) for v in x] for (t, s), x in px.items() if (t, s) in promoted}
         return self
 
     # ---- prediction ----------------------------------------------------
@@ -193,8 +217,9 @@ class DixonColes:
         a = self.attack.get(team, 0.0)
         d = self.defence.get(team, 0.0)
         if season is not None and [team, season] in self.promoted:
-            a += self.promo_att
-            d += self.promo_def
+            xa, xd = self.promo_x.get(f"{team}|{season}", (0.0, 0.0))
+            a += self.promo_att + self.promo_b_att * xa
+            d += self.promo_def + self.promo_b_def * xd
         return a, d
 
     def expected_goals(self, home: str, away: str, season: str | None = None) -> tuple[float, float]:

@@ -58,3 +58,21 @@ def test_scores_perfect_and_uniform():
     r = pd.Series(["H", "D", "A"])
     assert scores(np.eye(3), r)["log_loss"] == pytest.approx(0, abs=1e-9)
     assert scores(np.full((3, 3), 1 / 3), r)["log_loss"] == pytest.approx(np.log(3))
+
+
+def test_promoted_features_learn_a_slope_and_round_trip(real, tmp_path):
+    """Synthetic second-tier features equal to each promoted side's later strength
+    should get a positive attack slope; zero features reduce to the shared offset."""
+    m = real[0]
+    train = m[(m["kickoff_utc"] < CUT) & (m["status"] == "completed")]
+    promo = promoted_team_seasons(m)
+    base = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo)
+    zero = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, {k: (0.0, 0.0) for k in promo})
+    assert zero.promo_b_att == 0.0 and abs(zero.promo_att - base.promo_att) < 1e-6
+    x = {k: (base.attack.get(k[0], 0.0) * 5, base.defence.get(k[0], 0.0) * 5) for k in promo}
+    fx = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, x)
+    assert fx.promo_b_att > 0
+    fx.save(tmp_path / "m.json")
+    again = DixonColes.load(tmp_path / "m.json")
+    t, s = sorted(promo)[0]
+    assert again.expected_goals(t, "arsenal", s) == fx.expected_goals(t, "arsenal", s)
