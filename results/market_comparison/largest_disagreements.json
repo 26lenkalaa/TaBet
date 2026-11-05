@@ -1,0 +1,508 @@
+[
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2025-26-20250823-burnley-sunderland",
+    "match":"Burnley v Sunderland",
+    "season":"2025-26",
+    "date":"2025-08-23",
+    "score":"2-0",
+    "result":"H",
+    "tabet_V2x":"10% \/ 16% \/ 74%",
+    "market_closing":"40% \/ 31% \/ 30%",
+    "market_pre":"42% \/ 30% \/ 28%",
+    "gap_tv":0.4428953045,
+    "dixon_coles_V0":"13% \/ 19% \/ 68%",
+    "plus_xg_V1x":"10% \/ 17% \/ 73%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.2188828477,
+        "xg_opp_def":-0.2600203011,
+        "xi_vs_usual":0.0155958271,
+        "opp_backline":0.8822222222
+      },
+      "A":{
+        "xg_att":-0.3912081034,
+        "xg_opp_def":0.2893750608,
+        "xi_vs_usual":0.0046374789,
+        "opp_backline":0.4930749408
+      }
+    },
+    "home_absent_regulars":null,
+    "away_absent_regulars":null,
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"7-9",
+      "shots_on_target":"2-1"
+    }
+  },
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2025-26-20251004-man_united-sunderland",
+    "match":"Manchester United v Sunderland",
+    "season":"2025-26",
+    "date":"2025-10-04",
+    "score":"2-0",
+    "result":"H",
+    "tabet_V2x":"27% \/ 30% \/ 42%",
+    "market_closing":"59% \/ 22% \/ 19%",
+    "market_pre":"63% \/ 21% \/ 16%",
+    "gap_tv":0.3156301115,
+    "dixon_coles_V0":"27% \/ 32% \/ 41%",
+    "plus_xg_V1x":"26% \/ 31% \/ 42%",
+    "drivers":{
+      "H":{
+        "xg_att":0.2837719458,
+        "xg_opp_def":-0.0885709639,
+        "xi_vs_usual":0.1664702318,
+        "opp_backline":0.7508899663
+      },
+      "A":{
+        "xg_att":-0.3180908228,
+        "xg_opp_def":0.038297675,
+        "xi_vs_usual":0.0505339472,
+        "opp_backline":0.4394842107
+      }
+    },
+    "home_absent_regulars":[
+      "Cunha",
+      "Altay Bay\u0131nd\u0131r",
+      "Dorgu"
+    ],
+    "away_absent_regulars":[
+      "Reinildo",
+      "Diarra",
+      "Talbi"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"15-8",
+      "shots_on_target":"6-3"
+    }
+  },
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2026-27-20261017-fulham-hull",
+    "match":"Fulham v Hull City",
+    "season":"2026-27",
+    "date":"2026-10-17",
+    "score":"1-0",
+    "result":"H",
+    "tabet_V2x":"30% \/ 32% \/ 38%",
+    "market_closing":"58% \/ 23% \/ 19%",
+    "market_pre":"55% \/ 24% \/ 21%",
+    "gap_tv":0.282662917,
+    "dixon_coles_V0":"29% \/ 32% \/ 39%",
+    "plus_xg_V1x":"30% \/ 32% \/ 39%",
+    "drivers":{
+      "H":{
+        "xg_att":0.0270611374,
+        "xg_opp_def":0.0451879961,
+        "xi_vs_usual":0.0045797639,
+        "opp_backline":0.696054398
+      },
+      "A":{
+        "xg_att":-0.217055281,
+        "xg_opp_def":-0.0008798464,
+        "xi_vs_usual":-0.0087718155,
+        "opp_backline":0.667051633
+      }
+    },
+    "home_absent_regulars":[
+
+    ],
+    "away_absent_regulars":[
+      "Giles",
+      "Mendy",
+      "Stroud"
+    ],
+    "post_kickoff":{
+      "home_reds":1,
+      "away_reds":0,
+      "shots":"18-5",
+      "shots_on_target":"6-0"
+    }
+  },
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2026-27-20260919-newcastle-hull",
+    "match":"Newcastle United v Hull City",
+    "season":"2026-27",
+    "date":"2026-09-19",
+    "score":"2-1",
+    "result":"H",
+    "tabet_V2x":"33% \/ 32% \/ 35%",
+    "market_closing":"59% \/ 22% \/ 19%",
+    "market_pre":"59% \/ 22% \/ 18%",
+    "gap_tv":0.2641881039,
+    "dixon_coles_V0":"31% \/ 32% \/ 37%",
+    "plus_xg_V1x":"31% \/ 32% \/ 37%",
+    "drivers":{
+      "H":{
+        "xg_att":0.0021484152,
+        "xg_opp_def":-0.023837028,
+        "xi_vs_usual":0.1354374238,
+        "opp_backline":0.8218410926
+      },
+      "A":{
+        "xg_att":-0.3555863952,
+        "xg_opp_def":0.0848701908,
+        "xi_vs_usual":0.0002038952,
+        "opp_backline":0.6350876473
+      }
+    },
+    "home_absent_regulars":[
+      "Elanga",
+      "Dedi\u0107",
+      "N.Gonzalez"
+    ],
+    "away_absent_regulars":[
+      "Mendy",
+      "Stroud"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"12-22",
+      "shots_on_target":"5-4"
+    }
+  },
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2024-25-20250519-brighton-liverpool",
+    "match":"Brighton & Hove Albion v Liverpool",
+    "season":"2024-25",
+    "date":"2025-05-19",
+    "score":"3-2",
+    "result":"H",
+    "tabet_V2x":"23% \/ 21% \/ 57%",
+    "market_closing":"43% \/ 25% \/ 32%",
+    "market_pre":"36% \/ 25% \/ 39%",
+    "gap_tv":0.2448607802,
+    "dixon_coles_V0":"22% \/ 20% \/ 59%",
+    "plus_xg_V1x":"21% \/ 20% \/ 60%",
+    "drivers":{
+      "H":{
+        "xg_att":0.1161632351,
+        "xg_opp_def":-0.231908904,
+        "xi_vs_usual":-0.0340865366,
+        "opp_backline":0.4258407769
+      },
+      "A":{
+        "xg_att":0.4296425291,
+        "xg_opp_def":-0.0274391474,
+        "xi_vs_usual":-0.0668264796,
+        "opp_backline":0.6855741707
+      }
+    },
+    "home_absent_regulars":[
+      "Dunk",
+      "O'Riley",
+      "Jo\u00e3o Pedro",
+      "Hinshelwood"
+    ],
+    "away_absent_regulars":[
+      "Virgil",
+      "Curtis Jones",
+      "Mac Allister",
+      "Luis D\u00edaz"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"25-18",
+      "shots_on_target":"12-5"
+    }
+  },
+  {
+    "group":"market right, TaBet wrong",
+    "match_id":"2025-26-20260524-west_ham-leeds",
+    "match":"West Ham United v Leeds United",
+    "season":"2025-26",
+    "date":"2026-05-24",
+    "score":"3-0",
+    "result":"H",
+    "tabet_V2x":"31% \/ 27% \/ 41%",
+    "market_closing":"55% \/ 23% \/ 22%",
+    "market_pre":"51% \/ 24% \/ 25%",
+    "gap_tv":0.241268522,
+    "dixon_coles_V0":"32% \/ 28% \/ 40%",
+    "plus_xg_V1x":"32% \/ 28% \/ 40%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.0812071006,
+        "xg_opp_def":-0.0174484723,
+        "xi_vs_usual":0.0754842841,
+        "opp_backline":0.7399816862
+      },
+      "A":{
+        "xg_att":0.0425833658,
+        "xg_opp_def":0.0280083903,
+        "xi_vs_usual":0.0699815789,
+        "opp_backline":0.551498706
+      }
+    },
+    "home_absent_regulars":[
+      "Wan-Bissaka"
+    ],
+    "away_absent_regulars":[
+      "Gudmundsson",
+      "Stach"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"16-13",
+      "shots_on_target":"9-3"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2026-27-20260829-coventry-hull",
+    "match":"Coventry City v Hull City",
+    "season":"2026-27",
+    "date":"2026-08-29",
+    "score":"0-1",
+    "result":"A",
+    "tabet_V2x":"15% \/ 25% \/ 59%",
+    "market_closing":"55% \/ 25% \/ 20%",
+    "market_pre":"51% \/ 27% \/ 23%",
+    "gap_tv":0.3987854575,
+    "dixon_coles_V0":"15% \/ 25% \/ 60%",
+    "plus_xg_V1x":"15% \/ 25% \/ 60%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.3970789616,
+        "xg_opp_def":0.134166822,
+        "xi_vs_usual":-0.0091398033,
+        "opp_backline":0.85
+      },
+      "A":{
+        "xg_att":-0.132784393,
+        "xg_opp_def":0.0019066885,
+        "xi_vs_usual":0.0167562791,
+        "opp_backline":1.0
+      }
+    },
+    "home_absent_regulars":null,
+    "away_absent_regulars":null,
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"11-6",
+      "shots_on_target":"3-2"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2025-26-20250927-nottm_forest-sunderland",
+    "match":"Nottingham Forest v Sunderland",
+    "season":"2025-26",
+    "date":"2025-09-27",
+    "score":"0-1",
+    "result":"A",
+    "tabet_V2x":"33% \/ 30% \/ 38%",
+    "market_closing":"54% \/ 26% \/ 20%",
+    "market_pre":"54% \/ 26% \/ 20%",
+    "gap_tv":0.2162852449,
+    "dixon_coles_V0":"34% \/ 30% \/ 36%",
+    "plus_xg_V1x":"32% \/ 30% \/ 38%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.144156526,
+        "xg_opp_def":-0.1744193599,
+        "xi_vs_usual":0.0403427845,
+        "opp_backline":0.7098538706
+      },
+      "A":{
+        "xg_att":-0.3832527735,
+        "xg_opp_def":0.0643959328,
+        "xi_vs_usual":0.0308614735,
+        "opp_backline":0.6229037749
+      }
+    },
+    "home_absent_regulars":[
+      "Aina",
+      "Hudson-Odoi",
+      "I.Sangar\u00e9",
+      "Gibbs-White",
+      "Murillo"
+    ],
+    "away_absent_regulars":[
+      "Reinildo",
+      "Simon Adingra",
+      "Diarra",
+      "Eliezer Mayenda Dossou"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"22-11",
+      "shots_on_target":"6-3"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2024-25-20241019-southampton-leicester",
+    "match":"Southampton v Leicester City",
+    "season":"2024-25",
+    "date":"2024-10-19",
+    "score":"2-3",
+    "result":"A",
+    "tabet_V2x":"25% \/ 25% \/ 50%",
+    "market_closing":"44% \/ 27% \/ 29%",
+    "market_pre":"41% \/ 27% \/ 32%",
+    "gap_tv":0.2146422418,
+    "dixon_coles_V0":"25% \/ 26% \/ 49%",
+    "plus_xg_V1x":"26% \/ 25% \/ 50%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.1490729302,
+        "xg_opp_def":0.324768779,
+        "xi_vs_usual":-0.0772128897,
+        "opp_backline":0.8329184117
+      },
+      "A":{
+        "xg_att":-0.431105061,
+        "xg_opp_def":0.211008251,
+        "xi_vs_usual":-0.0094155276,
+        "opp_backline":0.632072923
+      }
+    },
+    "home_absent_regulars":[
+
+    ],
+    "away_absent_regulars":[
+      "Harry Winks"
+    ],
+    "post_kickoff":{
+      "home_reds":1,
+      "away_reds":0,
+      "shots":"14-18",
+      "shots_on_target":"7-4"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2023-24-20231125-newcastle-chelsea",
+    "match":"Newcastle United v Chelsea",
+    "season":"2023-24",
+    "date":"2023-11-25",
+    "score":"4-1",
+    "result":"H",
+    "tabet_V2x":"57% \/ 21% \/ 22%",
+    "market_closing":"36% \/ 27% \/ 37%",
+    "market_pre":"37% \/ 27% \/ 36%",
+    "gap_tv":0.2076084787,
+    "dixon_coles_V0":"58% \/ 21% \/ 21%",
+    "plus_xg_V1x":"60% \/ 20% \/ 20%",
+    "drivers":{
+      "H":{
+        "xg_att":0.2995817212,
+        "xg_opp_def":-0.0708650661,
+        "xi_vs_usual":-0.0521214266,
+        "opp_backline":0.4433711571
+      },
+      "A":{
+        "xg_att":0.2599343042,
+        "xg_opp_def":-0.2070912224,
+        "xi_vs_usual":0.1544091726,
+        "opp_backline":0.6488868639
+      }
+    },
+    "home_absent_regulars":[
+      "Burn",
+      "Longstaff"
+    ],
+    "away_absent_regulars":[
+      "Disasi",
+      "Colwill",
+      "Caicedo"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":1,
+      "shots":"14-7",
+      "shots_on_target":"5-4"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2022-23-20220813-brentford-man_united",
+    "match":"Brentford v Manchester United",
+    "season":"2022-23",
+    "date":"2022-08-13",
+    "score":"4-0",
+    "result":"H",
+    "tabet_V2x":"43% \/ 25% \/ 33%",
+    "market_closing":"22% \/ 25% \/ 53%",
+    "market_pre":"25% \/ 27% \/ 48%",
+    "gap_tv":0.2054980599,
+    "dixon_coles_V0":"43% \/ 25% \/ 33%",
+    "plus_xg_V1x":"43% \/ 25% \/ 33%",
+    "drivers":{
+      "H":{
+        "xg_att":0.0,
+        "xg_opp_def":0.0,
+        "xi_vs_usual":0.0,
+        "opp_backline":0.7236368497
+      },
+      "A":{
+        "xg_att":0.0,
+        "xg_opp_def":0.0,
+        "xi_vs_usual":0.0,
+        "opp_backline":0.4908588432
+      }
+    },
+    "home_absent_regulars":null,
+    "away_absent_regulars":null,
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":0,
+      "shots":"13-15",
+      "shots_on_target":"7-4"
+    }
+  },
+  {
+    "group":"TaBet right, market wrong",
+    "match_id":"2025-26-20251129-sunderland-bournemouth",
+    "match":"Sunderland v Bournemouth",
+    "season":"2025-26",
+    "date":"2025-11-29",
+    "score":"3-2",
+    "result":"H",
+    "tabet_V2x":"50% \/ 27% \/ 23%",
+    "market_closing":"30% \/ 29% \/ 41%",
+    "market_pre":"31% \/ 29% \/ 40%",
+    "gap_tv":0.2000789178,
+    "dixon_coles_V0":"46% \/ 27% \/ 27%",
+    "plus_xg_V1x":"47% \/ 27% \/ 26%",
+    "drivers":{
+      "H":{
+        "xg_att":-0.3744402315,
+        "xg_opp_def":-0.0601646866,
+        "xi_vs_usual":0.0204016703,
+        "opp_backline":0.4844406025
+      },
+      "A":{
+        "xg_att":0.1630978725,
+        "xg_opp_def":-0.0338308117,
+        "xi_vs_usual":-0.0734743625,
+        "opp_backline":0.7599201977
+      }
+    },
+    "home_absent_regulars":[
+      "Hume"
+    ],
+    "away_absent_regulars":[
+      "Brooks"
+    ],
+    "post_kickoff":{
+      "home_reds":0,
+      "away_reds":1,
+      "shots":"12-18",
+      "shots_on_target":"6-6"
+    }
+  }
+]

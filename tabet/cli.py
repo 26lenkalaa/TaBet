@@ -102,7 +102,7 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
-    from .prospective import decomposition, score, summarise
+    from .prospective import decomposition, robustness, score, summarise
     s = score()
     if s.empty:
         print("nothing to score yet")
@@ -114,6 +114,10 @@ def cmd_score_forecasts(args: argparse.Namespace) -> int:
     if len(d):
         print("\nXI-feature decomposition (secondary, amendment A2):")
         print(d.round(4).to_string(index=False))
+    rb = robustness(s, "pE", args.horizon)
+    if rb:
+        print("\npE - p0 robustness (amendment A3):", {k: v for k, v in rb.items() if k != "leave_one_gameweek_out"})
+        print("  leave one gameweek out:", {g: round(v, 4) for g, v in rb["leave_one_gameweek_out"].items()})
     return 0
 
 

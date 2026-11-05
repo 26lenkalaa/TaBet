@@ -122,7 +122,8 @@ tbody tr:hover td { background: var(--hover); }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.name { font-weight: 500; }
 td.name .note { display: block; font-weight: 400; color: var(--muted); font-size: 13px; margin-top: 1px; }
-@media (max-width: 600px) { .wide, .role { display: none; } td.name { min-width: 112px; } th, td { padding: 7px 6px; } .gapbar { min-width: 84px; gap: 6px; } .gapbar .val { width: 50px; font-size: 13px; } }
+.mobile-only { display: none; }
+@media (max-width: 600px) { .wide, .role { display: none; } .mobile-only { display: inline-block; margin-top: 4px; } td.probs { font-size: 12.5px; padding-left: 4px; padding-right: 4px; } td.name { min-width: 112px; } th, td { padding: 7px 6px; } .gapbar { min-width: 84px; gap: 6px; } .gapbar .val { width: 50px; font-size: 13px; } }
 .gapbar { display: flex; align-items: center; gap: 8px; min-width: 170px; }
 .gapbar .track { flex: 1; height: 8px; position: relative; }
 .gapbar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--bar); }
@@ -237,6 +238,54 @@ blockquote { margin: 8px 0; padding: 2px 14px; border-left: 3px solid var(--ink)
         </table>
       </div>
       <p>In 2022-24 the lineup model was no better than V1x. Lineup information only switched on for part of that period, and the gain was smaller there. That's why we reran the test on older seasons (below).</p>
+    </div>
+  </details>
+
+  <h2>When we disagree with the betting market</h2>
+  <p>Most of the time TaBet and the bookmakers pick the same result. These are the matches where they didn't: TaBet's lineup model (V2x) against the market's favourite, 2022-23 to 2025-26.</p>
+
+  <div class="db-title"><span aria-hidden="true">⚖️</span>Head to head <span class="view">Table</span></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>When picks differed</th><th class="num">vs earlier odds</th><th class="num">vs closing odds</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Matches compared<span class="note">2022-23 to 2025-26</span></td><td class="num">1,520</td><td class="num">1,520</td></tr>
+        <tr><td class="name">Same pick<span class="note">Both backed the same result</span></td><td class="num">88.5%</td><td class="num">87.4%</td></tr>
+        <tr><td class="name">Different picks</td><td class="num">174</td><td class="num">191</td></tr>
+        <tr><td class="name">TaBet right, market wrong</td><td class="num"><span class="tag t-green">50 (29%)</span></td><td class="num"><span class="tag t-green">52 (27%)</span></td></tr>
+        <tr><td class="name">Market right, TaBet wrong</td><td class="num"><span class="tag t-red">76 (44%)</span></td><td class="num"><span class="tag t-red">86 (45%)</span></td></tr>
+        <tr><td class="name">Both wrong<span class="note">Usually a draw neither picked</span></td><td class="num">48 (28%)</td><td class="num">53 (28%)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">Earlier odds are set on Friday or Tuesday afternoon, before lineups are known, so TaBet has more information than they do. Closing odds are set at kickoff, so they know more than TaBet. Odds are only ever a yardstick here, never a model input.</p>
+
+  <div class="callout">
+    <div class="e" aria-hidden="true">📉</div>
+    <div>
+      <p><strong>The market wins these more often.</strong> When the picks differ, the bookmakers are right alone about 45% of the time and TaBet about 28%. That gap is too big to be luck (p = 0.005 against closing odds).</p>
+      <p>On probabilities across all 1,520 matches, the market is also better. Its log-loss is lower by 0.014 for the earlier odds and 0.019 for the closing odds. In 2024-26 alone the gap to the earlier odds shrinks to 0.004, too small to tell apart from zero.</p>
+    </div>
+  </div>
+
+  <details open>
+    <summary><span class="tri"><svg viewBox="0 0 10 10"><path d="M2 1l6 4-6 4z"/></svg></span><span class="lab">Our best calls and worst misses <span class="sub">(biggest disagreements with the closing odds)</span></span></summary>
+    <div class="tbody">
+      <p>Probabilities are home win, draw, away win.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Match</th><th class="num">Score</th><th class="num">TaBet</th><th class="num">Market</th><th class="role">Who was right</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Brentford v Man Utd<span class="note">13 Aug 2022</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-0</td><td class="num probs">43 / 25 / 33</td><td class="num probs">22 / 25 / 53</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+            <tr><td class="name">Newcastle v Chelsea<span class="note">25 Nov 2023</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-1</td><td class="num probs">57 / 21 / 22</td><td class="num probs">36 / 27 / 37</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+            <tr><td class="name">Coventry v Hull<span class="note">29 Aug 2026</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">0-1</td><td class="num probs">15 / 25 / 59</td><td class="num probs">55 / 25 / 20</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+            <tr><td class="name">Burnley v Sunderland<span class="note">23 Aug 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">10 / 16 / 74</td><td class="num probs">40 / 31 / 30</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+            <tr><td class="name">Man Utd v Sunderland<span class="note">4 Oct 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">27 / 30 / 42</td><td class="num probs">59 / 22 / 19</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+            <tr><td class="name">Brighton v Liverpool<span class="note">19 May 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">3-2</td><td class="num probs">23 / 21 / 57</td><td class="num probs">43 / 25 / 32</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Almost every big disagreement comes from the team ratings, not the lineups. Several involve promoted sides early in the season, such as Sunderland and Hull. With only a few Premier League games behind them, the model reacts strongly to each result. Sometimes that's right (Hull at Coventry), and often it isn't (Sunderland at Burnley). Fixing this is the next piece of work.</p>
     </div>
   </details>
 
