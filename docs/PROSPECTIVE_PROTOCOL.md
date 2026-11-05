@@ -7,9 +7,15 @@ Written 2026-11-05, before any 2026-27 gameweek-10 match. It answers one questio
 
 ## What is logged
 
-- **Horizon:** each fixture is logged once, by the last scheduled run at or before
-  **kickoff − 24 h**. Runs are every 2 hours (`python -m tabet log-forecasts`), so forecasts are
-  made 24–26 h before kickoff.
+- **Horizon:** each fixture is logged once, by the **first run that finds it 24–26 h before
+  kickoff**. Runs are hourly (`python -m tabet log-forecasts`) on a scheduled GitHub Action
+  (`.github/workflows/prospective.yml`), so forecasts are normally made 25–26 h before kickoff.
+  The actual hours before kickoff are recorded. *(Amended 2026-11-05 before any record was
+  logged: the original rule was "the last run at or before kickoff − 24 h" with runs every
+  2 hours on a local machine, which is not available. GitHub's scheduler can start runs late, and
+  the 2-hour window tolerates one missed run.)*
+- **Commits:** the Action commits the log, raw snapshots and the refreshed results file back to
+  `main`.
 - **Each run:**
   1. refreshes the current-season results file (it is replaced only if the new file validates)
   2. refits every model at that moment

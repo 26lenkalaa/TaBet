@@ -111,6 +111,41 @@ def cmd_score_forecasts(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_check_sources(args: argparse.Namespace) -> int:
+    """Fetch each live source once and report whether it parsed (no logging)."""
+    import json as _json
+    from .fpl import fetch_live_season
+    from .lineup_sources import fetch, fpl_players_now, parse_ffs, parse_rotowire
+    from .prospective import RESULTS_URL
+    import urllib.request
+    from .fpl import _ssl_context
+    stamp = "check_" + pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%MZ")
+    ok = True
+    try:
+        boot = _json.loads((fetch_live_season("2026-27", refresh=True) / "bootstrap.json").read_text())
+        fp = fpl_players_now(boot)
+        print(f"FPL API: ok, {len(fp)} players")
+    except Exception as e:
+        print(f"FPL API: FAILED {e}")
+        return 1
+    for src, parse in (("ffs", parse_ffs), ("rotowire", lambda pg: parse_rotowire(pg, fp))):
+        try:
+            df = parse(fetch(src, stamp))
+            print(f"{src}: ok, {len(df)} players for {df['team_id'].nunique() if len(df) else 0} teams")
+            ok &= len(df) > 0
+        except Exception as e:
+            print(f"{src}: FAILED {e}")
+            ok = False
+    try:
+        req = urllib.request.Request(RESULTS_URL, headers={"User-Agent": "tabet-research/0.1"})
+        with urllib.request.urlopen(req, timeout=60, context=_ssl_context()) as r:
+            print(f"football-data: ok, {len(r.read().splitlines()) - 1} rows")
+    except Exception as e:
+        print(f"football-data: FAILED {e}")
+        ok = False
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tabet", description="TaBet data pipeline")
     p.add_argument("--res", type=Path, default=Path("res"), help="directory of season CSVs")
@@ -138,6 +173,9 @@ def main(argv: list[str] | None = None) -> int:
     lg.add_argument("--every", type=float, default=2.0, help="hours between scheduled runs")
     lg.add_argument("--dry-run", action="store_true")
     lg.set_defaults(func=cmd_log_forecasts)
+
+    sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
+        func=cmd_check_sources)
 
     sc = sub.add_parser("score-forecasts", help="score logged forecasts against confirmed XIs and results")
     sc.add_argument("--horizon", type=float, default=24.0)

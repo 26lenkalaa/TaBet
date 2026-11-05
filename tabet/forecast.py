@@ -54,16 +54,26 @@ def upcoming_fixtures(season: str = LIVE_SEASON, refresh: bool = True) -> pd.Dat
 
 
 def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None = None) -> pd.DataFrame:
-    """Walk-forward rows with pre-match DC offsets and adjusted-xG features."""
-    if cache is not None and cache.exists():
-        rows = pd.read_pickle(cache)
-        if set(ADJ) <= set(rows.columns):
-            return rows
+    """Walk-forward rows with pre-match DC offsets and adjusted-xG features.
+    The cache is keyed by the set of completed matches, so it is rebuilt
+    whenever a new result arrives (a stale cache would leave new matches out
+    of stage-2 training)."""
+    done = matches[matches["status"] == "completed"]
+    key = f"{len(done)}_{done['match_id'].max()}"
+    path = None
+    if cache is not None:
+        path = cache.with_name(f"{cache.stem}_{key}.pkl")
+        if path.exists():
+            rows = pd.read_pickle(path)
+            if set(ADJ) <= set(rows.columns):
+                return rows
     rows, _ = build_dataset(matches, app)
     rows = add_xg_strength(rows, app, (XG_HALF_LIFE,))
-    if cache is not None:
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        rows.to_pickle(cache)
+    if path is not None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        for old in path.parent.glob(f"{cache.stem}_*.pkl"):
+            old.unlink()
+        rows.to_pickle(path)
     return rows
 
 
