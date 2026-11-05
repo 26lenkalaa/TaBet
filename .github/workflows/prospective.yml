@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "log | dry-run | check-sources | score"
+        description: "log | dry-run | check-sources | score | warm (full forecast, nothing committed)"
         type: choice
-        options: [log, dry-run, check-sources, score]
+        options: [log, dry-run, check-sources, score, warm]
         default: log
 
 permissions:
@@ -49,6 +49,7 @@ jobs:
             check-sources) python -m tabet check-sources ;;
             dry-run)       python -m tabet log-forecasts --dry-run ;;
             score)         python -m tabet score-forecasts ;;
+            warm)          python -m tabet forecast --gameweeks 1 ;;
             *)             python -m tabet log-forecasts ;;
           esac
       - name: Commit log
