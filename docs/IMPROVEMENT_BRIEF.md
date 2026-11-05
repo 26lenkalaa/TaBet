@@ -483,6 +483,34 @@ little better (0.39 / 0.20, not tested). With 3 promotions a season there are to
 learn a mapping; pooling other leagues' second tiers would be the only way to get more, which I
 have not done.
 
+### 5.16 Pre-xG-era replication of XI strength (your experiment 1; pre-registered, addendum R)
+
+Seasons never used for any earlier choice: results 2015-16 → 2020-21, FPL players 2016-17 →
+2020-21. The 2016-18 archive has no fixtures or teams files, so team ids were rebuilt from
+players' opponents and home/away flags and checked against football-data. All 1,900 fixtures join
+with identical scores. Starters are inferred (11 per side, ~986 minutes). Player rating =
+threat + creativity through the unchanged V2 code. Base B = Dixon-Coles + shots-on-target
+strength; X = B + XI strength. L2 chosen on 2017-18 (both 100); 2018-21 scored once. The
+pre-registration was pushed before the run.
+
+| | Result |
+|---|---|
+| **primary** X − B, 2018-21 (n 1,140) | **−0.0009 (SE 0.0008), block CI [−0.0022, +0.0004]: not confirmed** |
+| 2018-19 / 2019-20 / 2020-21 (no crowds) | +0.0006 / −0.0015 / −0.0017 |
+| dev 2017-18 (used only for L2) | X worse than B by +0.0046 |
+| B − Dixon-Coles | −0.0016 [−0.0044, +0.0011] |
+| X − B by XI-deviation band: low / middle / high | +0.0004 / +0.0011 / **−0.0042 (SE 0.0018)** |
+
+Reading:
+- **The effect does not replicate at the size seen on 2024-26.** The interval excludes −0.004.
+  The paired SD here (0.026) is lower than in the xG era, so power was better than planned.
+- **The pattern replicates.** As on 2024-26 (§5.14), any gain sits in the third of matches where
+  the XIs were furthest from usual (−0.0042 here vs −0.0096 there), with nothing elsewhere.
+- **Caveats that bias toward zero:** threat + creativity is a noisier player measure than xG + xA,
+  and inferred starters are fully right for only about 78% of team lineups.
+- **My conclusion:** the average XI effect is probably small (around −0.001 to −0.002), and the
+  −0.004 on 2024-26 was at the lucky end. The effect is real mainly when lineups change a lot.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -503,7 +531,8 @@ have not done.
    archive has per-player tackles, interceptions and duels for 2021-25, but nothing live.
 3. **Lineups before team news.** Being handled by the protocol in §5.10. It will produce
    evidence from gameweek 20 onward. Until then V1x stays the default early forecast.
-4. **XI gain: development and test seasons disagree.** The gain is null on 2022-24 (where stage 2
+4. **XI gain: development and test seasons disagree.** *(Update: §5.14 and §5.16 suggest a small
+   average effect concentrated in high-deviation lineups; the original question follows.)* The gain is null on 2022-24 (where stage 2
    is active for only 457 of 760 matches) and about −0.004 on 2024-26 and 2026-27. Is there a
    principled way to tell a real regime difference from noise, beyond the pre-registered test?
 5. **Cross-league player priors.** Solved for history by §5.12; for 2026-27 arrivals we only have
