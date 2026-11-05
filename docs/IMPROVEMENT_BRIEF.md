@@ -541,6 +541,36 @@ the minutes-weighted rating of incoming minus outgoing players, applied to the t
 at the season boundary — which targets the first weeks, where team ratings still reflect last
 season's squad. It could be combined with your season-boundary shrinkage suggestion.
 
+### 5.18 Dynamic (score-driven) team strengths (pre-registered, addendum D)
+
+Your last suggestion, implemented as the score-driven prototype you recommended (`tabet/dynamic.py`):
+attack/defence move after each match by the Poisson score of the log-rate (scaled by α_att, α_def),
+decay toward 0 with weekly persistence β, and by an extra factor β_summer across a season boundary.
+Same goal model (Poisson + Dixon-Coles ρ). Static parameters refitted at each season start by
+maximising the filtered one-step log-likelihood on earlier matches. A test checks that no same-day
+or later result changes a prediction.
+
+| Contrast (log-loss) | Clean 2018-21 (n 1,140) | Recent |
+|---|---|---|
+| **primary** S2 − D0 | **+0.0009 (SE 0.0034) [−0.0051, +0.0066]: not confirmed** | 2022-24 +0.0044, 2024-26 +0.0051, 2026-27 −0.0044 |
+| S2 − S1 (summer term) | +0.0000 | −0.0008 / +0.0001 / +0.0002 |
+| S2 − D0, early season (first 56 days) | −0.0076 [−0.029, +0.011] (n 210) | 2022-26 +0.0071 [−0.006, +0.020] |
+| S2 − D0s (half-life 116 d) | −0.0047 [−0.011, +0.001] | — |
+| D0s − D0 (shorter half-life) | **+0.0056 [+0.0029, +0.0089]** | — |
+| S2 + adjusted xG − V1x | — | 2022-24 +0.0053, 2024-26 +0.0031, 2026-27 −0.0059 |
+
+Reading:
+- **No gain over the decayed refit.** On clean data the dynamic model ties Dixon-Coles; on recent
+  seasons it is slightly worse, with and without the xG layer.
+- **The summer term learns itself away.** β_summer is fitted at about 1.0 (0.98–1.0 on clean data,
+  0.90–1.0 recently; the 0.80 for 2022-23 is the starting value, since one season of training has no
+  boundary to learn from). The data do not support resetting ratings over the summer.
+- **Faster adaptation hurts.** The shorter half-life is clearly worse (+0.0056, interval excludes 0),
+  and β ≈ 1 means the filter wants almost no mean reversion. Team strength in the PL is persistent;
+  the 173-day refit is already close to the right speed.
+- **Early season:** opposite signs on the two data sets, both inside noise. No support for the
+  claim that the largest gains come early.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
