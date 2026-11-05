@@ -4,7 +4,8 @@
 > described in the last section. It is self-contained: the reviewer does not have the code.
 > Last updated 2026-11-05, before gameweek 10. Since the previous review: league pooling (§5.11),
 > a free player-match archive (§3), transfer priors (§5.12), match-stat analysis (§5.13), and a
-> list of untested candidate factors (§7) that I want ranked.
+> list of untested candidate factors (§7). Third review answered: protocol amendment and
+> diagnostics in §5.14.
 
 ## 1. What the project is
 
@@ -421,6 +422,38 @@ is not available from any source we can access.
 L2 = 100 chosen on dev): dev −0.0006 (SE 0.0021), test 2024-25 −0.0028 (SE 0.0026, 14-day block CI
 [−0.0079, +0.0014]). Not kept. Largest coefficients: key passes (+0.06 per SD on log goals) and
 dribble success % (+0.045).
+
+### 5.14 Diagnostics from the third review
+
+**Protocol amendment A2** (before any prospective record): availability now reads the FPL field for
+the fixture's own gameweek (the "next round" field had moved on for fixtures logged after a
+deadline), null chances count as 0 for injured/suspended players, moved kickoffs are re-logged and
+only the record matching the kickoff played is scored, `pE` falls back to `p0`, α defaults to 0
+when degenerate, the gameweek 20–29 read is descriptive with the confirmatory read at gameweeks
+20–38, and an XI-feature decomposition is pre-registered as a secondary analysis. Live FPL xG is now
+snapshotted daily to measure revisions.
+
+**XI gain by how far both XIs were from usual** (V2x − V1x log-loss; cut points from all dev + test
+matches):
+
+| Band | Dev n (stage 2 active) | Dev | Test n | Test |
+|---|---|---|---|---|
+| low deviation | 296 (107) | +0.0008 (SE 0.0004) | 211 | −0.0017 (SE 0.0017) |
+| middle | 238 (175) | +0.0014 (SE 0.0010) | 268 | +0.0006 (SE 0.0023) |
+| high | 226 (175) | −0.0016 (SE 0.0019) | 281 | **−0.0096 (SE 0.0039)** |
+
+Overall dev +0.0003 vs test −0.0038; difference +0.0041, z = 2.23. On test the gain is concentrated
+in high-deviation matches. Dev points the same way in that band but is much weaker, and the band
+mix is similar in both periods, so "dev simply had fewer unusual XIs" does not explain it. This is
+between the two readings you described; the pre-xG-era replication is the intended arbiter.
+
+**Shorter xG half-lives:** dev now picks 60 days over 90 by 0.00015 log-loss, and on test the
+difference is −0.0002 [−0.0010, +0.0007]. The edge-of-grid concern is real but immaterial; the
+live model keeps 90 days (frozen by the protocol).
+
+**Relabelled splits:** about twenty contrasts have now been read on 2024-26 and on 2026-27
+gameweeks 1–9, so those are treated as **reused validation**. The only clean confirmatory data is
+2026-27 gameweek 10 onward plus the pre-xG-era replication.
 
 ## 6. Known weaknesses and open questions
 
