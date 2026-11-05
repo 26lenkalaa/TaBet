@@ -4,3 +4,5 @@ __pycache__/
 .mypy_cache/
 .venv/
 data/processed/
+data/raw/
+*.pkl
