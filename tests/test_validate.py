@@ -30,6 +30,7 @@ def test_future_completed_result_is_error(real):
 
 def test_partial_latest_season_is_warning_only(real):
     m = real[0]
+    m = m[m["season"] <= "2025-26"]  # make 2025-26 the latest season
     latest = m[m["season"] == "2025-26"]
     trimmed = m.drop(latest.index[-50:])
     issues = validate(trimmed)

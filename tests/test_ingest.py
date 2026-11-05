@@ -8,12 +8,21 @@ OK = "E0,16/08/2026,15:00,Arsenal,Fulham,2,1,H,1,0,H,A Ref,10,5,4,2,1.5,4.0,6.0"
 
 def test_real_data_shape(real):
     matches, odds = real
-    assert len(matches) == 1900
-    assert set(matches["season"]) == {"2021-22", "2022-23", "2023-24", "2024-25", "2025-26"}
+    full = ["2021-22", "2022-23", "2023-24", "2024-25", "2025-26"]
+    assert set(matches["season"]) == {*full, "2026-27"}  # 2026-27 is in progress
+    assert (matches[matches["season"].isin(full)].groupby("season").size() == 380).all()
     assert matches["match_id"].is_unique
     assert (matches["division"] == "E0").all()  # BOM-prefixed files still yield "Div"
     assert len(odds) == len(matches)
-    assert not {"home_goals", "result"} & set(odds.columns)
+    assert not {"home_goals", "result", "HxG", "AxG"} & set(odds.columns)
+
+
+def test_team_xg_parsed_when_present(real):
+    m = real[0]
+    cur = m[m["season"] == "2026-27"]
+    assert cur[["home_xg", "away_xg"]].notna().all().all()  # file has HxG/AxG
+    assert (cur["home_xg"] >= 0).all()
+    assert m.loc[m["season"] == "2021-22", "home_xg"].isna().all()  # older files don't
 
 
 def test_kickoff_converted_from_uk_time_to_utc(real):

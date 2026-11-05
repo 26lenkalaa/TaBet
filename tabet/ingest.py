@@ -39,6 +39,8 @@ INT_COLS = {
     "HR": "home_reds",
     "AR": "away_reds",
 }
+# Team xG, added to football-data.co.uk files from 2026-27 onwards.
+FLOAT_COLS = {"HxG": "home_xg", "AxG": "away_xg"}
 HANDICAP_LINE_COLS = {"AHh", "AHCh"}
 FIXES_FILE = Path(__file__).resolve().parent.parent / "data" / "source_fixes.csv"
 REQUIRED_RAW = ("Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR")
@@ -57,6 +59,7 @@ MATCH_COLUMNS = [
     "away_team_raw",
     "status",
     *INT_COLS.values(),
+    *FLOAT_COLS.values(),
     "result",
     "ht_result",
     "referee",
@@ -170,6 +173,17 @@ def load_season(path: str | Path, season: str | None = None) -> tuple[pd.DataFra
         else:
             out[dst] = pd.Series(pd.NA, index=raw.index, dtype="Int64")
 
+    for src, dst in FLOAT_COLS.items():
+        if src in raw.columns:
+            v = raw[src].str.strip()
+            num = pd.to_numeric(v.where(v != ""), errors="coerce")
+            bad = num.isna() & (v != "")
+            if bad.any():
+                problems.append(f"column {src}: non-numeric values on lines {_row_labels(bad)}")
+            out[dst] = num
+        else:
+            out[dst] = pd.Series(float("nan"), index=raw.index, dtype="float64")
+
     has_score = out["home_goals"].notna() & out["away_goals"].notna() & (out["result"] != "")
     no_score = out["home_goals"].isna() & out["away_goals"].isna() & (out["result"] == "")
     partial = ~has_score & ~no_score
@@ -185,7 +199,7 @@ def load_season(path: str | Path, season: str | None = None) -> tuple[pd.DataFra
     out["match_id"] = season + "-" + local_date + "-" + out["home_id"] + "-" + out["away_id"]
     matches = out[MATCH_COLUMNS]
 
-    known = set(IDENTITY_COLS) | set(TEXT_COLS) | set(INT_COLS)
+    known = set(IDENTITY_COLS) | set(TEXT_COLS) | set(INT_COLS) | set(FLOAT_COLS)
     odds_cols = [c for c in raw.columns if c not in known and c != ""]
     cols = {"match_id": matches["match_id"]}
     for c in odds_cols:
