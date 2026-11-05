@@ -1,0 +1,171 @@
+<title>Match Stats and Results</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; finding strip, then an odds-ratio chart (the core), then a grid of small win-rate charts, then the prediction test. */
+:root {
+  --bg: #f7f8f7; --surface: #ffffff; --surface-2: #f1f3f1; --line: #e3e6e3;
+  --fg: #101411; --fg-2: #4b524d; --fg-3: #737a75;
+  --accent: #0a8f5b; --accent-soft: #e3f4ec;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111412; --surface: #181c19; --surface-2: #1f2420; --line: #2b312c;
+    --fg: #eef1ee; --fg-2: #b4bbb5; --fg-3: #8d958f; --accent: #3fc48b; --accent-soft: #173a29;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111412; --surface: #181c19; --surface-2: #1f2420; --line: #2b312c;
+  --fg: #eef1ee; --fg-2: #b4bbb5; --fg-3: #8d958f; --accent: #3fc48b; --accent-soft: #173a29;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 var(--font); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 24px 48px; display: grid; gap: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+p { margin: 0; color: var(--fg-2); max-width: 70ch; }
+.sub { color: var(--fg-3); font-size: 13px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.find { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 4px; }
+.find b { font-size: 13px; } .find span { color: var(--fg-2); font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--fg-2); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.chartwrap { overflow-x: auto; }
+svg text { fill: var(--fg-2); font: 500 11px var(--font); }
+svg .rowlbl { fill: var(--fg); font: 600 12px var(--font); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--fg-2); border-radius: 999px; padding: 5px 12px; font: 600 12px var(--font); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.multi { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.mini { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 4px; background: var(--surface); }
+.mini b { font-size: 12px; } .mini .sub { font-size: 11px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--fg-3); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.pred { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.stat { display: grid; gap: 2px; } .stat .v { font: 500 20px var(--mono); } .stat .l { font-size: 12px; color: var(--fg-3); }
+#tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 9px; border-radius: 8px; font-size: 12px; font-weight: 600; z-index: 20; max-width: 260px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>Match Stats and Results</h1>
+    <p>How a team's player actions in a Premier League match line up with winning, and whether a team's action profile from <em>earlier</em> matches predicts results. <span id="n"></span></p>
+  </header>
+
+  <section class="findings" aria-label="Key findings">
+    <div class="find"><b>Shots on target dominate</b><span id="f-sot"></span></div>
+    <div class="find"><b>Possession stats flip sign</b><span>More passes look good in raw numbers, but given team strength they go with <em>losing</em>: teams that are behind keep the ball.</span></div>
+    <div class="find"><b>Defending goes with winning</b><span id="f-def"></span></div>
+    <div class="find"><b>Before kickoff, little extra signal</b><span id="f-pred"></span></div>
+  </section>
+
+  <section class="box">
+    <div class="head">
+      <h2>Odds of winning per standard deviation of the stat gap</h2>
+      <div class="seg" role="group" aria-label="View"><button id="v-chart" aria-pressed="true">Chart</button><button id="v-table" aria-pressed="false">Table</button></div>
+    </div>
+    <p class="sub">Each row compares the team with its opponent in the same match. Right of 1 means a bigger gap goes with winning more often. Lines are 95% intervals.</p>
+    <div class="legend" aria-hidden="true">
+      <span><i class="sw" style="background:var(--s1)"></i>Raw</span>
+      <span><i class="sw" style="background:var(--s2)"></i>Given pre-match team strength</span>
+      <span><i class="sw" style="background:var(--s3)"></i>Given strength and shots on target</span>
+    </div>
+    <div class="chartwrap" id="forest"></div>
+    <div id="tablewrap" hidden style="overflow-x:auto"><table id="tbl"></table></div>
+  </section>
+
+  <section class="box">
+    <h2>Win rate by fifth of the stat gap</h2>
+    <p class="sub">Matches sorted by how much the team out-did its opponent, split into five equal groups. The dashed line is the average win rate.</p>
+    <div class="multi" id="multi"></div>
+  </section>
+
+  <section class="box">
+    <h2>Does an action profile predict future results?</h2>
+    <p id="pred-text"></p>
+    <div class="pred" id="pred"></div>
+  </section>
+
+  <p class="sub" id="foot"></p>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const D = __DATA__;
+const $ = s => document.querySelector(s);
+const fmt = (x, d = 2) => x == null ? "–" : x.toFixed(d);
+const S = D.stats;
+$("#n").textContent = `${D.n_team_matches.toLocaleString("en-GB")} team-matches, Premier League 2021-22 to 2025-26.`;
+const sot = S.find(s => s.key === "shots_on"), ti = S.find(s => s.key === "tackles_int"), P = D.predictive;
+$("#f-sot").textContent = `Teams in the top fifth on shots-on-target gap won ${Math.round(sot.fifths.at(-1).win * 100)}% of matches, against ${Math.round(sot.fifths[0].win * 100)}% in the bottom fifth.`;
+$("#f-def").textContent = `Given team strength, each standard deviation more tackles and interceptions multiplies the odds of winning by ${fmt(ti.or_str)}. Teams that are ahead defend more.`;
+$("#f-pred").textContent = `Adding pre-match action profiles changed test log-loss by ${P.test.diff >= 0 ? "+" : "−"}${Math.abs(P.test.diff).toFixed(4)} (interval includes zero).`;
+
+function forest() {
+  const W = 760, rowH = 34, top = 28, left = 190, right = 30, H = top + S.length * rowH + 30;
+  const lo = Math.log(0.35), hi = Math.log(5);
+  const X = v => left + (Math.log(v) - lo) / (hi - lo) * (W - left - right);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:560px" role="img" aria-label="Odds ratios per stat">`;
+  [0.5, 1, 2, 4].forEach(v => s += `<line x1="${X(v)}" x2="${X(v)}" y1="${top - 8}" y2="${H - 26}" stroke="var(--line)" stroke-width="${v === 1 ? 1.5 : 1}"/><text x="${X(v)}" y="${H - 10}" text-anchor="middle">${v}×</text>`);
+  s += `<text x="${X(0.5)}" y="${top - 12}" text-anchor="middle">less likely to win</text><text x="${X(2)}" y="${top - 12}" text-anchor="middle">more likely to win</text>`;
+  S.forEach((r, i) => {
+    const y = top + i * rowH + rowH / 2;
+    s += `<text class="rowlbl" x="${left - 12}" y="${y + 4}" text-anchor="end">${r.label}</text>`;
+    const pts = [["s1", r.or_raw, null, -9, "Raw"], ["s2", r.or_str, r.or_str_ci, 0, "Given strength"], ["s3", r.or_sot, r.or_sot_ci, 9, "Given strength + shots on target"]];
+    pts.forEach(([c, v, ci, dy, nm]) => {
+      if (v == null) return;
+      if (ci) s += `<line x1="${X(Math.max(ci[0], 0.36))}" x2="${X(Math.min(ci[1], 4.9))}" y1="${y + dy}" y2="${y + dy}" stroke="var(--${c})" stroke-width="2"/>`;
+      s += `<circle cx="${X(Math.min(Math.max(v, 0.36), 4.9))}" cy="${y + dy}" r="4.5" fill="var(--${c})" stroke="var(--surface)" stroke-width="2"/>`;
+      s += `<rect x="${left}" y="${y + dy - 5}" width="${W - left - right}" height="10" fill="transparent" data-tip="${r.label}, ${nm}: ${fmt(v)}×${ci ? ` (${fmt(ci[0])}–${fmt(ci[1])})` : ""}"/>`;
+    });
+  });
+  $("#forest").innerHTML = s + "</svg>";
+  $("#tbl").innerHTML = `<thead><tr><th>Stat</th><th>Raw</th><th>Given strength</th><th>95% CI</th><th>+ shots on target</th><th>95% CI</th></tr></thead><tbody>` +
+    S.map(r => `<tr><td>${r.label}</td><td>${fmt(r.or_raw)}</td><td>${fmt(r.or_str)}</td><td>${fmt(r.or_str_ci[0])}–${fmt(r.or_str_ci[1])}</td><td>${fmt(r.or_sot)}</td><td>${r.or_sot_ci ? fmt(r.or_sot_ci[0]) + "–" + fmt(r.or_sot_ci[1]) : "–"}</td></tr>`).join("") + "</tbody>";
+}
+
+function multi() {
+  const W = 200, H = 90, m = { l: 26, r: 6, t: 8, b: 16 };
+  const Y = v => m.t + (1 - v / 0.85) * (H - m.t - m.b), X = i => m.l + i / 4 * (W - m.l - m.r);
+  $("#multi").innerHTML = S.map(r => {
+    const f = r.fifths, line = f.map((d, i) => `${X(i)},${Y(d.win)}`).join(" ");
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${r.label} win rate by fifth">`;
+    [0, 0.4, 0.8].forEach(v => s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l - 4}" y="${Y(v) + 3}" text-anchor="end">${v * 100}%</text>`);
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(D.base_win)}" y2="${Y(D.base_win)}" stroke="var(--fg-3)" stroke-dasharray="3 3"/>`;
+    s += `<polyline points="${line}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>`;
+    f.forEach((d, i) => s += `<circle cx="${X(i)}" cy="${Y(d.win)}" r="${i === 0 || i === 4 ? 4 : 3}" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/><circle cx="${X(i)}" cy="${Y(d.win)}" r="10" fill="transparent" data-tip="${r.label}, fifth ${i + 1} (gap ${d.lo} to ${d.hi}): won ${Math.round(d.win * 100)}%, drew ${Math.round(d.draw * 100)}% of ${d.n}"/>`);
+    s += `<text x="${X(0)}" y="${H - 3}" text-anchor="start">fewer</text><text x="${X(4)}" y="${H - 3}" text-anchor="end">more</text></svg>`;
+    return `<div class="mini"><b>${r.label}</b><span class="sub">${Math.round(f[0].win * 100)}% → ${Math.round(f.at(-1).win * 100)}% wins</span>${s}</div>`;
+  }).join("");
+}
+
+function pred() {
+  $("#pred-text").textContent = "Each team's decayed averages from earlier matches only (dribbles completed and success rate, duel win rate, key passes, passes and completion, plus the opponent's tackles, interceptions and duels), added to the lineup-free model. The penalty was chosen on 2022-24; 2024-25 is the test season.";
+  const c = [
+    ["2024-25 log-loss, lineup-free model", fmt(P.test.v1x_log_loss, 4)],
+    ["2024-25 log-loss, with action profile", fmt(P.test.with_profile_log_loss, 4)],
+    ["Difference (lower is better)", `${P.test.diff >= 0 ? "+" : "−"}${Math.abs(P.test.diff).toFixed(4)}`],
+    ["95% interval (14-day blocks)", `${P.test.block14d_ci[0].toFixed(4)} to ${P.test.block14d_ci[1].toFixed(4)}`],
+  ];
+  $("#pred").innerHTML = c.map(([l, v]) => `<div class="stat"><span class="v">${v}</span><span class="l">${l}</span></div>`).join("");
+}
+
+$("#foot").textContent = "Player-match stats from the Hugging Face soccer-dataset (built from API-Football), validated against football-data.co.uk: team fouls and shots on target match exactly in 98.8% and 99.4% of matches. Distance covered is not available from any source this project can use. Pre-match team strength comes from the walk-forward Dixon-Coles model (2022-23 onward, " + D.n_with_strength.toLocaleString("en-GB") + " team-matches). Same-match associations describe how games unfolded; they are not causes.";
+const tip = $("#tip");
+document.addEventListener("pointermove", e => { const t = e.target.closest && e.target.closest("[data-tip]"); if (!t) { tip.hidden = true; return; } tip.textContent = t.dataset.tip; tip.hidden = false; tip.style.left = Math.min(e.clientX + 12, innerWidth - 270) + "px"; tip.style.top = (e.clientY + 14) + "px"; });
+$("#v-chart").onclick = () => { $("#forest").hidden = false; $("#tablewrap").hidden = true; $("#v-chart").setAttribute("aria-pressed", true); $("#v-table").setAttribute("aria-pressed", false); };
+$("#v-table").onclick = () => { $("#forest").hidden = true; $("#tablewrap").hidden = false; $("#v-chart").setAttribute("aria-pressed", false); $("#v-table").setAttribute("aria-pressed", true); };
+forest(); multi(); pred();
+</script>
