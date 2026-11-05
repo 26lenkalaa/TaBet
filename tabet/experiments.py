@@ -71,7 +71,7 @@ SECONDARY_CONTRASTS = {
 
 def build_dataset(matches: pd.DataFrame, app: pd.DataFrame, p: FeatureParams = FeatureParams(),
                   hyper: Hyperparams = Hyperparams(), first_season: str = "2022-23",
-                  low_minutes: float = 600.0) -> tuple[pd.DataFrame, pd.DataFrame]:
+                  low_minutes: float = 600.0, lineup_provider=None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Returns (rows, player_checks). rows: two per match with DC offset, goals
     and features. player_checks: low-history starters' ratings under each prior
     vs their output in that match (for the player-level similarity check)."""
@@ -86,6 +86,9 @@ def build_dataset(matches: pd.DataFrame, app: pd.DataFrame, p: FeatureParams = F
         dc = DixonColes(hyper).fit(train, cutoff, promoted)
         hist = known(app, cutoff)
         lineups = app[app["match_id"].isin(fx["match_id"])]
+        if lineup_provider is not None:
+            # e.g. a projected XI built only from data known at the cutoff
+            lineups = lineup_provider(fx, hist, cutoff)
         feats = match_features(fx, lineups, hist, train, cutoff, p)
         lam = {mid: dc.expected_goals(h, a, s) for mid, h, a, s in
                zip(fx["match_id"], fx["home_id"], fx["away_id"], fx["season"])}
@@ -100,6 +103,8 @@ def build_dataset(matches: pd.DataFrame, app: pd.DataFrame, p: FeatureParams = F
         feats["result"] = feats["match_id"].map(g["result"])
         out.append(feats)
 
+        if lineup_provider is not None:
+            continue
         # player-level check: starters with little xG-era history
         rp = player_ratings(hist, cutoff, p, "position")
         rs = player_ratings(hist, cutoff, p, "similar")

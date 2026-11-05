@@ -1,0 +1,3020 @@
+{
+  "model": "V1x: Dixon-Coles + opponent-adjusted xG strength (lineup-free)",
+  "cutoff_utc": "2026-11-05T06:55:00+00:00",
+  "git_commit": "2a1d448",
+  "results_through": "2026-11-02T20:00:00+00:00",
+  "n_train_matches": 1990,
+  "settings": {
+    "dixon_coles": {
+      "xi": 0.004,
+      "l2": 10.0,
+      "promoted_prior": false
+    },
+    "xg_half_life_days": 90.0,
+    "stage2_l2": 1.0
+  },
+  "params": {
+    "home_adv": 0.19478464850554444,
+    "rho": -0.07137510442215489,
+    "mu": 0.19938232296897868,
+    "stage2_coef": [
+      0.0021494975893803685,
+      -0.004111371685117607,
+      0.025440389212972585
+    ]
+  },
+  "fixtures": [
+    {
+      "fpl_fixture": 94,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-06T20:00:00+00:00",
+      "home_id": "everton",
+      "away_id": "coventry",
+      "home": "Everton",
+      "away": "Coventry City",
+      "p_home": 0.5095395726974735,
+      "p_draw": 0.27149308222978796,
+      "p_away": 0.21896734507273846,
+      "base_home": 0.5082244419649101,
+      "base_draw": 0.273446627854399,
+      "base_away": 0.21832893018069097,
+      "xg_home": 1.5613855831171684,
+      "xg_away": 0.9412020525217895,
+      "base_xg_home": 1.5445494962949406,
+      "base_xg_away": 0.9290128487876596,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12890642983273648
+        },
+        {
+          "score": "1-0",
+          "p": 0.11924735661152168
+        },
+        {
+          "score": "2-0",
+          "p": 0.0997999523147661
+        }
+      ],
+      "p_btts": 0.49045695079888524,
+      "p_over_2_5": 0.4568504811048358,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.442649766388614,
+            "p_draw": 0.29362618917584804,
+            "p_away": 0.26372404443553804,
+            "xg_home": 1.350196912444765,
+            "xg_away": 0.9835319603807579
+          },
+          "ffs": {
+            "p_home": 0.4787607274496776,
+            "p_draw": 0.28177504589678604,
+            "p_away": 0.23946422665353653,
+            "xg_home": 1.4654666315902443,
+            "xg_away": 0.9640346401869233
+          },
+          "rotowire": {
+            "p_home": 0.5140643866661861,
+            "p_draw": 0.2675930046771793,
+            "p_away": 0.21834260865663424,
+            "xg_home": 1.5961306010448888,
+            "xg_away": 0.9587945482912813
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Pickford",
+              "Tarkowski",
+              "Garner",
+              "Mykolenko",
+              "Dewsbury-Hall",
+              "Barry",
+              "O'Brien",
+              "Branthwaite",
+              "Armstrong",
+              "R\u00f6hl",
+              "Keane"
+            ],
+            "away": [
+              "Rushworth",
+              "Dasilva",
+              "Rudoni",
+              "van Ewijk",
+              "Grimes",
+              "Thomas",
+              "Pinnock",
+              "Yirenkyi",
+              "Thomas-Asante",
+              "Mason-Clark",
+              "Awoniyi"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Pickford",
+              "O'Brien",
+              "Tarkowski",
+              "Branthwaite",
+              "Mykolenko",
+              "Armstrong",
+              "Garner",
+              "R\u00f6hl",
+              "Dewsbury-Hall",
+              "George",
+              "Barry"
+            ],
+            "away": [
+              "Rushworth",
+              "van Ewijk",
+              "Mfuni",
+              "Pinnock",
+              "Dasilva",
+              "Yirenkyi",
+              "Torp",
+              "Sakamoto",
+              "Rudoni",
+              "Gboho",
+              "Awoniyi"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Pickford",
+              "Mykolenko",
+              "Branthwaite",
+              "Tarkowski",
+              "R\u00f6hl",
+              "Armstrong",
+              "Garner",
+              "George",
+              "Dewsbury-Hall",
+              "Johnson",
+              "Barry"
+            ],
+            "away": [
+              "Rushworth",
+              "Dasilva",
+              "Pinnock",
+              "Mfuni",
+              "van Ewijk",
+              "Torp",
+              "Yirenkyi",
+              "Gboho",
+              "Rudoni",
+              "Sakamoto",
+              "Awoniyi"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.478491626834826,
+          "p_draw": 0.28099807991660447,
+          "p_away": 0.24051029324856962,
+          "xg_home": 1.4705980483599659,
+          "xg_away": 0.9687870496196541
+        },
+        "agreement": {
+          "home": 10,
+          "away": 11
+        }
+      }
+    },
+    {
+      "fpl_fixture": 97,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T12:30:00+00:00",
+      "home_id": "leeds",
+      "away_id": "tottenham",
+      "home": "Leeds United",
+      "away": "Tottenham Hotspur",
+      "p_home": 0.4399969741557768,
+      "p_draw": 0.29625873749667064,
+      "p_away": 0.2637442883475527,
+      "base_home": 0.44866226618813476,
+      "base_draw": 0.29198091658958203,
+      "base_away": 0.2593568172222832,
+      "xg_home": 1.329807727844475,
+      "xg_away": 0.9708846221462194,
+      "base_xg_home": 1.3673819486837666,
+      "base_xg_away": 0.978307563772899,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13858621479483824
+        },
+        {
+          "score": "1-0",
+          "p": 0.12400008364869851
+        },
+        {
+          "score": "0-0",
+          "p": 0.10942207945110377
+        }
+      ],
+      "p_btts": 0.466146120512997,
+      "p_over_2_5": 0.4041447663558604,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.4556491191100403,
+            "p_draw": 0.2911799249914593,
+            "p_away": 0.2531709558985003,
+            "xg_home": 1.3792854374958894,
+            "xg_away": 0.962983321271871
+          },
+          "ffs": {
+            "p_home": 0.43865392798291936,
+            "p_draw": 0.29434233298195644,
+            "p_away": 0.2670037390351245,
+            "xg_home": 1.3412129257753318,
+            "xg_away": 0.9898048233141522
+          },
+          "rotowire": {
+            "p_home": 0.42148730297407083,
+            "p_draw": 0.29284626293972676,
+            "p_away": 0.2856664340862023,
+            "xg_home": 1.3312587409302004,
+            "xg_away": 1.0511759990220124
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Trafford",
+              "Ampadu",
+              "Calvert-Lewin",
+              "Bogle",
+              "Justin",
+              "Gudmundsson",
+              "Stach",
+              "Tanaka",
+              "Aaronson",
+              "Okafor",
+              "Muharemovi\u0107"
+            ],
+            "away": [
+              "Kinsky",
+              "Van de Ven",
+              "Gray",
+              "Pedro Porro",
+              "Bentancur",
+              "Solanke",
+              "Tel",
+              "Van Hecke",
+              "Tonali",
+              "Gallagher",
+              "Kudus"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Trafford",
+              "Justin",
+              "Elvedi",
+              "Muharemovi\u0107",
+              "Bogle",
+              "Ampadu",
+              "Tanaka",
+              "Gudmundsson",
+              "Wilson",
+              "Calvert-Lewin",
+              "Okafor"
+            ],
+            "away": [
+              "Kinsky",
+              "Gray",
+              "Van Hecke",
+              "Van de Ven",
+              "Robertson",
+              "Tonali",
+              "Fernandes",
+              "Kudus",
+              "Gallagher",
+              "Tel",
+              "Solanke"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Trafford",
+              "Justin",
+              "Muharemovi\u0107",
+              "Elvedi",
+              "Gudmundsson",
+              "Ampadu",
+              "Tanaka",
+              "Bogle",
+              "Stach",
+              "Wilson",
+              "Calvert-Lewin"
+            ],
+            "away": [
+              "Kinsky",
+              "Robertson",
+              "Van Hecke",
+              "Van de Ven",
+              "Pedro Porro",
+              "Tonali",
+              "Fernandes",
+              "Tel",
+              "Marmoush",
+              "Kudus",
+              "Solanke"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.4385967833556768,
+          "p_draw": 0.2927895069710475,
+          "p_away": 0.2686137096732757,
+          "xg_home": 1.3505857014004736,
+          "xg_away": 1.0013213812026784
+        },
+        "agreement": {
+          "home": 10,
+          "away": 9
+        }
+      }
+    },
+    {
+      "fpl_fixture": 91,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T15:00:00+00:00",
+      "home_id": "arsenal",
+      "away_id": "hull",
+      "home": "Arsenal",
+      "away": "Hull City",
+      "p_home": 0.6465973671340569,
+      "p_draw": 0.24651917108178387,
+      "p_away": 0.10688346178415926,
+      "base_home": 0.6328042715315922,
+      "base_draw": 0.25078629944635705,
+      "base_away": 0.11640942902205094,
+      "xg_home": 1.673400278393816,
+      "xg_away": 0.5332778445389786,
+      "base_xg_home": 1.6580017419652113,
+      "base_xg_away": 0.568935385838662,
+      "top_scores": [
+        {
+          "score": "1-0",
+          "p": 0.17717336843686624
+        },
+        {
+          "score": "2-0",
+          "p": 0.15410670899555362
+        },
+        {
+          "score": "0-0",
+          "p": 0.11707621509272066
+        }
+      ],
+      "p_btts": 0.3427893821584578,
+      "p_over_2_5": 0.3790763972466433,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.585675002593376,
+            "p_draw": 0.29092933651827013,
+            "p_away": 0.12339566088835359,
+            "xg_home": 1.3875742891923222,
+            "xg_away": 0.4915925377799612
+          },
+          "ffs": {
+            "p_home": 0.6165940528825173,
+            "p_draw": 0.2687161513992441,
+            "p_away": 0.11468979571823847,
+            "xg_home": 1.5226470967485732,
+            "xg_away": 0.5089820183753765
+          },
+          "rotowire": {
+            "p_home": 0.6294791572940633,
+            "p_draw": 0.26050815233867103,
+            "p_away": 0.1100126903672657,
+            "xg_home": 1.573624256870484,
+            "xg_away": 0.5089820183753765
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Raya",
+              "Rice",
+              "Gabriel",
+              "\u00d8degaard",
+              "Calafiori",
+              "Havertz",
+              "White",
+              "J.Timber",
+              "Saliba",
+              "Lewis-Skelly",
+              "Zubimendi"
+            ],
+            "away": [
+              "Tzolakis",
+              "Egan",
+              "McBurnie",
+              "Coyle",
+              "Slater",
+              "Ajayi",
+              "Belloumi",
+              "Giles",
+              "Stroud",
+              "Mendy",
+              "Herrington"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Raya",
+              "J.Timber",
+              "Konsa",
+              "Gabriel",
+              "Calafiori",
+              "Lewis-Skelly",
+              "Bruno G.",
+              "Madueke",
+              "\u00d8degaard",
+              "Tzolis",
+              "Havertz"
+            ],
+            "away": [
+              "Tzolakis",
+              "Ajayi",
+              "Egan",
+              "Mendy",
+              "Coyle",
+              "Iroegbunam",
+              "Slater",
+              "Giles",
+              "Belloumi",
+              "McBurnie",
+              "Stroud"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Raya",
+              "Calafiori",
+              "Gabriel",
+              "Konsa",
+              "J.Timber",
+              "Rice",
+              "Bruno G.",
+              "Tzolis",
+              "\u00d8degaard",
+              "Madueke",
+              "Havertz"
+            ],
+            "away": [
+              "Tzolakis",
+              "Giles",
+              "Ajayi",
+              "Egan",
+              "Mendy",
+              "Coyle",
+              "Stroud",
+              "Slater",
+              "Iroegbunam",
+              "Belloumi",
+              "McBurnie"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.6105827375899856,
+          "p_draw": 0.27338454675206175,
+          "p_away": 0.11603271565795259,
+          "xg_home": 1.4946152142704596,
+          "xg_away": 0.5031855248435714
+        },
+        "agreement": {
+          "home": 10,
+          "away": 11
+        }
+      }
+    },
+    {
+      "fpl_fixture": 95,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T15:00:00+00:00",
+      "home_id": "fulham",
+      "away_id": "newcastle",
+      "home": "Fulham",
+      "away": "Newcastle United",
+      "p_home": 0.41771480298534636,
+      "p_draw": 0.2765778640819352,
+      "p_away": 0.3057073329327186,
+      "base_home": 0.40600446427712406,
+      "base_draw": 0.2805561638356361,
+      "base_away": 0.3134393718872401,
+      "xg_home": 1.4436446853961025,
+      "xg_away": 1.202175600933475,
+      "base_xg_home": 1.3959509940050605,
+      "base_xg_away": 1.1982644727583496,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13191817234353329
+        },
+        {
+          "score": "1-0",
+          "p": 0.09363405102217037
+        },
+        {
+          "score": "2-1",
+          "p": 0.08887782048735592
+        }
+      ],
+      "p_btts": 0.5431300841630518,
+      "p_over_2_5": 0.49301159104808423,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.4259263355814535,
+            "p_draw": 0.27815137111889937,
+            "p_away": 0.29592229329964725,
+            "xg_home": 1.4428376073964244,
+            "xg_away": 1.1641436832366516
+          },
+          "ffs": {
+            "p_home": 0.4206409014933148,
+            "p_draw": 0.27384975702684267,
+            "p_away": 0.30550934147984266,
+            "xg_home": 1.4692812754981388,
+            "xg_away": 1.2192874624713386
+          },
+          "rotowire": {
+            "p_home": 0.44290096638022236,
+            "p_draw": 0.2773963449842901,
+            "p_away": 0.2797026886354872,
+            "xg_home": 1.4692812754981388,
+            "xg_away": 1.1198118981419383
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Leno",
+              "Bassey",
+              "Iwobi",
+              "Berge",
+              "Robinson",
+              "Castagne",
+              "King",
+              "Bobb",
+              "Andersen",
+              "Gonzalo",
+              "Charles"
+            ],
+            "away": [
+              "Horn\u00ed\u010dek",
+              "Hall",
+              "Thiaw",
+              "Barnes",
+              "Botman",
+              "Willock",
+              "L.Miley",
+              "J.Murphy",
+              "Joelinton",
+              "Burn",
+              "Wissa"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Leno",
+              "Castagne",
+              "Affengruber",
+              "Bassey",
+              "Robinson",
+              "Berge",
+              "Charles",
+              "Bobb",
+              "King",
+              "Iwobi",
+              "Gonzalo"
+            ],
+            "away": [
+              "Horn\u00ed\u010dek",
+              "Dedi\u0107",
+              "Sch\u00e4r",
+              "Burn",
+              "Hall",
+              "N.Gonzalez",
+              "Steur",
+              "Elanga",
+              "Wissa",
+              "Barnes",
+              "Osula"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Leno",
+              "Robinson",
+              "Bassey",
+              "Affengruber",
+              "Castagne",
+              "Charles",
+              "Berge",
+              "Iwobi",
+              "King",
+              "Bobb",
+              "Gonzalo"
+            ],
+            "away": [
+              "Horn\u00ed\u010dek",
+              "Hall",
+              "Burn",
+              "Sch\u00e4r",
+              "Dedi\u0107",
+              "Steur",
+              "N.Gonzalez",
+              "Barnes",
+              "Willock",
+              "Elanga",
+              "Osula"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.4298227344849969,
+          "p_draw": 0.2764658243766774,
+          "p_away": 0.2937114411383257,
+          "xg_home": 1.460466719464234,
+          "xg_away": 1.1677476812833094
+        },
+        "agreement": {
+          "home": 11,
+          "away": 10
+        }
+      }
+    },
+    {
+      "fpl_fixture": 99,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T17:30:00+00:00",
+      "home_id": "nottm_forest",
+      "away_id": "man_city",
+      "home": "Nottingham Forest",
+      "away": "Manchester City",
+      "p_home": 0.21175024283966395,
+      "p_draw": 0.26434116021760157,
+      "p_away": 0.5239085969427346,
+      "base_home": 0.21009419288611536,
+      "base_draw": 0.26041717916889545,
+      "base_away": 0.529488627944989,
+      "xg_home": 0.9494690047246367,
+      "xg_away": 1.626008191408146,
+      "base_xg_home": 0.9634868444947028,
+      "base_xg_away": 1.6623327382625368,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12590110356321227
+        },
+        {
+          "score": "0-1",
+          "p": 0.11538012145665755
+        },
+        {
+          "score": "0-2",
+          "p": 0.10062361785811427
+        }
+      ],
+      "p_btts": 0.5008453476050868,
+      "p_over_2_5": 0.47539683589785486,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.2064634650674497,
+            "p_draw": 0.2633149595875763,
+            "p_away": 0.530221575344974,
+            "xg_home": 0.9331402569123225,
+            "xg_away": 1.635016658311999
+          },
+          "ffs": {
+            "p_home": 0.203614347104519,
+            "p_draw": 0.2584675834531404,
+            "p_away": 0.5379180694423407,
+            "xg_home": 0.9465670665122875,
+            "xg_away": 1.6795801363076315
+          },
+          "rotowire": {
+            "p_home": 0.22690106915499828,
+            "p_draw": 0.2721756386862331,
+            "p_away": 0.5009232921587689,
+            "xg_home": 0.9677671308954069,
+            "xg_away": 1.5534129704202189
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Sels",
+              "N.Williams",
+              "Gibbs-White",
+              "Murillo",
+              "Milenkovi\u0107",
+              "Aina",
+              "Ndoye",
+              "McAtee",
+              "Jair Cunha",
+              "Schlager",
+              "Delap"
+            ],
+            "away": [
+              "Donnarumma",
+              "Haaland",
+              "R\u00faben",
+              "Matheus N.",
+              "Gu\u00e9hi",
+              "O'Reilly",
+              "Gvardiol",
+              "Cherki",
+              "Khusanov",
+              "Foden",
+              "Doku"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Sels",
+              "Jair Cunha",
+              "Diomande",
+              "Murillo",
+              "Mu\u00f1oz",
+              "McAtee",
+              "Yates",
+              "N.Williams",
+              "Gibbs-White",
+              "Dominguez",
+              "Wood"
+            ],
+            "away": [
+              "Donnarumma",
+              "Matheus N.",
+              "R\u00faben",
+              "Khusanov",
+              "Gvardiol",
+              "Enzo",
+              "Anderson",
+              "Ndiaye",
+              "Cherki",
+              "Doku",
+              "Haaland"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Sels",
+              "Milenkovi\u0107",
+              "Murillo",
+              "Jair Cunha",
+              "N.Williams",
+              "Schlager",
+              "McAtee",
+              "Mu\u00f1oz",
+              "Ndoye",
+              "Gibbs-White",
+              "Delap"
+            ],
+            "away": [
+              "Donnarumma",
+              "Gvardiol",
+              "Khusanov",
+              "R\u00faben",
+              "Matheus N.",
+              "Anderson",
+              "Bouaddi",
+              "Doku",
+              "Enzo",
+              "Ndiaye",
+              "Haaland"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.21232629377565568,
+          "p_draw": 0.26465272724231664,
+          "p_away": 0.5230209789820278,
+          "xg_home": 0.9491581514400056,
+          "xg_away": 1.6226699216799496
+        },
+        "agreement": {
+          "home": 7,
+          "away": 10
+        }
+      }
+    },
+    {
+      "fpl_fixture": 92,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "brighton",
+      "away_id": "brentford",
+      "home": "Brighton & Hove Albion",
+      "away": "Brentford",
+      "p_home": 0.5349863665922644,
+      "p_draw": 0.24180460405453114,
+      "p_away": 0.2232090293532043,
+      "base_home": 0.5302309353265012,
+      "base_draw": 0.24286090833124244,
+      "base_away": 0.2269081563422563,
+      "xg_home": 1.856122349664963,
+      "xg_away": 1.1337999688004246,
+      "base_xg_home": 1.844883143610487,
+      "base_xg_away": 1.1431409475937573,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11339080202609218
+        },
+        {
+          "score": "2-1",
+          "p": 0.09822292912087968
+        },
+        {
+          "score": "2-0",
+          "p": 0.0866316209417441
+        }
+      ],
+      "p_btts": 0.5797599328382004,
+      "p_over_2_5": 0.5745483088244007,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.4889354095645274,
+            "p_draw": 0.25724459575361347,
+            "p_away": 0.2538199946818592,
+            "xg_home": 1.6845230197453918,
+            "xg_away": 1.1568613825702965
+          },
+          "ffs": {
+            "p_home": 0.5128547772436907,
+            "p_draw": 0.2523683670205185,
+            "p_away": 0.23477685573579088,
+            "xg_home": 1.7417589753504654,
+            "xg_away": 1.113433628323844
+          },
+          "rotowire": {
+            "p_home": 0.46713400995553334,
+            "p_draw": 0.26395730258997924,
+            "p_away": 0.2689086874544877,
+            "xg_home": 1.6064254154098156,
+            "xg_away": 1.1677164132092683
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Verbruggen",
+              "F.Kad\u0131o\u011flu",
+              "Gomez",
+              "Gro\u00df",
+              "Dunk",
+              "De Cuyper",
+              "Ayari",
+              "Boscagli",
+              "Vuskovic",
+              "Kostoulas",
+              "Wieffer"
+            ],
+            "away": [
+              "Kelleher",
+              "Thiago",
+              "Kayode",
+              "Schade",
+              "Lewis-Potter",
+              "Ajer",
+              "Janelt",
+              "Jensen",
+              "O.Dango",
+              "Yarmoliuk",
+              "Collins"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Verbruggen",
+              "F.Kad\u0131o\u011flu",
+              "Vuskovic",
+              "Dunk",
+              "Boscagli",
+              "Andr\u00e9s",
+              "Gro\u00df",
+              "Gomez",
+              "Ayari",
+              "De Cuyper",
+              "Kostoulas"
+            ],
+            "away": [
+              "Kelleher",
+              "Kayode",
+              "Van den Berg",
+              "Ajer",
+              "Lewis-Potter",
+              "Janelt",
+              "Yarmoliuk",
+              "Anthony",
+              "Jensen",
+              "Schade",
+              "Thiago"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Verbruggen",
+              "Boscagli",
+              "Dunk",
+              "Vuskovic",
+              "Costinha",
+              "Gro\u00df",
+              "De Cuyper",
+              "Ayari",
+              "Gomez",
+              "Kostoulas"
+            ],
+            "away": [
+              "Kelleher",
+              "Lewis-Potter",
+              "Ajer",
+              "Van den Berg",
+              "Kayode",
+              "Yarmoliuk",
+              "Janelt",
+              "Schade",
+              "Jensen",
+              "O.Dango",
+              "Thiago"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.48964139892125047,
+          "p_draw": 0.2578567551213704,
+          "p_away": 0.2525018459573793,
+          "xg_home": 1.6775691368352241,
+          "xg_away": 1.1460038080344697
+        },
+        "agreement": {
+          "home": 9,
+          "away": 10
+        }
+      }
+    },
+    {
+      "fpl_fixture": 93,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "crystal_palace",
+      "away_id": "liverpool",
+      "home": "Crystal Palace",
+      "away": "Liverpool",
+      "p_home": 0.2082965021454257,
+      "p_draw": 0.24007360796658928,
+      "p_away": 0.551629889887985,
+      "base_home": 0.2249923671339797,
+      "base_draw": 0.24739324901395418,
+      "base_away": 0.5276143838520659,
+      "xg_home": 1.0763668422002495,
+      "xg_away": 1.8701221328947895,
+      "base_xg_home": 1.1043262076069458,
+      "base_xg_away": 1.7949192572784674,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11327339793041181
+        },
+        {
+          "score": "1-2",
+          "p": 0.09886130808131624
+        },
+        {
+          "score": "0-2",
+          "p": 0.09184722550467037
+        }
+      ],
+      "p_btts": 0.5651336655400315,
+      "p_over_2_5": 0.5647149522186704,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.20359659128976318,
+            "p_draw": 0.24684895996736075,
+            "p_away": 0.5495544487428762,
+            "xg_home": 1.0120789651310116,
+            "xg_away": 1.794891475477627
+          },
+          "ffs": {
+            "p_home": 0.18405410922488033,
+            "p_draw": 0.2360211889473955,
+            "p_away": 0.5799247018277242,
+            "xg_home": 0.9826128645029699,
+            "xg_away": 1.8960921219289084
+          },
+          "rotowire": {
+            "p_home": 0.19271751409637367,
+            "p_draw": 0.24231290560095375,
+            "p_away": 0.5649695803026724,
+            "xg_home": 0.9879026134707043,
+            "xg_away": 1.8359990849761125
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Henderson",
+              "Mitchell",
+              "Richards",
+              "Wharton",
+              "Kamada",
+              "Yeremy",
+              "Canvot",
+              "Strand Larsen",
+              "Khalaili",
+              "Lerma",
+              "Hughes"
+            ],
+            "away": [
+              "A.Becker",
+              "Virgil",
+              "Mac Allister",
+              "Wirtz",
+              "Szoboszlai",
+              "Gakpo",
+              "Kerkez",
+              "Gravenberch",
+              "Isak",
+              "Jacquet",
+              "Araujo"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Henderson",
+              "Richards",
+              "Disasi",
+              "Canvot",
+              "Mingueza",
+              "Kamada",
+              "Wharton",
+              "Mitchell",
+              "McNeil",
+              "Yeremy",
+              "Strand Larsen"
+            ],
+            "away": [
+              "A.Becker",
+              "Araujo",
+              "Jacquet",
+              "Virgil",
+              "Kerkez",
+              "Szoboszlai",
+              "Mac Allister",
+              "Gakpo",
+              "Wirtz",
+              "Barcola",
+              "Isak"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Henderson",
+              "Disasi",
+              "Richards",
+              "Canvot",
+              "Mitchell",
+              "Wharton",
+              "Timber",
+              "Khalaili",
+              "Yeremy",
+              "Kamada",
+              "Strand Larsen"
+            ],
+            "away": [
+              "A.Becker",
+              "Kerkez",
+              "Jacquet",
+              "Virgil",
+              "Araujo",
+              "Nyoni",
+              "Mac Allister",
+              "Barcola",
+              "Wirtz",
+              "Gakpo",
+              "Isak"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.19345607153700572,
+          "p_draw": 0.24172768483857,
+          "p_away": 0.5648162436244243,
+          "xg_home": 0.994198147701562,
+          "xg_away": 1.8423275607942162
+        },
+        "agreement": {
+          "home": 9,
+          "away": 10
+        }
+      }
+    },
+    {
+      "fpl_fixture": 96,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "ipswich",
+      "away_id": "bournemouth",
+      "home": "Ipswich Town",
+      "away": "Bournemouth",
+      "p_home": 0.26408423692778826,
+      "p_draw": 0.22210304174418538,
+      "p_away": 0.5138127213280265,
+      "base_home": 0.28319810659734446,
+      "base_draw": 0.22770350268011233,
+      "base_away": 0.48909839072254324,
+      "xg_home": 1.482617536159468,
+      "xg_away": 2.1068105969086157,
+      "base_xg_home": 1.5112345611998366,
+      "base_xg_away": 2.0197822697516497,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09241178226823217
+        },
+        {
+          "score": "1-2",
+          "p": 0.09086179124300792
+        },
+        {
+          "score": "2-2",
+          "p": 0.06735664253187215
+        }
+      ],
+      "p_btts": 0.6851027204192811,
+      "p_over_2_5": 0.6953769253206715,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.25182680271388347,
+            "p_draw": 0.22554268210135212,
+            "p_away": 0.5226305151847646,
+            "xg_home": 1.39364667214873,
+            "xg_away": 2.0602375414535836
+          },
+          "ffs": {
+            "p_home": 0.26998255405309574,
+            "p_draw": 0.22600809100748825,
+            "p_away": 0.5040093549394161,
+            "xg_home": 1.4712820672044955,
+            "xg_away": 2.0501316321027807
+          },
+          "rotowire": {
+            "p_home": 0.26998255405309574,
+            "p_draw": 0.22600809100748825,
+            "p_away": 0.5040093549394161,
+            "xg_home": 1.4712820672044955,
+            "xg_away": 2.0501316321027807
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Walton",
+              "O'Shea",
+              "Davis",
+              "Enciso",
+              "Diop",
+              "Emersonn",
+              "Fatawu",
+              "Palacios",
+              "Ouattara",
+              "Luki\u0107",
+              "Greaves"
+            ],
+            "away": [
+              "Petrovi\u0107",
+              "Truffert",
+              "Evanilson",
+              "Tavernier",
+              "Hill",
+              "Rayan",
+              "Smith",
+              "Adams",
+              "Silva",
+              "Kluivert",
+              "Christie"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Walton",
+              "Ouattara",
+              "Diop",
+              "O'Shea",
+              "Davis",
+              "Florentino",
+              "Palacios",
+              "Fatawu",
+              "Enciso",
+              "Philogene",
+              "Emersonn"
+            ],
+            "away": [
+              "Petrovi\u0107",
+              "Smith",
+              "Hill",
+              "Silva",
+              "Truffert",
+              "Adams",
+              "Christie",
+              "Rayan",
+              "Kluivert",
+              "Tavernier",
+              "Evanilson"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Walton",
+              "Davis",
+              "O'Shea",
+              "Diop",
+              "Ouattara",
+              "Florentino",
+              "Palacios",
+              "Philogene",
+              "Enciso",
+              "Fatawu",
+              "Emersonn"
+            ],
+            "away": [
+              "Petrovi\u0107",
+              "Truffert",
+              "Hill",
+              "Silva",
+              "Smith",
+              "Adams",
+              "Christie",
+              "Tavernier",
+              "Kluivert",
+              "Rayan",
+              "Evanilson"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.263930636940025,
+          "p_draw": 0.22585295470544287,
+          "p_away": 0.5102164083545322,
+          "xg_home": 1.4454036021859071,
+          "xg_away": 2.0535002685530483
+        },
+        "agreement": {
+          "home": 11,
+          "away": 11
+        }
+      }
+    },
+    {
+      "fpl_fixture": 100,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "sunderland",
+      "away_id": "chelsea",
+      "home": "Sunderland",
+      "away": "Chelsea",
+      "p_home": 0.2721360067470995,
+      "p_draw": 0.25605584032935375,
+      "p_away": 0.47180815292354683,
+      "base_home": 0.2764390095557128,
+      "base_draw": 0.2579303039828598,
+      "base_away": 0.4656306864614273,
+      "xg_home": 1.232718693241288,
+      "xg_away": 1.6847198019951914,
+      "base_xg_home": 1.2348035121797414,
+      "base_xg_away": 1.6613196291559147,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12031112090145854
+        },
+        {
+          "score": "1-2",
+          "p": 0.09459363342787663
+        },
+        {
+          "score": "0-1",
+          "p": 0.08308105819390317
+        }
+      ],
+      "p_btts": 0.5850917498659413,
+      "p_over_2_5": 0.5580606454543486,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.32263263734016506,
+            "p_draw": 0.26947794747817033,
+            "p_away": 0.40788941518166466,
+            "xg_home": 1.2973296246382906,
+            "xg_away": 1.4850551547547575
+          },
+          "ffs": {
+            "p_home": 0.29444107491367033,
+            "p_draw": 0.2659855996412425,
+            "p_away": 0.4395733254450874,
+            "xg_home": 1.238712233503089,
+            "xg_away": 1.5599898646893557
+          },
+          "rotowire": {
+            "p_home": 0.2942509317303835,
+            "p_draw": 0.26677799729496754,
+            "p_away": 0.4389710709746489,
+            "xg_home": 1.2327039739965824,
+            "xg_away": 1.5523687609295564
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Roefs",
+              "E.Le F\u00e9e",
+              "Sadiki",
+              "Xhaka",
+              "Mukiele",
+              "Hume",
+              "Reinildo",
+              "Brobbey",
+              "N.Angulo",
+              "Rigg",
+              "Meunier"
+            ],
+            "away": [
+              "Penders",
+              "Palmer",
+              "Neto",
+              "Caicedo",
+              "Fofana",
+              "Colwill",
+              "Gusto",
+              "Rogers",
+              "Acheampong",
+              "Lavia",
+              "Henderson"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Roefs",
+              "Hume",
+              "Mukiele",
+              "O'Nien",
+              "Reinildo",
+              "Xhaka",
+              "Sadiki",
+              "Meunier",
+              "E.Le F\u00e9e",
+              "N.Angulo",
+              "Brobbey"
+            ],
+            "away": [
+              "Penders",
+              "Acheampong",
+              "Fofana",
+              "Colwill",
+              "Chavarria",
+              "Caicedo",
+              "Lavia",
+              "Est\u00eav\u00e3o",
+              "Palmer",
+              "Rogers",
+              "Neto"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Roefs",
+              "Reinildo",
+              "Mukiele",
+              "Danso",
+              "Hume",
+              "Sadiki",
+              "Xhaka",
+              "N.Angulo",
+              "E.Le F\u00e9e",
+              "Meunier",
+              "Brobbey"
+            ],
+            "away": [
+              "Penders",
+              "Palestra",
+              "Colwill",
+              "Fofana",
+              "Acheampong",
+              "Caicedo",
+              "Henderson",
+              "Rogers",
+              "Palmer",
+              "Est\u00eav\u00e3o",
+              "Neto"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.303774881328073,
+          "p_draw": 0.2674138481381268,
+          "p_away": 0.4288112705338003,
+          "xg_home": 1.2562486107126538,
+          "xg_away": 1.5324712601245565
+        },
+        "agreement": {
+          "home": 10,
+          "away": 9
+        }
+      }
+    },
+    {
+      "fpl_fixture": 98,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T16:30:00+00:00",
+      "home_id": "man_united",
+      "away_id": "aston_villa",
+      "home": "Manchester United",
+      "away": "Aston Villa",
+      "p_home": 0.4264655843706307,
+      "p_draw": 0.25695698228719144,
+      "p_away": 0.31657743334217797,
+      "base_home": 0.42646074776654547,
+      "base_draw": 0.25890548362408083,
+      "base_away": 0.3146337686093737,
+      "xg_home": 1.6239231006545294,
+      "xg_away": 1.3735617969544613,
+      "base_xg_home": 1.6058012707133291,
+      "base_xg_away": 1.3524969986496436,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11927902015621068
+        },
+        {
+          "score": "2-1",
+          "p": 0.09039782400001709
+        },
+        {
+          "score": "1-2",
+          "p": 0.07646113139482441
+        }
+      ],
+      "p_btts": 0.607531488859352,
+      "p_over_2_5": 0.5762461946369168,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": {
+        "sources": {
+          "fpl_proj": {
+            "p_home": 0.42307542718404395,
+            "p_draw": 0.2560118971891122,
+            "p_away": 0.3209126756268438,
+            "xg_home": 1.6276641562110319,
+            "xg_away": 1.3941370502361754
+          },
+          "ffs": {
+            "p_home": 0.4316107852231277,
+            "p_draw": 0.2562087525547416,
+            "p_away": 0.3121804622221307,
+            "xg_home": 1.6384725499784278,
+            "xg_away": 1.36596693532391
+          },
+          "rotowire": {
+            "p_home": 0.4202615014376364,
+            "p_draw": 0.25571993795040027,
+            "p_away": 0.3240185606119633,
+            "xg_home": 1.625995643984395,
+            "xg_away": 1.4057290712372155
+          }
+        },
+        "lineups": {
+          "fpl_proj": {
+            "home": [
+              "Lammens",
+              "B.Fernandes",
+              "Mbeumo",
+              "Maguire",
+              "Dalot",
+              "Cunha",
+              "Amad",
+              "Mainoo",
+              "Yoro",
+              "Tielemans",
+              "Heaven"
+            ],
+            "away": [
+              "Suzuki",
+              "McGinn",
+              "Kamara",
+              "Lindel\u00f6f",
+              "Buend\u00eda",
+              "Maatsen",
+              "Pau",
+              "Mings",
+              "N.Jackson",
+              "Barkley",
+              "Manzambi"
+            ]
+          },
+          "ffs": {
+            "home": [
+              "Lammens",
+              "Yoro",
+              "De Ligt",
+              "Heaven",
+              "Dalot",
+              "Tielemans",
+              "Mainoo",
+              "Amad",
+              "B.Fernandes",
+              "Cunha",
+              "Mbeumo"
+            ],
+            "away": [
+              "Suzuki",
+              "Bogarde",
+              "Lindel\u00f6f",
+              "Pau",
+              "Maatsen",
+              "Kamara",
+              "Gomes",
+              "Alysson",
+              "McGinn",
+              "Manzambi",
+              "N.Jackson"
+            ]
+          },
+          "rotowire": {
+            "home": [
+              "Lammens",
+              "Dalot",
+              "Heaven",
+              "Maguire",
+              "Yoro",
+              "Mainoo",
+              "Tielemans",
+              "Mbeumo",
+              "B.Fernandes",
+              "Amad",
+              "Cunha"
+            ],
+            "away": [
+              "Suzuki",
+              "Maatsen",
+              "Lindel\u00f6f",
+              "Pau",
+              "Bogarde",
+              "Goretzka",
+              "Kamara",
+              "Manzambi",
+              "McGinn",
+              "Alysson",
+              "N.Jackson"
+            ]
+          }
+        },
+        "consensus": {
+          "p_home": 0.4249825712816027,
+          "p_draw": 0.2559801958980847,
+          "p_away": 0.3190372328203126,
+          "xg_home": 1.6307107833912848,
+          "xg_away": 1.3886110189324334
+        },
+        "agreement": {
+          "home": 10,
+          "away": 10
+        }
+      }
+    },
+    {
+      "fpl_fixture": 108,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T12:30:00+00:00",
+      "home_id": "man_city",
+      "away_id": "fulham",
+      "home": "Manchester City",
+      "away": "Fulham",
+      "p_home": 0.6503424015164802,
+      "p_draw": 0.2201936222346071,
+      "p_away": 0.12946397624891248,
+      "base_home": 0.6494019337122915,
+      "base_draw": 0.219799681758853,
+      "base_away": 0.1307983845288555,
+      "xg_home": 1.970467693467164,
+      "xg_away": 0.7641916195360249,
+      "base_xg_home": 1.9782464014332093,
+      "base_xg_away": 0.7743364362748894,
+      "top_scores": [
+        {
+          "score": "2-0",
+          "p": 0.1260263019316963
+        },
+        {
+          "score": "1-0",
+          "p": 0.12093808121839308
+        },
+        {
+          "score": "1-1",
+          "p": 0.10472869469083632
+        }
+      ],
+      "p_btts": 0.46679125598756005,
+      "p_over_2_5": 0.5148273039058766,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 101,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "aston_villa",
+      "away_id": "sunderland",
+      "home": "Aston Villa",
+      "away": "Sunderland",
+      "p_home": 0.5567183944754392,
+      "p_draw": 0.2495833294958861,
+      "p_away": 0.19369827602867457,
+      "base_home": 0.553041651455146,
+      "base_draw": 0.25264145403520855,
+      "base_away": 0.19431689450964526,
+      "xg_home": 1.7618804109303066,
+      "xg_away": 0.9508290032641556,
+      "base_xg_home": 1.7320505084508853,
+      "base_xg_away": 0.9369329082056314,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11909832907594035
+        },
+        {
+          "score": "1-0",
+          "p": 0.10897836068088346
+        },
+        {
+          "score": "2-0",
+          "p": 0.10299309965148301
+        }
+      ],
+      "p_btts": 0.51614891667756,
+      "p_over_2_5": 0.5094837124692417,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 102,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "bournemouth",
+      "away_id": "nottm_forest",
+      "home": "Bournemouth",
+      "away": "Nottingham Forest",
+      "p_home": 0.49646735520388574,
+      "p_draw": 0.2710427042914404,
+      "p_away": 0.2324899405046739,
+      "base_home": 0.4993656375119517,
+      "base_draw": 0.2674707823388972,
+      "base_away": 0.23316358014915098,
+      "xg_home": 1.5615567629664575,
+      "xg_away": 0.9945811708588181,
+      "base_xg_home": 1.5937898196365317,
+      "base_xg_away": 1.0165872888329193,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12912875369582516
+        },
+        {
+          "score": "1-0",
+          "p": 0.11258028484162334
+        },
+        {
+          "score": "2-0",
+          "p": 0.09461695249929472
+        }
+      ],
+      "p_btts": 0.5065189211681607,
+      "p_over_2_5": 0.47050422952923915,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 104,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "chelsea",
+      "away_id": "leeds",
+      "home": "Chelsea",
+      "away": "Leeds United",
+      "p_home": 0.47085563796997876,
+      "p_draw": 0.2635445028981663,
+      "p_away": 0.26559985913185497,
+      "base_home": 0.4758883245324535,
+      "base_draw": 0.2616648395780151,
+      "base_away": 0.26244683588953155,
+      "xg_home": 1.6131817454146575,
+      "xg_away": 1.1588074978505942,
+      "base_xg_home": 1.6342562097376006,
+      "base_xg_away": 1.1597637323438483,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12524964791257467
+        },
+        {
+          "score": "2-1",
+          "p": 0.09429491351731299
+        },
+        {
+          "score": "1-0",
+          "p": 0.09254017634879767
+        }
+      ],
+      "p_btts": 0.5577687512125383,
+      "p_over_2_5": 0.5238426751235975,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 105,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "coventry",
+      "away_id": "crystal_palace",
+      "home": "Coventry City",
+      "away": "Crystal Palace",
+      "p_home": 0.4575293162726863,
+      "p_draw": 0.25696208019766775,
+      "p_away": 0.2855086035296462,
+      "base_home": 0.4402561124044034,
+      "base_draw": 0.26366708680085,
+      "base_away": 0.29607680079474646,
+      "xg_home": 1.662889811893545,
+      "xg_away": 1.273195435834754,
+      "base_xg_home": 1.5812742689992834,
+      "base_xg_away": 1.2599773340232436,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12038558141271143
+        },
+        {
+          "score": "2-1",
+          "p": 0.09342570870080553
+        },
+        {
+          "score": "1-0",
+          "p": 0.08023460352690588
+        }
+      ],
+      "p_btts": 0.5915672067284915,
+      "p_over_2_5": 0.562338939392973,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 110,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "tottenham",
+      "away_id": "ipswich",
+      "home": "Tottenham Hotspur",
+      "away": "Ipswich Town",
+      "p_home": 0.5487024372792223,
+      "p_draw": 0.22364387394628676,
+      "p_away": 0.22765368877449102,
+      "base_home": 0.5188849584594044,
+      "base_draw": 0.23161531912970143,
+      "base_away": 0.2494997224108941,
+      "xg_home": 2.080283734089764,
+      "xg_away": 1.2933167198171325,
+      "base_xg_home": 1.980212449348806,
+      "base_xg_away": 1.330016633033459,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09877179694951811
+        },
+        {
+          "score": "2-1",
+          "p": 0.09589235447640973
+        },
+        {
+          "score": "2-0",
+          "p": 0.07414452547243676
+        }
+      ],
+      "p_btts": 0.6415921577662106,
+      "p_over_2_5": 0.6551400298244772,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 109,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T17:30:00+00:00",
+      "home_id": "newcastle",
+      "away_id": "arsenal",
+      "home": "Newcastle United",
+      "away": "Arsenal",
+      "p_home": 0.15527545447949465,
+      "p_draw": 0.24390039169725689,
+      "p_away": 0.6008241538232484,
+      "base_home": 0.17490599984870311,
+      "base_draw": 0.25167249771336214,
+      "base_away": 0.5734215024379348,
+      "xg_home": 0.7935452023941276,
+      "xg_away": 1.7802949794876777,
+      "base_xg_home": 0.8523741230631794,
+      "base_xg_away": 1.7282286363002421,
+      "top_scores": [
+        {
+          "score": "0-1",
+          "p": 0.12804573742887237
+        },
+        {
+          "score": "0-2",
+          "p": 0.1208229263799629
+        },
+        {
+          "score": "1-1",
+          "p": 0.1153986158325881
+        }
+      ],
+      "p_btts": 0.46310298249353704,
+      "p_over_2_5": 0.47498350130185724,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 106,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-22T14:00:00+00:00",
+      "home_id": "hull",
+      "away_id": "brighton",
+      "home": "Hull City",
+      "away": "Brighton & Hove Albion",
+      "p_home": 0.2596413051903873,
+      "p_draw": 0.2819171582435068,
+      "p_away": 0.4584415365661057,
+      "base_home": 0.2610948106895051,
+      "base_draw": 0.28320671222759863,
+      "base_away": 0.4556984770828963,
+      "xg_home": 1.030639448537576,
+      "xg_away": 1.4494947290045643,
+      "base_xg_home": 1.0284468275380951,
+      "base_xg_away": 1.4372913977949988,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1340159115122024
+        },
+        {
+          "score": "0-1",
+          "p": 0.11244092608515951
+        },
+        {
+          "score": "0-0",
+          "p": 0.09266014179018474
+        }
+      ],
+      "p_btts": 0.5011925562206907,
+      "p_over_2_5": 0.45108096150909843,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 107,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-22T16:30:00+00:00",
+      "home_id": "liverpool",
+      "away_id": "man_united",
+      "home": "Liverpool",
+      "away": "Manchester United",
+      "p_home": 0.5257432851616042,
+      "p_draw": 0.24371107663474437,
+      "p_away": 0.2305456382036514,
+      "base_home": 0.5122833622017542,
+      "base_draw": 0.24581189649292612,
+      "base_away": 0.2419047413053198,
+      "xg_home": 1.8356776910761778,
+      "xg_away": 1.1533459620546311,
+      "base_xg_home": 1.811423684091119,
+      "base_xg_away": 1.1874126045329698,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11417765025967927
+        },
+        {
+          "score": "2-1",
+          "p": 0.09781511841001542
+        },
+        {
+          "score": "2-0",
+          "p": 0.08480986766170526
+        }
+      ],
+      "p_btts": 0.5828586288440715,
+      "p_over_2_5": 0.5743462649839574,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 103,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-23T20:00:00+00:00",
+      "home_id": "brentford",
+      "away_id": "everton",
+      "home": "Brentford",
+      "away": "Everton",
+      "p_home": 0.4891292874813393,
+      "p_draw": 0.27555875893904797,
+      "p_away": 0.23531195357961257,
+      "base_home": 0.4907048135185183,
+      "base_draw": 0.2762144113694166,
+      "base_away": 0.23308077511206501,
+      "xg_home": 1.5205255014686099,
+      "xg_away": 0.9810746958892443,
+      "base_xg_home": 1.5158813125400865,
+      "base_xg_away": 0.9696645946981226,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1309803575220475
+        },
+        {
+          "score": "1-0",
+          "p": 0.11588684601613551
+        },
+        {
+          "score": "2-0",
+          "p": 0.09473844657017286
+        }
+      ],
+      "p_btts": 0.49717472054807155,
+      "p_over_2_5": 0.45659729399684795,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 119,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-27T20:00:00+00:00",
+      "home_id": "nottm_forest",
+      "away_id": "chelsea",
+      "home": "Nottingham Forest",
+      "away": "Chelsea",
+      "p_home": 0.34837636524708626,
+      "p_draw": 0.27051339991335865,
+      "p_away": 0.38111023483955503,
+      "base_home": 0.34448882888422305,
+      "base_draw": 0.268559900374813,
+      "base_away": 0.3869512707409641,
+      "xg_home": 1.356188728979697,
+      "xg_away": 1.4281993705006544,
+      "base_xg_home": 1.3612291648085533,
+      "base_xg_away": 1.455128403368549,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12817582793698395
+        },
+        {
+          "score": "1-2",
+          "p": 0.0854325604624415
+        },
+        {
+          "score": "2-1",
+          "p": 0.0811250011589237
+        }
+      ],
+      "p_btts": 0.5729248933305185,
+      "p_over_2_5": 0.5268165492954059,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 117,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T15:00:00+00:00",
+      "home_id": "leeds",
+      "away_id": "coventry",
+      "home": "Leeds United",
+      "away": "Coventry City",
+      "p_home": 0.5339589132957687,
+      "p_draw": 0.26307926654761293,
+      "p_away": 0.2029618201566181,
+      "base_home": 0.5286982711496659,
+      "base_draw": 0.2651646552857307,
+      "base_away": 0.20613707356460342,
+      "xg_home": 1.636644025462464,
+      "xg_away": 0.9198101178841122,
+      "base_xg_home": 1.6181954054468926,
+      "base_xg_away": 0.922354617867945,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12512383148779455
+        },
+        {
+          "score": "1-0",
+          "p": 0.1186340001577093
+        },
+        {
+          "score": "2-0",
+          "p": 0.10390215029754858
+        }
+      ],
+      "p_btts": 0.4926882514068236,
+      "p_over_2_5": 0.47058439400159113,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 118,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T15:00:00+00:00",
+      "home_id": "man_united",
+      "away_id": "brentford",
+      "home": "Manchester United",
+      "away": "Brentford",
+      "p_home": 0.38564527075499144,
+      "p_draw": 0.25843806444428735,
+      "p_away": 0.3559166648007212,
+      "base_home": 0.3863612213914326,
+      "base_draw": 0.2599757289183064,
+      "base_away": 0.3536630496902609,
+      "xg_home": 1.537687079647673,
+      "xg_away": 1.470005910939418,
+      "base_xg_home": 1.5256974164106591,
+      "base_xg_away": 1.4515904865845242,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11964763749885658
+        },
+        {
+          "score": "2-1",
+          "p": 0.08586191033045794
+        },
+        {
+          "score": "1-2",
+          "p": 0.08208270550029165
+        }
+      ],
+      "p_btts": 0.6125748147896605,
+      "p_over_2_5": 0.5785312586278378,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 116,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T17:30:00+00:00",
+      "home_id": "ipswich",
+      "away_id": "aston_villa",
+      "home": "Ipswich Town",
+      "away": "Aston Villa",
+      "p_home": 0.294366041045282,
+      "p_draw": 0.2274272837172331,
+      "p_away": 0.47820667523748506,
+      "base_home": 0.303818138552964,
+      "base_draw": 0.2335249301189324,
+      "base_away": 0.4626569313281034,
+      "xg_home": 1.5593638756325858,
+      "xg_away": 2.015140364635866,
+      "base_xg_home": 1.5354266860934245,
+      "base_xg_away": 1.9225700873559486,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09436411148073716
+        },
+        {
+          "score": "1-2",
+          "p": 0.08874432924236801
+        },
+        {
+          "score": "2-2",
+          "p": 0.06919235059389661
+        }
+      ],
+      "p_btts": 0.6907443859393083,
+      "p_over_2_5": 0.6927133371653982,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 114,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T12:00:00+00:00",
+      "home_id": "everton",
+      "away_id": "liverpool",
+      "home": "Everton",
+      "away": "Liverpool",
+      "p_home": 0.3037183999471564,
+      "p_draw": 0.29535946544646047,
+      "p_away": 0.4009221346063831,
+      "base_home": 0.31232799488060714,
+      "base_draw": 0.2942890671381517,
+      "base_away": 0.39338293798124113,
+      "xg_home": 1.0863793569185594,
+      "xg_away": 1.286125239823467,
+      "base_xg_home": 1.1141472135123516,
+      "base_xg_away": 1.281307391882048,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.139585614134425
+        },
+        {
+          "score": "0-1",
+          "p": 0.11062796983703006
+        },
+        {
+          "score": "0-0",
+          "p": 0.1025460936999095
+        }
+      ],
+      "p_btts": 0.488770613213582,
+      "p_over_2_5": 0.42309142461865806,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 112,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "brighton",
+      "away_id": "newcastle",
+      "home": "Brighton & Hove Albion",
+      "away": "Newcastle United",
+      "p_home": 0.645820430513952,
+      "p_draw": 0.20076870375357897,
+      "p_away": 0.1534108657324688,
+      "base_home": 0.6320804379577394,
+      "base_draw": 0.20692259534544089,
+      "base_away": 0.16099696669681943,
+      "xg_home": 2.276651556913118,
+      "xg_away": 1.0388123276601813,
+      "base_xg_home": 2.2118151926450538,
+      "base_xg_away": 1.0436655716475187,
+      "top_scores": [
+        {
+          "score": "2-1",
+          "p": 0.09777156427732676
+        },
+        {
+          "score": "2-0",
+          "p": 0.09411860224796065
+        },
+        {
+          "score": "1-1",
+          "p": 0.09202112599889246
+        }
+      ],
+      "p_btts": 0.5859456597547774,
+      "p_over_2_5": 0.6436696639494806,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 113,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "crystal_palace",
+      "away_id": "hull",
+      "home": "Crystal Palace",
+      "away": "Hull City",
+      "p_home": 0.29911868947860026,
+      "p_draw": 0.28698991379565214,
+      "p_away": 0.4138913967257476,
+      "base_home": 0.3074997009178168,
+      "base_draw": 0.2936481177585002,
+      "base_away": 0.39885218132368305,
+      "xg_home": 1.1206725046257542,
+      "xg_away": 1.3613285161488033,
+      "base_xg_home": 1.1054525313039951,
+      "base_xg_away": 1.294049978253123,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13660414006621288
+        },
+        {
+          "score": "0-1",
+          "p": 0.10467356874577803
+        },
+        {
+          "score": "0-0",
+          "p": 0.09267640112356582
+        }
+      ],
+      "p_btts": 0.5102959320419546,
+      "p_over_2_5": 0.45156162492023694,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 115,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "fulham",
+      "away_id": "bournemouth",
+      "home": "Fulham",
+      "away": "Bournemouth",
+      "p_home": 0.33084648155763713,
+      "p_draw": 0.29037393933553635,
+      "p_away": 0.3787795791068264,
+      "base_home": 0.33691622692230666,
+      "base_draw": 0.2886934586286535,
+      "base_away": 0.3743903144490398,
+      "xg_home": 1.1818150273055659,
+      "xg_away": 1.2817890856346985,
+      "base_xg_home": 1.2061918156820792,
+      "base_xg_away": 1.2847116984455418,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13815861019219067
+        },
+        {
+          "score": "0-1",
+          "p": 0.09991147429329159
+        },
+        {
+          "score": "0-0",
+          "p": 0.09433172683049261
+        }
+      ],
+      "p_btts": 0.5100698890757585,
+      "p_over_2_5": 0.4468173763679117,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 120,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "sunderland",
+      "away_id": "tottenham",
+      "home": "Sunderland",
+      "away": "Tottenham Hotspur",
+      "p_home": 0.33590161299242577,
+      "p_draw": 0.2953240281940552,
+      "p_away": 0.36877435881351905,
+      "base_home": 0.35013173146009324,
+      "base_draw": 0.2947988386952122,
+      "base_away": 0.3550694298446945,
+      "xg_home": 1.1642537343919235,
+      "xg_away": 1.2319863668476183,
+      "base_xg_home": 1.1981860993482183,
+      "base_xg_away": 1.208376753752999,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1399333524109606
+        },
+        {
+          "score": "0-1",
+          "p": 0.1028619189448054
+        },
+        {
+          "score": "0-0",
+          "p": 0.10038205798770208
+        }
+      ],
+      "p_btts": 0.4965139782657067,
+      "p_over_2_5": 0.42930860616893013,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 111,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T16:30:00+00:00",
+      "home_id": "arsenal",
+      "away_id": "man_city",
+      "home": "Arsenal",
+      "away": "Manchester City",
+      "p_home": 0.4792579903401671,
+      "p_draw": 0.2918647983032902,
+      "p_away": 0.22887721135654285,
+      "base_home": 0.4679026006937574,
+      "base_draw": 0.28750265318306545,
+      "base_away": 0.2445947461231772,
+      "xg_home": 1.3913029867532583,
+      "xg_away": 0.8810190188734923,
+      "base_xg_home": 1.4153000308085053,
+      "base_xg_away": 0.9531695543230468,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13536040450327297
+        },
+        {
+          "score": "1-0",
+          "p": 0.13438744806068187
+        },
+        {
+          "score": "0-0",
+          "p": 0.11209028906532735
+        }
+      ],
+      "p_btts": 0.44897885956225697,
+      "p_over_2_5": 0.39660848755428335,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 125,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-01T20:00:00+00:00",
+      "home_id": "coventry",
+      "away_id": "ipswich",
+      "home": "Coventry City",
+      "away": "Ipswich Town",
+      "p_home": 0.46195085030112415,
+      "p_draw": 0.22958878796156618,
+      "p_away": 0.3084603617373096,
+      "base_home": 0.44236453428376415,
+      "base_draw": 0.2360201137446118,
+      "base_away": 0.321615351971624,
+      "xg_home": 1.970848011224686,
+      "xg_away": 1.5917331793149088,
+      "base_xg_home": 1.8669569414066733,
+      "base_xg_away": 1.5739763178930433,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09533570902405399
+        },
+        {
+          "score": "2-1",
+          "p": 0.08768739900396119
+        },
+        {
+          "score": "1-2",
+          "p": 0.07081973932413903
+        }
+      ],
+      "p_btts": 0.691805663126839,
+      "p_over_2_5": 0.6905727109800939,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 124,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "chelsea",
+      "away_id": "crystal_palace",
+      "home": "Chelsea",
+      "away": "Crystal Palace",
+      "p_home": 0.6563870075081021,
+      "p_draw": 0.19198140287575202,
+      "p_away": 0.15163158961614603,
+      "base_home": 0.6382458123857068,
+      "base_draw": 0.20029469388861668,
+      "base_away": 0.16145949372567672,
+      "xg_home": 2.400240121357471,
+      "xg_away": 1.0953326620218566,
+      "base_xg_home": 2.3058737397006577,
+      "base_xg_away": 1.0972237267955705,
+      "top_scores": [
+        {
+          "score": "2-1",
+          "p": 0.09570121602875617
+        },
+        {
+          "score": "2-0",
+          "p": 0.08737182715989028
+        },
+        {
+          "score": "1-1",
+          "p": 0.08543470247314114
+        }
+      ],
+      "p_btts": 0.6108985278160517,
+      "p_over_2_5": 0.6783331688374382,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 126,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "hull",
+      "away_id": "nottm_forest",
+      "home": "Hull City",
+      "away": "Nottingham Forest",
+      "p_home": 0.40892291349468746,
+      "p_draw": 0.3122387176035843,
+      "p_away": 0.2788383689017284,
+      "base_home": 0.41439661494786717,
+      "base_draw": 0.3117453741090319,
+      "base_away": 0.27385801094310097,
+      "xg_home": 1.195872514374644,
+      "xg_away": 0.9398639963591658,
+      "base_xg_home": 1.2056038894556103,
+      "base_xg_away": 0.9289414835750498,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.14228295183912776
+        },
+        {
+          "score": "1-0",
+          "p": 0.13182244444888533
+        },
+        {
+          "score": "0-0",
+          "p": 0.12763643689287582
+        }
+      ],
+      "p_btts": 0.43451551529477744,
+      "p_over_2_5": 0.36000896483859857,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 127,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "liverpool",
+      "away_id": "sunderland",
+      "home": "Liverpool",
+      "away": "Sunderland",
+      "p_home": 0.6291756414555345,
+      "p_draw": 0.22647895564152157,
+      "p_away": 0.14434540290294404,
+      "base_home": 0.6175797130053359,
+      "base_draw": 0.2305501218635032,
+      "base_away": 0.15187016513116067,
+      "xg_home": 1.9378972914921442,
+      "xg_away": 0.8205224314273822,
+      "base_xg_home": 1.9091954298640634,
+      "base_xg_away": 0.8418064490673446,
+      "top_scores": [
+        {
+          "score": "2-0",
+          "p": 0.11903236198644832
+        },
+        {
+          "score": "1-0",
+          "p": 0.11565241065160803
+        },
+        {
+          "score": "1-1",
+          "p": 0.10799317264476725
+        }
+      ],
+      "p_btts": 0.4863783262044183,
+      "p_over_2_5": 0.520576230056307,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 128,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "man_city",
+      "away_id": "leeds",
+      "home": "Manchester City",
+      "away": "Leeds United",
+      "p_home": 0.60915403103695,
+      "p_draw": 0.23779807917541226,
+      "p_away": 0.15304788978763798,
+      "base_home": 0.6135237791974791,
+      "base_draw": 0.23460499035238241,
+      "base_away": 0.15187123045013823,
+      "xg_home": 1.836611040764439,
+      "xg_away": 0.8112822191638506,
+      "base_xg_home": 1.8669676118387137,
+      "base_xg_away": 0.8208883028101518,
+      "top_scores": [
+        {
+          "score": "1-0",
+          "p": 0.12250287901277662
+        },
+        {
+          "score": "2-0",
+          "p": 0.11940952050980354
+        },
+        {
+          "score": "1-1",
+          "p": 0.11302259317241276
+        }
+      ],
+      "p_btts": 0.4746851977073957,
+      "p_over_2_5": 0.49352623786429756,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 121,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "aston_villa",
+      "away_id": "everton",
+      "home": "Aston Villa",
+      "away": "Everton",
+      "p_home": 0.44944939365158054,
+      "p_draw": 0.28463631742919326,
+      "p_away": 0.2659142889192263,
+      "base_home": 0.45086396144384105,
+      "base_draw": 0.2859564932471541,
+      "base_away": 0.26317954530900484,
+      "xg_home": 1.4207668993505025,
+      "xg_away": 1.0360949787567992,
+      "base_xg_home": 1.4123989819908258,
+      "base_xg_away": 1.020574998412963,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13516442257506492
+        },
+        {
+          "score": "1-0",
+          "p": 0.11275999799599508
+        },
+        {
+          "score": "0-0",
+          "p": 0.09470814318436235
+        }
+      ],
+      "p_btts": 0.49834179708634774,
+      "p_over_2_5": 0.4450745244044893,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 122,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "bournemouth",
+      "away_id": "brighton",
+      "home": "Bournemouth",
+      "away": "Brighton & Hove Albion",
+      "p_home": 0.32589361495342617,
+      "p_draw": 0.2640828345799663,
+      "p_away": 0.4100235504666075,
+      "base_home": 0.32224324687209255,
+      "base_draw": 0.2609059117394192,
+      "base_away": 0.41685084138848805,
+      "xg_home": 1.3457973000453771,
+      "xg_away": 1.5338816789574385,
+      "base_xg_home": 1.3595909055235806,
+      "base_xg_away": 1.572900113927627,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12418935544375942
+        },
+        {
+          "score": "1-2",
+          "p": 0.08890059898277056
+        },
+        {
+          "score": "2-1",
+          "p": 0.07799961869597972
+        }
+      ],
+      "p_btts": 0.5883974551200245,
+      "p_over_2_5": 0.549320293748624,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 123,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "brentford",
+      "away_id": "arsenal",
+      "home": "Brentford",
+      "away": "Arsenal",
+      "p_home": 0.21568424554137178,
+      "p_draw": 0.28484254414504073,
+      "p_away": 0.49947321031358755,
+      "base_home": 0.2351746465030379,
+      "base_draw": 0.2850021321185003,
+      "base_away": 0.4798232213784616,
+      "xg_home": 0.866105938252311,
+      "xg_away": 1.451449735638887,
+      "base_xg_home": 0.933616849317631,
+      "base_xg_away": 1.4415218278713209,
+      "top_scores": [
+        {
+          "score": "0-1",
+          "p": 0.13414894768453361
+        },
+        {
+          "score": "1-1",
+          "p": 0.13268228025713089
+        },
+        {
+          "score": "0-0",
+          "p": 0.10735339738589764
+        }
+      ],
+      "p_btts": 0.4525367748062991,
+      "p_over_2_5": 0.40861125306855567,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 129,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "newcastle",
+      "away_id": "man_united",
+      "home": "Newcastle United",
+      "away": "Manchester United",
+      "p_home": 0.3932837122833092,
+      "p_draw": 0.2494684370232549,
+      "p_away": 0.35724785069343584,
+      "base_home": 0.39624597856158517,
+      "base_draw": 0.25283474188479876,
+      "base_away": 0.3509192795536163,
+      "xg_home": 1.6364910449889087,
+      "xg_away": 1.5522584537400945,
+      "base_xg_home": 1.6102732814570409,
+      "base_xg_away": 1.5054089262700465,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11219226241271542
+        },
+        {
+          "score": "2-1",
+          "p": 0.08568503785351622
+        },
+        {
+          "score": "1-2",
+          "p": 0.0812747034421212
+        }
+      ],
+      "p_btts": 0.6422665794486365,
+      "p_over_2_5": 0.6177433010407787,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    },
+    {
+      "fpl_fixture": 130,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-03T20:00:00+00:00",
+      "home_id": "tottenham",
+      "away_id": "fulham",
+      "home": "Tottenham Hotspur",
+      "away": "Fulham",
+      "p_home": 0.40778777620043133,
+      "p_draw": 0.300166628757467,
+      "p_away": 0.2920455950421015,
+      "base_home": 0.39906612542460373,
+      "base_draw": 0.2991248918488128,
+      "base_away": 0.30180898272658374,
+      "xg_home": 1.2656500728125564,
+      "xg_away": 1.0309207177629325,
+      "base_xg_home": 1.2595427423960497,
+      "base_xg_away": 1.0615527322325822,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1406346849769732
+        },
+        {
+          "score": "1-0",
+          "p": 0.11795940597196095
+        },
+        {
+          "score": "0-0",
+          "p": 0.10997233764374027
+        }
+      ],
+      "p_btts": 0.47123804877878045,
+      "p_over_2_5": 0.40305159766335397,
+      "home_promoted": false,
+      "away_promoted": false,
+      "with_lineups": null
+    }
+  ],
+  "ratings": [
+    {
+      "team_id": "arsenal",
+      "team": "Arsenal",
+      "dc_attack": 0.27338129180347537,
+      "dc_defence": 0.6507863932830386,
+      "xg_attack": 0.21964469805865047,
+      "xg_defence": 0.521391813299934
+    },
+    {
+      "team_id": "aston_villa",
+      "team": "Aston Villa",
+      "dc_attack": 0.11722294135189439,
+      "dc_defence": 0.055892995980741336,
+      "xg_attack": 0.01002079123886927,
+      "xg_defence": -0.055902578735012254
+    },
+    {
+      "team_id": "bournemouth",
+      "team": "Bournemouth",
+      "dc_attack": 0.16654978160873907,
+      "dc_defence": 0.07177440280878303,
+      "xg_attack": 0.24234306509735082,
+      "xg_defence": 0.1740379443546226
+    },
+    {
+      "team_id": "brentford",
+      "team": "Brentford",
+      "dc_attack": 0.1879302713197049,
+      "dc_defence": 0.10706423432021425,
+      "xg_attack": 0.14671933718905492,
+      "xg_defence": -0.03333721862382655
+    },
+    {
+      "team_id": "brighton",
+      "team": "Brighton & Hove Albion",
+      "dc_attack": 0.3253132015358382,
+      "dc_defence": 0.2535329033482018,
+      "xg_attack": 0.25755572513165886,
+      "xg_defence": 0.07694003180245881
+    },
+    {
+      "team_id": "chelsea",
+      "team": "Chelsea",
+      "dc_attack": 0.2703138620993315,
+      "dc_defence": -0.02537781556251135,
+      "xg_attack": 0.15826428015838168,
+      "xg_defence": 0.053208424944891586
+    },
+    {
+      "team_id": "coventry",
+      "team": "Coventry City",
+      "dc_attack": -0.1069147839403437,
+      "dc_defence": -0.16368844278690636,
+      "xg_attack": -0.3321009798212333,
+      "xg_defence": -0.027639637687365017
+    },
+    {
+      "team_id": "crystal_palace",
+      "team": "Crystal Palace",
+      "dc_attack": -0.1319770338247416,
+      "dc_defence": -0.17097883382547138,
+      "xg_attack": 0.007040344544759065,
+      "xg_defence": -0.24585525709207254
+    },
+    {
+      "team_id": "everton",
+      "team": "Everton",
+      "dc_attack": -0.12312313459042803,
+      "dc_defence": 0.16610024852007022,
+      "xg_attack": -0.012409634665358422,
+      "xg_defence": 0.002056542658487726
+    },
+    {
+      "team_id": "fulham",
+      "team": "Fulham",
+      "dc_attack": -0.13492443186203612,
+      "dc_defence": 0.11539777058917092,
+      "xg_attack": 0.03183874591071131,
+      "xg_defence": 0.024289008193425055
+    },
+    {
+      "team_id": "hull",
+      "team": "Hull City",
+      "dc_attack": -0.11258433839117317,
+      "dc_defence": 0.16193515592297958,
+      "xg_attack": -0.3492996906100617,
+      "xg_defence": -0.04916666435735537
+    },
+    {
+      "team_id": "ipswich",
+      "team": "Ipswich Town",
+      "dc_attack": 0.0905343383148558,
+      "dc_defence": -0.3370576137742738,
+      "xg_attack": -0.030505393017372897,
+      "xg_defence": -0.27130545183386984
+    },
+    {
+      "team_id": "leeds",
+      "team": "Leeds United",
+      "dc_attack": -0.07654383317252786,
+      "dc_defence": 0.17329305032271944,
+      "xg_attack": -0.036162669901659526,
+      "xg_defence": 0.10708169628108109
+    },
+    {
+      "team_id": "liverpool",
+      "team": "Liverpool",
+      "dc_attack": 0.2145988821165039,
+      "dc_defence": 0.1629545555350346,
+      "xg_attack": 0.1134079257096947,
+      "xg_defence": 0.21222462154162974
+    },
+    {
+      "team_id": "man_city",
+      "team": "Manchester City",
+      "dc_attack": 0.40344159555442377,
+      "dc_defence": 0.3202067187521625,
+      "xg_attack": 0.3221298814865832,
+      "xg_defence": 0.12597993513499964
+    },
+    {
+      "team_id": "man_united",
+      "team": "Manchester United",
+      "dc_attack": 0.13534889060162095,
+      "dc_defence": 0.014652751697853432,
+      "xg_attack": 0.173363671476472,
+      "xg_defence": -0.06141663890323753
+    },
+    {
+      "team_id": "newcastle",
+      "team": "Newcastle United",
+      "dc_attack": 0.09688968485092118,
+      "dc_defence": -0.07433335953061132,
+      "xg_attack": -0.023371584282442716,
+      "xg_defence": -0.18503745532711216
+    },
+    {
+      "team_id": "nottm_forest",
+      "team": "Nottingham Forest",
+      "dc_attack": -0.11115669781490255,
+      "dc_defence": 0.094602038600799,
+      "xg_attack": 0.10229994912945174,
+      "xg_defence": 0.14497824718207358
+    },
+    {
+      "team_id": "sunderland",
+      "team": "Sunderland",
+      "dc_attack": -0.2086329290643561,
+      "dc_defence": -0.037916058811769175,
+      "xg_attack": 0.005351913803099905,
+      "xg_defence": -0.07219304953157038
+    },
+    {
+      "team_id": "tottenham",
+      "team": "Tottenham Hotspur",
+      "dc_attack": -0.048020448647422165,
+      "dc_defence": 0.0047252130881772145,
+      "xg_attack": -0.09913084127172976,
+      "xg_defence": 0.23296435534364013
+    }
+  ],
+  "absences": [
+    {
+      "team_id": "arsenal",
+      "player": "Saka",
+      "news": "Thigh injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "aston_villa",
+      "player": "Cash",
+      "news": "Suspended until 21 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "aston_villa",
+      "player": "Wan-Bissaka",
+      "news": "Hamstring injury - Expected back 21 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "bournemouth",
+      "player": "Scott",
+      "news": "Thigh injury - Expected back 21 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "chelsea",
+      "player": "S\u00e1nchez",
+      "news": "Has joined Como on loan for the rest of the season",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "chelsea",
+      "player": "Hato",
+      "news": "Unspecified injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "chelsea",
+      "player": "Jo\u00e3o Pedro",
+      "news": "Thigh injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "crystal_palace",
+      "player": "Sarr",
+      "news": "Groin injury - Expected back 8 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "hull",
+      "player": "Crooks",
+      "news": "Suspended until 22 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "leeds",
+      "player": "Rodon",
+      "news": "Hamstring injury - Expected back 21 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "man_city",
+      "player": "Semenyo",
+      "news": "Knee injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "man_united",
+      "player": "Martinez",
+      "news": "Suspended until 22 Nov",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "man_united",
+      "player": "Shaw",
+      "news": "Unspecified injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "sunderland",
+      "player": "Ballard",
+      "news": "Hamstring injury - Unknown return date",
+      "chance_next": 0.0
+    },
+    {
+      "team_id": "sunderland",
+      "player": "Alderete",
+      "news": "Suspended until 21 Nov",
+      "chance_next": 0.0
+    }
+  ],
+  "lineup_sources": {
+    "retrieved_utc": "20261105T0656Z",
+    "available": [
+      "ffs",
+      "fpl_proj",
+      "rotowire"
+    ]
+  },
+  "xi_model": "V2x: V1x + XI strength (ratio, position prior); stage 2 trained on confirmed XIs"
+}

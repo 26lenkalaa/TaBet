@@ -1,0 +1,1670 @@
+{
+  "model": "V1x: Dixon-Coles + opponent-adjusted xG strength (lineup-free)",
+  "cutoff_utc": "2026-11-05T06:49:00+00:00",
+  "git_commit": "2a1d448",
+  "results_through": "2026-11-02T20:00:00+00:00",
+  "n_train_matches": 1990,
+  "settings": {
+    "dixon_coles": {
+      "xi": 0.004,
+      "l2": 10.0,
+      "promoted_prior": false
+    },
+    "xg_half_life_days": 90.0,
+    "stage2_l2": 1.0
+  },
+  "params": {
+    "home_adv": 0.1947846485035828,
+    "rho": -0.07137510442464746,
+    "mu": 0.19938232297323397,
+    "stage2_coef": [
+      0.0021494975893803685,
+      -0.004111371685117607,
+      0.025440389212972585
+    ]
+  },
+  "fixtures": [
+    {
+      "fpl_fixture": 94,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-06T20:00:00+00:00",
+      "home_id": "everton",
+      "away_id": "coventry",
+      "home": "Everton",
+      "away": "Coventry City",
+      "p_home": 0.5095395726973667,
+      "p_draw": 0.2714930822301162,
+      "p_away": 0.21896734507251706,
+      "base_home": 0.5082244419646933,
+      "base_draw": 0.2734466278547989,
+      "base_away": 0.2183289301805077,
+      "xg_home": 1.5613855831195307,
+      "xg_away": 0.9412020525234607,
+      "base_xg_home": 1.5445494962966646,
+      "base_xg_away": 0.9290128487891113,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12890642983294034
+        },
+        {
+          "score": "1-0",
+          "p": 0.11924735661090596
+        },
+        {
+          "score": "2-0",
+          "p": 0.0997999523146655
+        }
+      ],
+      "p_btts": 0.4904569507999963,
+      "p_over_2_5": 0.4568504811058698,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 97,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T12:30:00+00:00",
+      "home_id": "leeds",
+      "away_id": "tottenham",
+      "home": "Leeds United",
+      "away": "Tottenham Hotspur",
+      "p_home": 0.4399969741549451,
+      "p_draw": 0.29625873749688136,
+      "p_away": 0.26374428834817354,
+      "base_home": 0.4486622661872554,
+      "base_draw": 0.29198091658985253,
+      "base_away": 0.2593568172228922,
+      "xg_home": 1.3298077278468279,
+      "xg_away": 0.9708846221510838,
+      "base_xg_home": 1.3673819486857892,
+      "base_xg_away": 0.9783075637775476,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13858621479510003
+        },
+        {
+          "score": "1-0",
+          "p": 0.1240000836476543
+        },
+        {
+          "score": "0-0",
+          "p": 0.10942207945069904
+        }
+      ],
+      "p_btts": 0.4661461205150571,
+      "p_over_2_5": 0.4041447663577738,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 91,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T15:00:00+00:00",
+      "home_id": "arsenal",
+      "away_id": "hull",
+      "home": "Arsenal",
+      "away": "Hull City",
+      "p_home": 0.6465973671323487,
+      "p_draw": 0.24651917108325608,
+      "p_away": 0.10688346178439508,
+      "base_home": 0.6328042715298464,
+      "base_draw": 0.25078629944784775,
+      "base_away": 0.11640942902230587,
+      "xg_home": 1.6734002783870419,
+      "xg_away": 0.5332778445385205,
+      "base_xg_home": 1.658001741958313,
+      "base_xg_away": 0.5689353858381052,
+      "top_scores": [
+        {
+          "score": "1-0",
+          "p": 0.1771733684371916
+        },
+        {
+          "score": "2-0",
+          "p": 0.15410670899542048
+        },
+        {
+          "score": "0-0",
+          "p": 0.1170762150937778
+        }
+      ],
+      "p_btts": 0.3427893821579752,
+      "p_over_2_5": 0.37907639724470515,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 95,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T15:00:00+00:00",
+      "home_id": "fulham",
+      "away_id": "newcastle",
+      "home": "Fulham",
+      "away": "Newcastle United",
+      "p_home": 0.41771480298428365,
+      "p_draw": 0.2765778640821174,
+      "p_away": 0.30570733293359903,
+      "base_home": 0.406004464276105,
+      "base_draw": 0.2805561638358197,
+      "base_away": 0.31343937188807536,
+      "xg_home": 1.4436446853983567,
+      "xg_away": 1.202175600939603,
+      "base_xg_home": 1.3959509940071964,
+      "base_xg_away": 1.1982644727641936,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1319181723436129
+        },
+        {
+          "score": "1-0",
+          "p": 0.09363405102118003
+        },
+        {
+          "score": "2-1",
+          "p": 0.08887782048734152
+        }
+      ],
+      "p_btts": 0.5431300841651228,
+      "p_over_2_5": 0.493011591050166,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 99,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-07T17:30:00+00:00",
+      "home_id": "nottm_forest",
+      "away_id": "man_city",
+      "home": "Nottingham Forest",
+      "away": "Manchester City",
+      "p_home": 0.211750242839789,
+      "p_draw": 0.2643411602179003,
+      "p_away": 0.5239085969423106,
+      "base_home": 0.21009419288624598,
+      "base_draw": 0.260417179169227,
+      "base_away": 0.5294886279445269,
+      "xg_home": 0.9494690047278351,
+      "xg_away": 1.6260081914107833,
+      "base_xg_home": 0.9634868444977802,
+      "base_xg_away": 1.662332738264905,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12590110356339873
+        },
+        {
+          "score": "0-1",
+          "p": 0.11538012145585014
+        },
+        {
+          "score": "0-2",
+          "p": 0.10062361785785347
+        }
+      ],
+      "p_btts": 0.5008453476066848,
+      "p_over_2_5": 0.4753968358993278,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 92,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "brighton",
+      "away_id": "brentford",
+      "home": "Brighton & Hove Albion",
+      "away": "Brentford",
+      "p_home": 0.534986366591323,
+      "p_draw": 0.24180460405507329,
+      "p_away": 0.22320902935360382,
+      "base_home": 0.5302309353255581,
+      "base_draw": 0.242860908331794,
+      "base_away": 0.22690815634264758,
+      "xg_home": 1.8561223496649395,
+      "xg_away": 1.1337999688033245,
+      "base_xg_home": 1.8448831436103257,
+      "base_xg_away": 1.143140947596528,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1133908020263184
+        },
+        {
+          "score": "2-1",
+          "p": 0.0982229291208459
+        },
+        {
+          "score": "2-0",
+          "p": 0.08663162094149275
+        }
+      ],
+      "p_btts": 0.5797599328392464,
+      "p_over_2_5": 0.5745483088250475,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 93,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "crystal_palace",
+      "away_id": "liverpool",
+      "home": "Crystal Palace",
+      "away": "Liverpool",
+      "p_home": 0.20829650214563816,
+      "p_draw": 0.24007360796717356,
+      "p_away": 0.5516298898871883,
+      "base_home": 0.22499236713418827,
+      "base_draw": 0.24739324901457924,
+      "base_away": 0.5276143838512324,
+      "xg_home": 1.0763668422021289,
+      "xg_away": 1.8701221328943962,
+      "base_xg_home": 1.1043262076085083,
+      "base_xg_away": 1.7949192572776367,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11327339793068099
+        },
+        {
+          "score": "1-2",
+          "p": 0.09886130808130035
+        },
+        {
+          "score": "0-2",
+          "p": 0.09184722550449521
+        }
+      ],
+      "p_btts": 0.5651336655407974,
+      "p_over_2_5": 0.5647149522190092,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 96,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "ipswich",
+      "away_id": "bournemouth",
+      "home": "Ipswich Town",
+      "away": "Bournemouth",
+      "p_home": 0.26408423692656724,
+      "p_draw": 0.22210304174404738,
+      "p_away": 0.5138127213293855,
+      "base_home": 0.283198106596125,
+      "base_draw": 0.2277035026800599,
+      "base_away": 0.48909839072381517,
+      "xg_home": 1.4826175361604192,
+      "xg_away": 2.106810596916937,
+      "base_xg_home": 1.5112345612005622,
+      "base_xg_away": 2.0197822697591885,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09241178226801457
+        },
+        {
+          "score": "1-2",
+          "p": 0.09086179124294144
+        },
+        {
+          "score": "2-2",
+          "p": 0.0673566425318661
+        }
+      ],
+      "p_btts": 0.6851027204204392,
+      "p_over_2_5": 0.6953769253223209,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 100,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T14:00:00+00:00",
+      "home_id": "sunderland",
+      "away_id": "chelsea",
+      "home": "Sunderland",
+      "away": "Chelsea",
+      "p_home": 0.2721360067477265,
+      "p_draw": 0.2560558403300102,
+      "p_away": 0.4718081529222633,
+      "base_home": 0.2764390095563358,
+      "base_draw": 0.2579303039835384,
+      "base_away": 0.4656306864601259,
+      "xg_home": 1.2327186932438718,
+      "xg_away": 1.684719801993437,
+      "base_xg_home": 1.2348035121821226,
+      "base_xg_away": 1.6613196291539187,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12031112090176553
+        },
+        {
+          "score": "1-2",
+          "p": 0.09459363342779945
+        },
+        {
+          "score": "0-1",
+          "p": 0.083081058193451
+        }
+      ],
+      "p_btts": 0.5850917498666057,
+      "p_over_2_5": 0.5580606454545401,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 98,
+      "gameweek": 10,
+      "kickoff_utc": "2026-11-08T16:30:00+00:00",
+      "home_id": "man_united",
+      "away_id": "aston_villa",
+      "home": "Manchester United",
+      "away": "Aston Villa",
+      "p_home": 0.42646558436978066,
+      "p_draw": 0.2569569822873453,
+      "p_away": 0.3165774333428742,
+      "base_home": 0.4264607477656179,
+      "base_draw": 0.2589054836242731,
+      "base_away": 0.3146337686101091,
+      "xg_home": 1.6239231006574404,
+      "xg_away": 1.373561796960575,
+      "base_xg_home": 1.6058012707157832,
+      "base_xg_away": 1.3524969986555628,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11927902015615652
+        },
+        {
+          "score": "2-1",
+          "p": 0.09039782399992774
+        },
+        {
+          "score": "1-2",
+          "p": 0.07646113139495207
+        }
+      ],
+      "p_btts": 0.6075314888612788,
+      "p_over_2_5": 0.5762461946389407,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 108,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T12:30:00+00:00",
+      "home_id": "man_city",
+      "away_id": "fulham",
+      "home": "Manchester City",
+      "away": "Fulham",
+      "p_home": 0.6503424015150737,
+      "p_draw": 0.2201936222353469,
+      "p_away": 0.12946397624957912,
+      "base_home": 0.649401933710813,
+      "base_draw": 0.21979968175963707,
+      "base_away": 0.1307983845295498,
+      "xg_home": 1.9704676934668333,
+      "xg_away": 0.7641916195403324,
+      "base_xg_home": 1.9782464014324295,
+      "base_xg_away": 0.7743364362791277,
+      "top_scores": [
+        {
+          "score": "2-0",
+          "p": 0.12602630193115286
+        },
+        {
+          "score": "1-0",
+          "p": 0.12093808121760888
+        },
+        {
+          "score": "1-1",
+          "p": 0.10472869469123627
+        }
+      ],
+      "p_btts": 0.466791255989516,
+      "p_over_2_5": 0.5148273039068418,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 101,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "aston_villa",
+      "away_id": "sunderland",
+      "home": "Aston Villa",
+      "away": "Sunderland",
+      "p_home": 0.5567183944742059,
+      "p_draw": 0.24958332949636533,
+      "p_away": 0.19369827602942874,
+      "base_home": 0.5530416514539139,
+      "base_draw": 0.25264145403571453,
+      "base_away": 0.1943168945103716,
+      "xg_home": 1.7618804109316482,
+      "xg_away": 0.9508290032693205,
+      "base_xg_home": 1.7320505084519282,
+      "base_xg_away": 0.9369329082104734,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11909832907618016
+        },
+        {
+          "score": "1-0",
+          "p": 0.10897836067993723
+        },
+        {
+          "score": "2-0",
+          "p": 0.10299309965096971
+        }
+      ],
+      "p_btts": 0.5161489166796293,
+      "p_over_2_5": 0.5094837124708306,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 102,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "bournemouth",
+      "away_id": "nottm_forest",
+      "home": "Bournemouth",
+      "away": "Nottingham Forest",
+      "p_home": 0.4964673552028791,
+      "p_draw": 0.2710427042919272,
+      "p_away": 0.23248994050519373,
+      "base_home": 0.4993656375109024,
+      "base_draw": 0.2674707823394158,
+      "base_away": 0.23316358014968194,
+      "xg_home": 1.5615567629671705,
+      "xg_away": 0.9945811708624765,
+      "base_xg_home": 1.5937898196369422,
+      "base_xg_away": 1.0165872888364693,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12912875369609508
+        },
+        {
+          "score": "1-0",
+          "p": 0.11258028484085056
+        },
+        {
+          "score": "2-0",
+          "p": 0.0946169524989675
+        }
+      ],
+      "p_btts": 0.5065189211696228,
+      "p_over_2_5": 0.4705042295303472,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 104,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "chelsea",
+      "away_id": "leeds",
+      "home": "Chelsea",
+      "away": "Leeds United",
+      "p_home": 0.47085563796827273,
+      "p_draw": 0.26354450289876274,
+      "p_away": 0.2655998591329644,
+      "base_home": 0.4758883245306722,
+      "base_draw": 0.26166483957866005,
+      "base_away": 0.2624468358906678,
+      "xg_home": 1.613181745413429,
+      "xg_away": 1.1588074978554417,
+      "base_xg_home": 1.6342562097359128,
+      "base_xg_away": 1.1597637323485404,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12524964791284135
+        },
+        {
+          "score": "2-1",
+          "p": 0.09429491351722255
+        },
+        {
+          "score": "1-0",
+          "p": 0.09254017634806598
+        }
+      ],
+      "p_btts": 0.5577687512138781,
+      "p_over_2_5": 0.5238426751244672,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 105,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "coventry",
+      "away_id": "crystal_palace",
+      "home": "Coventry City",
+      "away": "Crystal Palace",
+      "p_home": 0.4575293162708964,
+      "p_draw": 0.25696208019838995,
+      "p_away": 0.28550860353071356,
+      "base_home": 0.44025611240262885,
+      "base_draw": 0.263667086801609,
+      "base_away": 0.29607680079576204,
+      "xg_home": 1.6628898118904445,
+      "xg_away": 1.273195435838185,
+      "base_xg_home": 1.581274268995856,
+      "base_xg_away": 1.259977334026114,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1203855814130516
+        },
+        {
+          "score": "2-1",
+          "p": 0.09342570870067798
+        },
+        {
+          "score": "1-0",
+          "p": 0.08023460352642803
+        }
+      ],
+      "p_btts": 0.5915672067291307,
+      "p_over_2_5": 0.5623389393930482,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 110,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T15:00:00+00:00",
+      "home_id": "tottenham",
+      "away_id": "ipswich",
+      "home": "Tottenham Hotspur",
+      "away": "Ipswich Town",
+      "p_home": 0.5487024372800109,
+      "p_draw": 0.22364387394616603,
+      "p_away": 0.22765368877382317,
+      "base_home": 0.5188849584601456,
+      "base_draw": 0.2316153191296537,
+      "base_away": 0.2494997224102009,
+      "xg_home": 2.080283734097302,
+      "xg_away": 1.2933167198198356,
+      "base_xg_home": 1.9802124493555988,
+      "base_xg_away": 1.3300166330358547,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09877179694930076
+        },
+        {
+          "score": "2-1",
+          "p": 0.09589235447632308
+        },
+        {
+          "score": "2-0",
+          "p": 0.07414452547221478
+        }
+      ],
+      "p_btts": 0.6415921577677428,
+      "p_over_2_5": 0.655140029826474,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 109,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-21T17:30:00+00:00",
+      "home_id": "newcastle",
+      "away_id": "arsenal",
+      "home": "Newcastle United",
+      "away": "Arsenal",
+      "p_home": 0.15527545447983251,
+      "p_draw": 0.24390039169793612,
+      "p_away": 0.6008241538222313,
+      "base_home": 0.17490599984908933,
+      "base_draw": 0.25167249771404043,
+      "base_away": 0.5734215024368701,
+      "xg_home": 0.7935452023965457,
+      "xg_away": 1.780294979487151,
+      "base_xg_home": 0.8523741230657075,
+      "base_xg_away": 1.7282286362996537,
+      "top_scores": [
+        {
+          "score": "0-1",
+          "p": 0.12804573742830042
+        },
+        {
+          "score": "0-2",
+          "p": 0.12082292637966294
+        },
+        {
+          "score": "1-1",
+          "p": 0.11539861583295587
+        }
+      ],
+      "p_btts": 0.46310298249467274,
+      "p_over_2_5": 0.474983501302335,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 106,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-22T14:00:00+00:00",
+      "home_id": "hull",
+      "away_id": "brighton",
+      "home": "Hull City",
+      "away": "Brighton & Hove Albion",
+      "p_home": 0.2596413051897438,
+      "p_draw": 0.2819171582444139,
+      "p_away": 0.45844153656584247,
+      "base_home": 0.2610948106888324,
+      "base_draw": 0.2832067122285292,
+      "base_away": 0.4556984770826384,
+      "xg_home": 1.0306394485349866,
+      "xg_away": 1.4494947290024423,
+      "base_xg_home": 1.0284468275353262,
+      "base_xg_away": 1.4372913977927528,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1340159115126127
+        },
+        {
+          "score": "0-1",
+          "p": 0.11244092608523533
+        },
+        {
+          "score": "0-0",
+          "p": 0.09266014179089764
+        }
+      ],
+      "p_btts": 0.5011925562199818,
+      "p_over_2_5": 0.45108096150788535,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 107,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-22T16:30:00+00:00",
+      "home_id": "liverpool",
+      "away_id": "man_united",
+      "home": "Liverpool",
+      "away": "Manchester United",
+      "p_home": 0.5257432851602013,
+      "p_draw": 0.24371107663535557,
+      "p_away": 0.23054563820444302,
+      "base_home": 0.5122833622003912,
+      "base_draw": 0.24581189649353077,
+      "base_away": 0.24190474130607792,
+      "xg_home": 1.835677691075334,
+      "xg_away": 1.153345962058716,
+      "base_xg_home": 1.811423684090149,
+      "base_xg_away": 1.1874126045367805,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11417765025992674
+        },
+        {
+          "score": "2-1",
+          "p": 0.0978151184099549
+        },
+        {
+          "score": "2-0",
+          "p": 0.0848098676613524
+        }
+      ],
+      "p_btts": 0.5828586288453272,
+      "p_over_2_5": 0.5743462649846859,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 103,
+      "gameweek": 11,
+      "kickoff_utc": "2026-11-23T20:00:00+00:00",
+      "home_id": "brentford",
+      "away_id": "everton",
+      "home": "Brentford",
+      "away": "Everton",
+      "p_home": 0.4891292874801905,
+      "p_draw": 0.27555875893949516,
+      "p_away": 0.23531195358031431,
+      "base_home": 0.4907048135173309,
+      "base_draw": 0.2762144113698939,
+      "base_away": 0.23308077511277517,
+      "xg_home": 1.5205255014695447,
+      "xg_away": 0.9810746958937053,
+      "base_xg_home": 1.515881312540778,
+      "base_xg_away": 0.9696645947024615,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1309803575223216
+        },
+        {
+          "score": "1-0",
+          "p": 0.1158868460152371
+        },
+        {
+          "score": "2-0",
+          "p": 0.09473844656977815
+        }
+      ],
+      "p_btts": 0.4971747205498088,
+      "p_over_2_5": 0.4565972939982319,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 119,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-27T20:00:00+00:00",
+      "home_id": "nottm_forest",
+      "away_id": "chelsea",
+      "home": "Nottingham Forest",
+      "away": "Chelsea",
+      "p_home": 0.348376365247295,
+      "p_draw": 0.27051339991381695,
+      "p_away": 0.38111023483888795,
+      "base_home": 0.3444888288844289,
+      "base_draw": 0.2685599003752983,
+      "base_away": 0.3869512707402729,
+      "xg_home": 1.3561887289819423,
+      "xg_away": 1.4281993705010017,
+      "base_xg_home": 1.3612291648105879,
+      "base_xg_away": 1.45512840336863,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12817582793719323
+        },
+        {
+          "score": "1-2",
+          "p": 0.08543256046240301
+        },
+        {
+          "score": "2-1",
+          "p": 0.08112500115900172
+        }
+      ],
+      "p_btts": 0.5729248933313125,
+      "p_over_2_5": 0.5268165492960265,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 117,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T15:00:00+00:00",
+      "home_id": "leeds",
+      "away_id": "coventry",
+      "home": "Leeds United",
+      "away": "Coventry City",
+      "p_home": 0.5339589132959113,
+      "p_draw": 0.2630792665477689,
+      "p_away": 0.2029618201563199,
+      "base_home": 0.5286982711497179,
+      "base_draw": 0.265164655285961,
+      "base_away": 0.20613707356432098,
+      "xg_home": 1.636644025466344,
+      "xg_away": 0.9198101178862489,
+      "base_xg_home": 1.618195405450101,
+      "base_xg_away": 0.9223546178697902,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12512383148792014
+        },
+        {
+          "score": "1-0",
+          "p": 0.11863400015696629
+        },
+        {
+          "score": "2-0",
+          "p": 0.1039021502974161
+        }
+      ],
+      "p_btts": 0.4926882514082438,
+      "p_over_2_5": 0.47058439400311686,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 118,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T15:00:00+00:00",
+      "home_id": "man_united",
+      "away_id": "brentford",
+      "home": "Manchester United",
+      "away": "Brentford",
+      "p_home": 0.38564527075457017,
+      "p_draw": 0.2584380644445244,
+      "p_away": 0.3559166648009054,
+      "base_home": 0.3863612213909979,
+      "base_draw": 0.25997572891856147,
+      "base_away": 0.3536630496904406,
+      "xg_home": 1.5376870796501945,
+      "xg_away": 1.4700059109432544,
+      "base_xg_home": 1.525697416413018,
+      "base_xg_away": 1.4515904865882086,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11964763749888264
+        },
+        {
+          "score": "2-1",
+          "p": 0.08586191033041769
+        },
+        {
+          "score": "1-2",
+          "p": 0.0820827055003328
+        }
+      ],
+      "p_btts": 0.6125748147910316,
+      "p_over_2_5": 0.5785312586292587,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 116,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-28T17:30:00+00:00",
+      "home_id": "ipswich",
+      "away_id": "aston_villa",
+      "home": "Ipswich Town",
+      "away": "Aston Villa",
+      "p_home": 0.29436604104398023,
+      "p_draw": 0.2274272837169419,
+      "p_away": 0.4782066752390779,
+      "base_home": 0.3038181385516627,
+      "base_draw": 0.23352493011871417,
+      "base_away": 0.46265693132962343,
+      "xg_home": 1.5593638756356343,
+      "xg_away": 2.015140364647028,
+      "base_xg_home": 1.5354266860960688,
+      "base_xg_away": 1.9225700873662037,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09436411148032296
+        },
+        {
+          "score": "1-2",
+          "p": 0.08874432924226351
+        },
+        {
+          "score": "2-2",
+          "p": 0.06919235059395039
+        }
+      ],
+      "p_btts": 0.6907443859412162,
+      "p_over_2_5": 0.6927133371679425,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 114,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T12:00:00+00:00",
+      "home_id": "everton",
+      "away_id": "liverpool",
+      "home": "Everton",
+      "away": "Liverpool",
+      "p_home": 0.3037183999472371,
+      "p_draw": 0.29535946544679526,
+      "p_away": 0.40092213460596776,
+      "base_home": 0.3123279948806454,
+      "base_draw": 0.29428906713851977,
+      "base_away": 0.39338293798083496,
+      "xg_home": 1.0863793569213034,
+      "xg_away": 1.2861252398253553,
+      "base_xg_home": 1.114147213514819,
+      "base_xg_away": 1.2813073918837208,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1395856141346607
+        },
+        {
+          "score": "0-1",
+          "p": 0.1106279698363318
+        },
+        {
+          "score": "0-0",
+          "p": 0.10254609369979635
+        }
+      ],
+      "p_btts": 0.4887706132149166,
+      "p_over_2_5": 0.42309142461987387,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 112,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "brighton",
+      "away_id": "newcastle",
+      "home": "Brighton & Hove Albion",
+      "away": "Newcastle United",
+      "p_home": 0.645820430511768,
+      "p_draw": 0.20076870375456113,
+      "p_away": 0.1534108657336708,
+      "base_home": 0.6320804379555496,
+      "base_draw": 0.2069225953464158,
+      "base_away": 0.1609969666980348,
+      "xg_home": 2.276651556909396,
+      "xg_away": 1.0388123276657044,
+      "base_xg_home": 2.2118151926413696,
+      "base_xg_away": 1.0436655716529202,
+      "top_scores": [
+        {
+          "score": "2-1",
+          "p": 0.09777156427735084
+        },
+        {
+          "score": "2-0",
+          "p": 0.0941186022474834
+        },
+        {
+          "score": "1-1",
+          "p": 0.09202112599927965
+        }
+      ],
+      "p_btts": 0.5859456597565103,
+      "p_over_2_5": 0.64366966394984,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 113,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "crystal_palace",
+      "away_id": "hull",
+      "home": "Crystal Palace",
+      "away": "Hull City",
+      "p_home": 0.2991186894783484,
+      "p_draw": 0.28698991379663347,
+      "p_away": 0.41389139672501823,
+      "base_home": 0.30749970091758094,
+      "base_draw": 0.29364811775953314,
+      "base_away": 0.3988521813228859,
+      "xg_home": 1.120672504623953,
+      "xg_away": 1.3613285161457933,
+      "base_xg_home": 1.10545253130209,
+      "base_xg_away": 1.294049978249881,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1366041400666663
+        },
+        {
+          "score": "0-1",
+          "p": 0.10467356874574701
+        },
+        {
+          "score": "0-0",
+          "p": 0.09267640112429477
+        }
+      ],
+      "p_btts": 0.5102959320413246,
+      "p_over_2_5": 0.4515616249189982,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 115,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "fulham",
+      "away_id": "bournemouth",
+      "home": "Fulham",
+      "away": "Bournemouth",
+      "p_home": 0.33084648155731666,
+      "p_draw": 0.29037393933578065,
+      "p_away": 0.37877957910690274,
+      "base_home": 0.33691622692199197,
+      "base_draw": 0.2886934586289332,
+      "base_away": 0.37439031444907467,
+      "xg_home": 1.1818150273079568,
+      "xg_away": 1.281789085638018,
+      "base_xg_home": 1.206191815684309,
+      "base_xg_away": 1.2847116984485762,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1381586101923605
+        },
+        {
+          "score": "0-1",
+          "p": 0.09991147429263979
+        },
+        {
+          "score": "0-0",
+          "p": 0.09433172683031783
+        }
+      ],
+      "p_btts": 0.5100698890772384,
+      "p_over_2_5": 0.4468173763693872,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 120,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T14:05:00+00:00",
+      "home_id": "sunderland",
+      "away_id": "tottenham",
+      "home": "Sunderland",
+      "away": "Tottenham Hotspur",
+      "p_home": 0.3359016129919472,
+      "p_draw": 0.295324028194317,
+      "p_away": 0.36877435881373566,
+      "base_home": 0.35013173145955645,
+      "base_draw": 0.29479883869552387,
+      "base_away": 0.35506942984491974,
+      "xg_home": 1.1642537343938377,
+      "xg_away": 1.2319863668510298,
+      "base_xg_home": 1.1981860993498046,
+      "base_xg_away": 1.208376753756167,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13993335241115845
+        },
+        {
+          "score": "0-1",
+          "p": 0.10286191894420153
+        },
+        {
+          "score": "0-0",
+          "p": 0.10038205798753418
+        }
+      ],
+      "p_btts": 0.49651397826713145,
+      "p_over_2_5": 0.42930860617032235,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 111,
+      "gameweek": 12,
+      "kickoff_utc": "2026-11-29T16:30:00+00:00",
+      "home_id": "arsenal",
+      "away_id": "man_city",
+      "home": "Arsenal",
+      "away": "Manchester City",
+      "p_home": 0.4792579903394175,
+      "p_draw": 0.29186479830391365,
+      "p_away": 0.22887721135666877,
+      "base_home": 0.4679026006929417,
+      "base_draw": 0.28750265318370766,
+      "base_away": 0.24459474612335064,
+      "xg_home": 1.3913029867530582,
+      "xg_away": 0.8810190188749945,
+      "base_xg_home": 1.4153000308080521,
+      "base_xg_away": 0.9531695543245889,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.13536040450362294
+        },
+        {
+          "score": "1-0",
+          "p": 0.13438744806015723
+        },
+        {
+          "score": "0-0",
+          "p": 0.11209028906551038
+        }
+      ],
+      "p_btts": 0.4489788595630126,
+      "p_over_2_5": 0.3966084875546303,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 125,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-01T20:00:00+00:00",
+      "home_id": "coventry",
+      "away_id": "ipswich",
+      "home": "Coventry City",
+      "away": "Ipswich Town",
+      "p_home": 0.4619508503004466,
+      "p_draw": 0.2295887879618238,
+      "p_away": 0.3084603617377296,
+      "base_home": 0.44236453428308825,
+      "base_draw": 0.236020113744919,
+      "base_away": 0.32161535197199276,
+      "xg_home": 1.9708480112265312,
+      "xg_away": 1.591733179319193,
+      "base_xg_home": 1.8669569414079414,
+      "base_xg_away": 1.573976317896671,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.09533570902403729
+        },
+        {
+          "score": "2-1",
+          "p": 0.08768739900382394
+        },
+        {
+          "score": "1-2",
+          "p": 0.07081973932415249
+        }
+      ],
+      "p_btts": 0.6918056631280004,
+      "p_over_2_5": 0.6905727109811974,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 124,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "chelsea",
+      "away_id": "crystal_palace",
+      "home": "Chelsea",
+      "away": "Crystal Palace",
+      "p_home": 0.6563870075059696,
+      "p_draw": 0.19198140287687893,
+      "p_away": 0.15163158961715148,
+      "base_home": 0.6382458123834803,
+      "base_draw": 0.20029469388978727,
+      "base_away": 0.1614594937267323,
+      "xg_home": 2.4002401213502997,
+      "xg_away": 1.095332662024645,
+      "base_xg_home": 2.3058737396931885,
+      "base_xg_away": 1.097223726798181,
+      "top_scores": [
+        {
+          "score": "2-1",
+          "p": 0.09570121602884735
+        },
+        {
+          "score": "2-0",
+          "p": 0.0873718271597511
+        },
+        {
+          "score": "1-1",
+          "p": 0.08543470247367657
+        }
+      ],
+      "p_btts": 0.610898527816688,
+      "p_over_2_5": 0.6783331688366259,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 126,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "hull",
+      "away_id": "nottm_forest",
+      "home": "Hull City",
+      "away": "Nottingham Forest",
+      "p_home": 0.4089229134930141,
+      "p_draw": 0.3122387176045548,
+      "p_away": 0.27883836890243113,
+      "base_home": 0.4143966149461318,
+      "base_draw": 0.3117453741100514,
+      "base_away": 0.2738580109438168,
+      "xg_home": 1.1958725143711715,
+      "xg_away": 0.9398639963605059,
+      "base_xg_home": 1.2056038894518324,
+      "base_xg_away": 0.9289414835762715,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.14228295183955186
+        },
+        {
+          "score": "1-0",
+          "p": 0.13182244444843905
+        },
+        {
+          "score": "0-0",
+          "p": 0.127636436893465
+        }
+      ],
+      "p_btts": 0.4345155152948397,
+      "p_over_2_5": 0.3600089648380239,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 127,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "liverpool",
+      "away_id": "sunderland",
+      "home": "Liverpool",
+      "away": "Sunderland",
+      "p_home": 0.6291756414532914,
+      "p_draw": 0.22647895564268003,
+      "p_away": 0.1443454029040285,
+      "base_home": 0.6175797130030625,
+      "base_draw": 0.23055012186467144,
+      "base_away": 0.1518701651322659,
+      "xg_home": 1.9378972914879053,
+      "xg_away": 0.820522431431665,
+      "base_xg_home": 1.9091954298595804,
+      "base_xg_away": 0.8418064490714587,
+      "top_scores": [
+        {
+          "score": "2-0",
+          "p": 0.11903236198592233
+        },
+        {
+          "score": "1-0",
+          "p": 0.11565241065106116
+        },
+        {
+          "score": "1-1",
+          "p": 0.10799317264534122
+        }
+      ],
+      "p_btts": 0.48637832620596305,
+      "p_over_2_5": 0.5205762300563181,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 128,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T19:30:00+00:00",
+      "home_id": "man_city",
+      "away_id": "leeds",
+      "home": "Manchester City",
+      "away": "Leeds United",
+      "p_home": 0.6091540310357189,
+      "p_draw": 0.23779807917597232,
+      "p_away": 0.1530478897883087,
+      "base_home": 0.6135237791961602,
+      "base_draw": 0.23460499035300014,
+      "base_away": 0.15187123045083947,
+      "xg_home": 1.8366110407655722,
+      "xg_away": 0.8112822191686339,
+      "base_xg_home": 1.8669676118393408,
+      "base_xg_away": 0.8208883028148677,
+      "top_scores": [
+        {
+          "score": "1-0",
+          "p": 0.12250287901182
+        },
+        {
+          "score": "2-0",
+          "p": 0.11940952050924435
+        },
+        {
+          "score": "1-1",
+          "p": 0.11302259317274309
+        }
+      ],
+      "p_btts": 0.47468519770954987,
+      "p_over_2_5": 0.4935262378657656,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 121,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "aston_villa",
+      "away_id": "everton",
+      "home": "Aston Villa",
+      "away": "Everton",
+      "p_home": 0.4494493936510563,
+      "p_draw": 0.2846363174293237,
+      "p_away": 0.2659142889196199,
+      "base_home": 0.4508639614433225,
+      "base_draw": 0.28595649324731626,
+      "base_away": 0.26317954530936116,
+      "xg_home": 1.4207668993539913,
+      "xg_away": 1.0360949787616691,
+      "base_xg_home": 1.4123989819940665,
+      "base_xg_away": 1.0205749984175116,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.1351644225752168
+        },
+        {
+          "score": "1-0",
+          "p": 0.11275999799497263
+        },
+        {
+          "score": "0-0",
+          "p": 0.0947081431839496
+        }
+      ],
+      "p_btts": 0.4983417970885056,
+      "p_over_2_5": 0.44507452440665146,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 122,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "bournemouth",
+      "away_id": "brighton",
+      "home": "Bournemouth",
+      "away": "Brighton & Hove Albion",
+      "p_home": 0.32589361495320124,
+      "p_draw": 0.2640828345804163,
+      "p_away": 0.41002355046638245,
+      "base_home": 0.3222432468718693,
+      "base_draw": 0.2609059117398863,
+      "base_away": 0.41685084138824446,
+      "xg_home": 1.3457973000465178,
+      "xg_away": 1.5338816789586476,
+      "base_xg_home": 1.3595909055245305,
+      "base_xg_away": 1.5729001139285932,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.12418935544395973
+        },
+        {
+          "score": "1-2",
+          "p": 0.08890059898277715
+        },
+        {
+          "score": "2-1",
+          "p": 0.07799961869599015
+        }
+      ],
+      "p_btts": 0.5883974551207332,
+      "p_over_2_5": 0.5493202937491705,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 123,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "brentford",
+      "away_id": "arsenal",
+      "home": "Brentford",
+      "away": "Arsenal",
+      "p_home": 0.2156842455408431,
+      "p_draw": 0.2848425441454221,
+      "p_away": 0.4994732103137348,
+      "base_home": 0.23517464650249875,
+      "base_draw": 0.2850021321189195,
+      "base_away": 0.4798232213785817,
+      "xg_home": 0.8661059382525604,
+      "xg_away": 1.4514497356408118,
+      "base_xg_home": 0.933616849317831,
+      "base_xg_away": 1.441521827873105,
+      "top_scores": [
+        {
+          "score": "0-1",
+          "p": 0.1341489476841086
+        },
+        {
+          "score": "1-1",
+          "p": 0.13268228025736525
+        },
+        {
+          "score": "0-0",
+          "p": 0.10735339738598713
+        }
+      ],
+      "p_btts": 0.45253677480694443,
+      "p_over_2_5": 0.4086112530691308,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 129,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-02T20:15:00+00:00",
+      "home_id": "newcastle",
+      "away_id": "man_united",
+      "home": "Newcastle United",
+      "away": "Manchester United",
+      "p_home": 0.3932837122837714,
+      "p_draw": 0.24946843702335694,
+      "p_away": 0.3572478506928716,
+      "base_home": 0.39624597856202926,
+      "base_draw": 0.2528347418849163,
+      "base_away": 0.35091927955305446,
+      "xg_home": 1.6364910449944847,
+      "xg_away": 1.5522584537431667,
+      "base_xg_home": 1.6102732814624001,
+      "base_xg_away": 1.505408926272951,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.11219226241261047
+        },
+        {
+          "score": "2-1",
+          "p": 0.0856850378535287
+        },
+        {
+          "score": "1-2",
+          "p": 0.08127470344201697
+        }
+      ],
+      "p_btts": 0.6422665794502528,
+      "p_over_2_5": 0.6177433010425918,
+      "home_promoted": false,
+      "away_promoted": false
+    },
+    {
+      "fpl_fixture": 130,
+      "gameweek": 13,
+      "kickoff_utc": "2026-12-03T20:00:00+00:00",
+      "home_id": "tottenham",
+      "away_id": "fulham",
+      "home": "Tottenham Hotspur",
+      "away": "Fulham",
+      "p_home": 0.40778777620009204,
+      "p_draw": 0.3001666287576578,
+      "p_away": 0.2920455950422501,
+      "base_home": 0.39906612542424735,
+      "base_draw": 0.29912489184904223,
+      "base_away": 0.3018089827267104,
+      "xg_home": 1.2656500728154216,
+      "xg_away": 1.0309207177665116,
+      "base_xg_home": 1.2595427423986445,
+      "base_xg_away": 1.0615527322359468,
+      "top_scores": [
+        {
+          "score": "1-1",
+          "p": 0.14063468497720075
+        },
+        {
+          "score": "1-0",
+          "p": 0.11795940597110811
+        },
+        {
+          "score": "0-0",
+          "p": 0.10997233764341247
+        }
+      ],
+      "p_btts": 0.4712380487805375,
+      "p_over_2_5": 0.403051597665064,
+      "home_promoted": false,
+      "away_promoted": false
+    }
+  ],
+  "ratings": [
+    {
+      "team_id": "arsenal",
+      "team": "Arsenal",
+      "dc_attack": 0.2733812918000897,
+      "dc_defence": 0.6507863932835106,
+      "xg_attack": 0.21964469805968515,
+      "xg_defence": 0.5213918132992248
+    },
+    {
+      "team_id": "aston_villa",
+      "team": "Aston Villa",
+      "dc_attack": 0.11722294135212544,
+      "dc_defence": 0.05589299598039101,
+      "xg_attack": 0.010020791240326885,
+      "xg_defence": -0.055902578736878504
+    },
+    {
+      "team_id": "bournemouth",
+      "team": "Bournemouth",
+      "dc_attack": 0.16654978160736844,
+      "dc_defence": 0.07177440280967473,
+      "xg_attack": 0.2423430650982164,
+      "xg_defence": 0.17403794435323064
+    },
+    {
+      "team_id": "brentford",
+      "team": "Brentford",
+      "dc_attack": 0.1879302713180976,
+      "dc_defence": 0.10706423431984614,
+      "xg_attack": 0.14671933719063177,
+      "xg_defence": -0.03333721862455829
+    },
+    {
+      "team_id": "brighton",
+      "team": "Brighton & Hove Albion",
+      "dc_attack": 0.3253132015330889,
+      "dc_defence": 0.25353290334842604,
+      "xg_attack": 0.2575557251333499,
+      "xg_defence": 0.0769400318013493
+    },
+    {
+      "team_id": "chelsea",
+      "team": "Chelsea",
+      "dc_attack": 0.2703138620957974,
+      "dc_defence": -0.02537781556158383,
+      "xg_attack": 0.15826428015980337,
+      "xg_defence": 0.05320842494366659
+    },
+    {
+      "team_id": "coventry",
+      "team": "Coventry City",
+      "dc_attack": -0.10691478394280601,
+      "dc_defence": -0.16368844278587766,
+      "xg_attack": -0.3321009798222746,
+      "xg_defence": -0.027639637690254668
+    },
+    {
+      "team_id": "crystal_palace",
+      "team": "Crystal Palace",
+      "dc_attack": -0.1319770338256901,
+      "dc_defence": -0.17097883382347262,
+      "xg_attack": 0.007040344545614874,
+      "xg_defence": -0.2458552570939425
+    },
+    {
+      "team_id": "everton",
+      "team": "Everton",
+      "dc_attack": -0.12312313459057686,
+      "dc_defence": 0.16610024852030048,
+      "xg_attack": -0.012409634663553553,
+      "xg_defence": 0.0020565426572148214
+    },
+    {
+      "team_id": "fulham",
+      "team": "Fulham",
+      "dc_attack": -0.13492443186158967,
+      "dc_defence": 0.11539777058969347,
+      "xg_attack": 0.0318387459123766,
+      "xg_defence": 0.024289008191790026
+    },
+    {
+      "team_id": "hull",
+      "team": "Hull City",
+      "dc_attack": -0.11258433839593489,
+      "dc_defence": 0.1619351559260482,
+      "xg_attack": -0.3492996906106753,
+      "xg_defence": -0.049166664358245765
+    },
+    {
+      "team_id": "ipswich",
+      "team": "Ipswich Town",
+      "dc_attack": 0.090534338313934,
+      "dc_defence": -0.33705761377512156,
+      "xg_attack": -0.030505393015073066,
+      "xg_defence": -0.2713054518354338
+    },
+    {
+      "team_id": "leeds",
+      "team": "Leeds United",
+      "dc_attack": -0.07654383317181002,
+      "dc_defence": 0.17329305032251194,
+      "xg_attack": -0.03616266989941274,
+      "xg_defence": 0.10708169627908161
+    },
+    {
+      "team_id": "liverpool",
+      "team": "Liverpool",
+      "dc_attack": 0.21459888211378456,
+      "dc_defence": 0.16295455553496496,
+      "xg_attack": 0.11340792571107577,
+      "xg_defence": 0.21222462153930993
+    },
+    {
+      "team_id": "man_city",
+      "team": "Manchester City",
+      "dc_attack": 0.40344159555225845,
+      "dc_defence": 0.3202067187513907,
+      "xg_attack": 0.32212988148752425,
+      "xg_defence": 0.12597993513368413
+    },
+    {
+      "team_id": "man_united",
+      "team": "Manchester United",
+      "dc_attack": 0.13534889060050528,
+      "dc_defence": 0.014652751697963212,
+      "xg_attack": 0.17336367147725082,
+      "xg_defence": -0.06141663890393302
+    },
+    {
+      "team_id": "newcastle",
+      "team": "Newcastle United",
+      "dc_attack": 0.09688968485206553,
+      "dc_defence": -0.07433335952940119,
+      "xg_attack": -0.0233715842812176,
+      "xg_defence": -0.18503745532755134
+    },
+    {
+      "team_id": "nottm_forest",
+      "team": "Nottingham Forest",
+      "dc_attack": -0.11115669781477404,
+      "dc_defence": 0.09460203860146445,
+      "xg_attack": 0.10229994913056922,
+      "xg_defence": 0.14497824718063063
+    },
+    {
+      "team_id": "sunderland",
+      "team": "Sunderland",
+      "dc_attack": -0.20863292906379377,
+      "dc_defence": -0.03791605880984663,
+      "xg_attack": 0.005351913803897826,
+      "xg_defence": -0.07219304953283102
+    },
+    {
+      "team_id": "tottenham",
+      "team": "Tottenham Hotspur",
+      "dc_attack": -0.04802044864713324,
+      "dc_defence": 0.004725213089709418,
+      "xg_attack": -0.09913084126970939,
+      "xg_defence": 0.23296435534140042
+    }
+  ]
+}
