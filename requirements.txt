@@ -2,3 +2,5 @@ pandas>=2.2
 numpy>=1.26
 tzdata>=2024.1
 pytest>=8.0
+scipy>=1.13
+certifi>=2024.2
