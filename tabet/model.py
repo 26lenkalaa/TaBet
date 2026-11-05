@@ -38,8 +38,9 @@ import pandas as pd
 from scipy.optimize import minimize
 from scipy.stats import poisson
 
-# Score grid 0..MAX_GOALS per side. 15 keeps the truncated tail below ~1e-4 even
-# for a rate of 5.4 goals (the largest seen after stage-2 adjustments).
+# Score grid 0..MAX_GOALS per side; every grid is renormalised to sum to 1. At the largest
+# adjusted rate seen (5.41) one side's tail beyond 15 goals is 1.7e-4; across the ledger
+# forecasts the largest omitted joint mass is 1.2e-5 (largest rate 4.32).
 MAX_GOALS = 15
 RHO_BOUND = 0.2
 

@@ -173,6 +173,7 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every
             "lineup_retrieved_utc": stamp, "raw_snapshots": raw_paths,
             "source_updated": {k: v for k, v in fc["source_updated"].items() if k.split(":")[1] in teams},
             "lineup_unresolved": {s: {t: n for t, n in d.items() if t in teams} for s, d in fc["lineup_unresolved"].items()},
+            "lineup_invalid": {s: {t: n for t, n in d.items() if t in teams} for s, d in fc.get("lineup_invalid", {}).items()},
             "availability": [a for a in fc["availability"] if a["team_id"] in teams and a["status"] != "a"],
         }
         records.append(rec)
@@ -264,6 +265,7 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
         for name, p in cands.items():
             prob = {"H": p["p_home"], "D": p["p_draw"], "A": p["p_away"]}[y]
             row = {"fpl_fixture": r["fpl_fixture"], "gameweek": r["gameweek"], "horizon_h": r["horizon_h"],
+                   "kickoff_utc": r["kickoff_utc"],
                    "logged_utc": r["logged_utc"], "candidate": name, "result": y, "log_loss": float(-np.log(prob)),
                    "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"], "superseded": superseded,
                    "pE_basis": pe_basis if name == "pE" else None,
@@ -309,6 +311,26 @@ def summarise(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.Da
     return pd.DataFrame(out).sort_values("log_loss")
 
 
+def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: float = HORIZON_H) -> dict:
+    """Amendment A3 reporting: the candidate - p0 mean with fallbacks included (primary), on complete
+    cases only (both sources valid), and with each gameweek left out in turn."""
+    s = scores[scores["horizon_h"] == primary_horizon]
+    if "superseded" in s:
+        s = s[~s["superseded"].astype(bool)]
+    ll = s.pivot_table(index="fpl_fixture", columns="candidate", values="log_loss")
+    if candidate not in ll or "p0" not in ll:
+        return {}
+    d = (ll[candidate] - ll["p0"]).dropna()
+    gw = s.drop_duplicates("fpl_fixture").set_index("fpl_fixture")["gameweek"].reindex(d.index)
+    out = {"n": int(len(d)), "mean_incl_fallbacks": float(d.mean())}
+    if "pE_basis" in s and candidate == "pE":
+        basis = s[s["candidate"] == "pE"].set_index("fpl_fixture")["pE_basis"].reindex(d.index)
+        cc = d[basis == "ffs+rotowire"]
+        out.update({"n_complete": int(len(cc)), "mean_complete_case": float(cc.mean()) if len(cc) else None})
+    out["leave_one_gameweek_out"] = {int(g): float(d[gw != g].mean()) for g in sorted(gw.unique())}
+    return out
+
+
 def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.DataFrame:
     """Pre-registered secondary analysis (amendment A2). For each lineup source:
     capture = 1 - mean((predicted XI feature - confirmed XI feature)^2) / var(confirmed feature),
@@ -335,12 +357,14 @@ def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> p
     return pd.DataFrame(out)
 
 
-def fit_alpha(scores: pd.DataFrame, through_gameweek: int) -> float:
+def fit_alpha(scores: pd.DataFrame, through_gameweek: int, known_before: pd.Timestamp | None = None) -> float:
     """alpha in [0, 1] minimising log-loss of (1-a) p0 + a pE on gameweeks <= through_gameweek.
     Fitted once (not walk-forward) at the end of the fitting period and frozen. Defaults to 0 when
     the fit is degenerate: fewer than ALPHA_MIN_FIXTURES fixtures, or a flat log-loss curve."""
     if "superseded" in scores:
         scores = scores[~scores["superseded"].astype(bool)]
+    if known_before is not None:  # amendment A3: only results known before the first evaluation cutoff
+        scores = scores[pd.to_datetime(scores["kickoff_utc"], utc=True) + RESULT_LAG <= known_before]
     s = scores[(scores["gameweek"] <= through_gameweek) & scores["candidate"].isin(["p0", "pE"])]
     w = s.pivot_table(index=["fpl_fixture", "result"], columns="candidate", values=["p_home", "p_draw", "p_away"]).dropna()
     if len(w) < ALPHA_MIN_FIXTURES:

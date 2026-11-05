@@ -153,6 +153,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     pos_now = dict(zip(fp["player_code"], fp["position"]))
     xis = {"fpl_proj": proj, "fpl_proj_hist": proj_hist}
     unresolved: dict[str, dict[str, int]] = {}
+    invalid: dict[str, dict[str, int]] = {}
     updated: dict[str, str] = {}
     for src in ("ffs", "rotowire"):
         if len(lineup_snap) and (lineup_snap["source"] == src).any():
@@ -161,7 +162,15 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
             if "source_updated" in allx:
                 updated.update({f"{src}:{t}": u for t, u in allx.groupby("team_id")["source_updated"].first().items()
                                 if isinstance(u, str)})
-            x = allx.dropna(subset=["player_code"]).copy()
+            # amendment A3: a source's XI for a team is valid only with 11 listed players and no
+            # duplicated resolved player; otherwise that source counts as missing for the team
+            listed = allx.groupby("team_id").size()
+            dup = allx.dropna(subset=["player_code"]).duplicated(["team_id", "player_code"])
+            dup_teams = set(allx.dropna(subset=["player_code"]).loc[dup, "team_id"])
+            bad = set(listed[listed != 11].index) | dup_teams
+            if bad:
+                invalid[src] = {t: int(listed.get(t, 0)) for t in sorted(bad)}
+            x = allx[~allx["team_id"].isin(bad)].dropna(subset=["player_code"]).copy()
             x["player_code"] = x["player_code"].astype(int)
             x["position"] = x["player_code"].map(pos_now).fillna(x["position"])
             xis[src] = x[["team_id", "player_code", "position"]]
@@ -247,7 +256,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         "fixtures": preds, "ratings": ratings, "absences": absences,
         "xi_stage2": {"cols": ADJ + XI, "coef": [float(v) for v in bx], "mean": [float(v) for v in mux],
                       "sd": [float(v) for v in sdx], "l2": STAGE2_L2_XI},
-        "lineup_unresolved": unresolved, "source_updated": updated,
+        "lineup_unresolved": unresolved, "lineup_invalid": invalid, "source_updated": updated,
         "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "chance_this", "chance", "chance_field", "news"]]
                          .to_dict("records"),
         "lineup_sources": {"retrieved_utc": (lineup_snap["retrieved_utc"].iloc[0] if len(lineup_snap) else None),

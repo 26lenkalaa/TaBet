@@ -86,3 +86,24 @@ def test_superseded_records_are_left_out_of_the_summary():
     s.loc[s.fpl_fixture < 5, "superseded"] = True
     t = summarise(s).set_index("candidate")
     assert t.loc["p0", "n"] == 45
+
+
+def test_alpha_ignores_fitting_fixtures_played_after_the_evaluation_cutoff():
+    s = _scores()
+    s["kickoff_utc"] = pd.Timestamp("2026-12-01", tz="UTC") + pd.to_timedelta(s["fpl_fixture"], unit="h")
+    late = s["fpl_fixture"] >= 150  # pretend these GW10-19 fixtures were postponed past the cutoff
+    s.loc[late, "kickoff_utc"] = pd.Timestamp("2027-03-01", tz="UTC")
+    cut = pd.Timestamp("2027-01-15", tz="UTC")
+    a = fit_alpha(s, through_gameweek=19, known_before=cut)
+    s2 = s.copy()
+    s2.loc[late, "result"] = "D"
+    assert fit_alpha(s2, through_gameweek=19, known_before=cut) == a
+
+
+def test_robustness_reports_complete_case_and_leave_one_gameweek_out():
+    from tabet.prospective import robustness
+    s = _scores(n=80).assign(superseded=False)
+    s["pE_basis"] = np.where(s["candidate"] == "pE", np.where(s["fpl_fixture"] % 4 == 0, "p0", "ffs+rotowire"), None)
+    r = robustness(s)
+    assert r["n"] == 80 and r["n_complete"] == 60
+    assert set(r["leave_one_gameweek_out"]) == set(s["gameweek"].unique())

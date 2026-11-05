@@ -157,7 +157,9 @@ not strong evidence of systematic under-prediction. On dev: 169 observed vs 167.
   are not known. Assumption: they were available by the next matchday's cutoff.
 - **Score distribution after stage 2.** The smallest Dixon-Coles correction factor across all
   adjusted predictions is 0.575 (> 0). The score grid is 0–15 goals per side; the largest
-  adjusted rate is 5.41, whose tail beyond 15 goals is below 1e-4.
+  adjusted rate is 5.41, whose one-side tail beyond 15 goals is 1.7e-4 *(corrected: earlier
+  stated as below 1e-4)*. Every grid is renormalised to sum to 1, and across the 3,220 ledger
+  forecasts the largest omitted joint mass is 1.2e-5.
 - **Stricter offset audit.** For every one of the 489 Dixon-Coles fits, the latest result in its
   training set was known at least 13.5 h before that fit's cutoff. Stage-2 training rows are
   filtered by the same rule (kickoff + 2h30m ≤ cutoff) and checked.

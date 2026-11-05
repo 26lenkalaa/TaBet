@@ -162,3 +162,29 @@ amendment `results/prospective/log.jsonl` was empty.
   first scheduled run came at 21:06 UTC, after the window. Under the logging rule it is not backfilled.
   A fixture missing entirely does not bias any within-record contrast. Amendment A2 and the
   re-registered schedule (:23 past each hour) reached `main` at 22:10 UTC.
+
+## Amendment A3 (2026-11-05, before any record was logged)
+
+From a further external review. `results/prospective/log.jsonl` was still empty.
+
+1. **Valid source XI.** A source's lineup for a team is used only if it lists exactly 11 players and no
+   resolved FPL player appears twice. Otherwise that source counts as missing for that team, and the
+   A2 fallbacks apply (pE = the other valid source, or p0). Invalid lineups are recorded per record
+   (`lineup_invalid`). Every Scout and RotoWire snapshot so far lists 11 per team with no duplicates.
+2. **Eligibility details, made explicit.** A chance of exactly 50 is kept (the rule is < 50). A null
+   chance counts as 0 only for a non-"a" status, as in A2. FPL leaves the chance empty for many
+   injured, suspended and departed players, so "unknown" would keep players FPL has already ruled
+   out. Club eligibility is separate: a player counts for a team only if FPL lists him at that club
+   at the cutoff (projections), and scraped names are matched only within the team's FPL squad.
+3. **What α may see.** α is fitted on gameweek 10–19 records whose results were known (kickoff +
+   2 h 30 min) before the first gameweek-20 cutoff. A postponed fitting-period fixture played later
+   is excluded from the fit and is not scored in the evaluation period either.
+4. **What the cutoff means.** Each record's cutoff is its logged time. Every input (results,
+   ratings, FPL availability, both lineup pages) is fetched in that run, so there is no separate
+   assembly step and no input is older than the run itself. Each source's own "last updated" text
+   is kept where it shows one.
+5. **Reporting.** The primary contrast includes fallback fixtures, so it measures the forecast a
+   user would actually get. Alongside it: source coverage, the fallback rate, the complete-case
+   contrast (both sources valid), and the contrast with each gameweek left out in turn. With 14-day
+   blocks the evaluation window holds only about five blocks, so no source "winner" is declared
+   unless the interval clearly separates them.
