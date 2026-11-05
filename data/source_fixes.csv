@@ -1,3 +1,0 @@
-match_id,field,action,reason
-2021-22-20210815-newcastle-west_ham,away_shots,set_null,"Source lists AS=8 < AST=9; unknown which is wrong, so both are nulled"
-2021-22-20210815-newcastle-west_ham,away_shots_on_target,set_null,"Source lists AS=8 < AST=9; unknown which is wrong, so both are nulled"
