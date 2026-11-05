@@ -26,7 +26,7 @@ from .store import RESULT_LAG, MatchStore
 from .teams import TEAMS, try_resolve_team
 from .xg_strength import add_xg_strength, fit_xg_strength, side_xg
 from .features import FeatureParams, known, match_features
-from .lineup_sources import fpl_players_now, project_xi, snapshot
+from .lineup_sources import availability_field, fpl_players_now, project_xi, snapshot, unavailable_codes
 
 ROOT = Path(__file__).resolve().parent.parent
 XG_HALF_LIFE = 90.0  # chosen on dev (results/xg_strength)
@@ -141,9 +141,13 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     else:  # the lineup sites only publish each team's next match
         nxt = fx[fx["gameweek"] == fx["gameweek"].min()].assign(match_id=lambda d: d["fpl_fixture"].astype(str))
     hist = known(app, cutoff)
-    unavailable = set(fp.loc[(fp["status"] != "a") & (fp["chance_next"].fillna(100) < 50), "player_code"])
     teams_next = sorted(set(nxt["home_id"]) | set(nxt["away_id"]))
     owner = dict(zip(fp["player_code"], fp["team_id"]))
+    # availability is read from the field that refers to each fixture's own gameweek (amendment A2)
+    team_field = {t: availability_field(boot, f.gameweek, cutoff) for f in nxt.itertuples() for t in (f.home_id, f.away_id)}
+    fp["chance"] = [r[team_field.get(r["team_id"], "chance_next")] for _, r in fp.iterrows()]
+    fp["chance_field"] = fp["team_id"].map(team_field).fillna("chance_next")
+    unavailable = unavailable_codes(fp, "chance")
     proj = project_xi(hist, cutoff, teams_next, unavailable=unavailable, current_team=owner)
     proj_hist = project_xi(hist, cutoff, teams_next, current_team=owner)  # same rule, no availability filter
     pos_now = dict(zip(fp["player_code"], fp["position"]))
@@ -201,7 +205,8 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         if "ffs" in lu and "rotowire" in lu:
             d["agreement"] = {s: len(set(lu["ffs"][s]) & set(lu["rotowire"][s])) for s in ("home", "away")}
     flagged = fp[fp["player_code"].isin(unavailable) & fp["player_code"].isin(proj_usual_codes(hist, cutoff))]
-    absences = [{"team_id": r.team_id, "player": r.web_name, "news": r.news, "chance_next": r.chance_next}
+    absences = [{"team_id": r.team_id, "player": r.web_name, "news": r.news, "chance_next": r.chance_next,
+                 "chance": r.chance}
                 for r in flagged.itertuples()]
 
     preds = []
@@ -243,7 +248,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         "xi_stage2": {"cols": ADJ + XI, "coef": [float(v) for v in bx], "mean": [float(v) for v in mux],
                       "sd": [float(v) for v in sdx], "l2": STAGE2_L2_XI},
         "lineup_unresolved": unresolved, "source_updated": updated,
-        "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "news"]]
+        "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "chance_this", "chance", "chance_field", "news"]]
                          .to_dict("records"),
         "lineup_sources": {"retrieved_utc": (lineup_snap["retrieved_utc"].iloc[0] if len(lineup_snap) else None),
                            "available": sorted(xis)},

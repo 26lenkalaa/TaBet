@@ -102,12 +102,18 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
-    from .prospective import score, summarise
+    from .prospective import decomposition, score, summarise
     s = score()
     if s.empty:
         print("nothing to score yet")
         return 0
     print(summarise(s, args.horizon).round(4).to_string(index=False))
+    if "superseded" in s:
+        print(f"superseded records (kickoff moved after logging): {s.loc[s.superseded, 'fpl_fixture'].nunique()}")
+    d = decomposition(s, args.horizon)
+    if len(d):
+        print("\nXI-feature decomposition (secondary, amendment A2):")
+        print(d.round(4).to_string(index=False))
     return 0
 
 
@@ -168,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     f.add_argument("--no-lineups", action="store_true")
     f.set_defaults(func=cmd_forecast)
 
-    lg = sub.add_parser("log-forecasts", help="log forecasts for fixtures due at the fixed horizon (run every 2h)")
+    lg = sub.add_parser("log-forecasts", help="log forecasts for fixtures due at the fixed horizon (run hourly)")
     lg.add_argument("--horizon", type=float, default=24.0, help="hours before kickoff")
     lg.add_argument("--every", type=float, default=2.0, help="hours between scheduled runs")
     lg.add_argument("--dry-run", action="store_true")

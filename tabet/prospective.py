@@ -1,10 +1,14 @@
 """Prospective forecast log and scoring (docs/PROSPECTIVE_PROTOCOL.md).
 
-log_due():  run every 2 hours. Each fixture is logged once, by the last run at
-            or before kickoff - HORIZON (24 h): the results file is refreshed,
-            forecasts are made at that moment, and one JSON record per fixture
-            is appended to results/prospective/log.jsonl. Raw lineup pages are
-            kept gzipped next to it; nothing is ever overwritten.
+log_due():  run hourly. Each fixture is logged once per kickoff time, by the
+            first run that finds it 24-26 h before kickoff: the results file is
+            refreshed, forecasts are made at that moment, and one JSON record per
+            fixture is appended to results/prospective/log.jsonl. A fixture whose
+            kickoff moves after it was logged is logged again against the new
+            kickoff; scoring uses only the record whose kickoff matches the one
+            played (amendment A2). Raw lineup pages are kept gzipped next to it;
+            nothing is ever overwritten. Each run also keeps one daily snapshot
+            of live FPL xG for recent gameweeks, to measure later revisions.
 score():    after matches are played, joins the confirmed XI and result (FPL
             live data) to every logged forecast and writes per-candidate scores.
 fit_alpha(): the one-parameter shrinkage p = (1-a) p0 + a pE, fitted on earlier
@@ -33,7 +37,7 @@ import pandas as pd
 from .experiments import _probs
 from .features import FeatureParams, known, match_features
 from .forecast import ARCHIVE_SEASONS, LIVE_SEASON, forecast, upcoming_fixtures
-from .fpl import _ssl_context, fetch_live_season, load_appearances
+from .fpl import API, RAW_DIR, _get, _ssl_context, fetch_live_season, load_appearances
 from .ingest import load_all
 from .store import RESULT_LAG, MatchStore
 from .teams import try_resolve_team
@@ -47,6 +51,12 @@ RUN_EVERY_H = 2.0
 RESULTS_URL = "https://football-data.co.uk/mmz4281/2627/E0.csv"
 RESULTS_FILE = ROOT / "res" / "Premier League 26-27.csv"
 CANDIDATES = ("p0", "ffs", "rotowire", "pE", "fpl_proj", "fpl_proj_hist")
+XG_SNAP_DIR = LOG_DIR / "xg_snapshots"
+ALPHA_MIN_FIXTURES = 20  # fewer fitting fixtures than this: alpha defaults to 0 (amendment A2)
+
+
+def _ko(x) -> str:
+    return pd.Timestamp(x).tz_convert("UTC").isoformat()
 
 
 def refresh_results() -> bool:
@@ -72,10 +82,37 @@ def refresh_results() -> bool:
     return True
 
 
-def _logged() -> set[tuple[int, float]]:
+def _logged() -> set[tuple[int, float, str]]:
+    """(fixture, horizon, kickoff) already logged: a moved kickoff is a new key."""
     if not LOG.exists():
         return set()
-    return {(r["fpl_fixture"], r["horizon_h"]) for r in map(json.loads, LOG.read_text().splitlines())}
+    return {(r["fpl_fixture"], r["horizon_h"], _ko(r["kickoff_utc"])) for r in map(json.loads, LOG.read_text().splitlines())}
+
+
+def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
+    """Once per UTC day, re-download the live data of the most recent finished
+    gameweeks and keep player xG/xA/xGC as published at that moment."""
+    dest = XG_SNAP_DIR / f"{now:%Y-%m-%d}.csv.gz"
+    if dest.exists():
+        return None
+    tmp = RAW_DIR / "xg_snapshots"
+    boot = json.loads(_get(f"{API}/bootstrap-static/", tmp / "bootstrap.json", refresh=True).read_text())
+    code = {e["id"]: e["code"] for e in boot["elements"]}
+    rows = []
+    for ev in [e for e in boot["events"] if e["finished"]][-n_recent:]:
+        live = json.loads(_get(f"{API}/event/{ev['id']}/live/", tmp / f"gw{ev['id']:02d}.json", refresh=True).read_text())
+        for e in live["elements"]:
+            s = e["stats"]
+            if not s["minutes"]:
+                continue
+            rows.append({"gameweek": ev["id"], "player_code": code.get(e["id"]), "element": e["id"],
+                         "fixtures": ";".join(str(x["fixture"]) for x in e["explain"]), "minutes": s["minutes"],
+                         "expected_goals": s["expected_goals"], "expected_assists": s["expected_assists"],
+                         "expected_goals_conceded": s["expected_goals_conceded"], "goals_scored": s["goals_scored"],
+                         "assists": s["assists"]})
+    XG_SNAP_DIR.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).assign(retrieved_utc=now.isoformat()).to_csv(dest, index=False, compression="gzip")
+    return dest
 
 
 def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, every_h: float = RUN_EVERY_H) -> pd.DataFrame:
@@ -85,12 +122,17 @@ def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, every_h: float
     lo, hi = now + pd.Timedelta(hours=horizon_h), now + pd.Timedelta(hours=horizon_h + every_h)
     due = fx[(fx["kickoff_utc"] >= lo) & (fx["kickoff_utc"] < hi)]
     done = _logged()
-    return due[[(int(i), horizon_h) not in done for i in due["fpl_fixture"]]]
+    return due[[(int(i), horizon_h, _ko(k)) not in done for i, k in zip(due["fpl_fixture"], due["kickoff_utc"])]]
 
 
 def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every_h: float = RUN_EVERY_H,
             dry_run: bool = False) -> list[dict]:
     now = (now or pd.Timestamp.now(tz="UTC")).floor("min")
+    if not dry_run:
+        try:  # a failed snapshot must never stop forecast logging
+            snapshot_live_xg(now)
+        except Exception as e:
+            print(f"xG snapshot failed ({e})")
     due = due_fixtures(now, horizon_h, every_h)
     if due.empty or dry_run:
         return due.to_dict("records") if dry_run else []
@@ -125,6 +167,7 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every
             "git_commit": fc["git_commit"], "code_dirty": dirty, "results_through": fc["results_through"],
             "results_refreshed": results_refreshed, "n_train_matches": fc["n_train_matches"],
             "candidates": cands, "missing_candidates": [c for c in CANDIDATES if c not in cands],
+            "pE_sources": w.get("source_average_of", []),
             "lineup_codes": w.get("lineup_codes", {}), "xi_features": w.get("xi_features", {}),
             "components": f["components"], "xi_stage2": fc["xi_stage2"],
             "lineup_retrieved_utc": stamp, "raw_snapshots": raw_paths,
@@ -187,6 +230,7 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
     refresh_results()  # played matches must be in the match table before appearances can join
     xi, res = _actual()
     pending = [r for r in recs if r["fpl_fixture"] in res and r["fpl_fixture"] in xi]
+    played_ko = _played_kickoffs()
     if not pending:
         return pd.DataFrame()
     matches, _ = load_all(ROOT / "res")
@@ -213,17 +257,24 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
         pc = _probs(np.array([lh]), np.array([la]), np.array([r["components"]["rho"]]))[0]
         cands = dict(r["candidates"])
         cands["controlled_confirmed_xi"] = {"p_home": pc[0], "p_draw": pc[1], "p_away": pc[2]}
+        pe_basis = "+".join(r.get("pE_sources") or [s for s in ("ffs", "rotowire") if s in cands])
+        if "pE" not in cands:  # neither source had both XIs: pE falls back to p0 (amendment A2)
+            cands["pE"], pe_basis = dict(cands["p0"]), "p0"
+        superseded = _ko(r["kickoff_utc"]) != played_ko.get(r["fpl_fixture"], _ko(r["kickoff_utc"]))
         for name, p in cands.items():
             prob = {"H": p["p_home"], "D": p["p_draw"], "A": p["p_away"]}[y]
             row = {"fpl_fixture": r["fpl_fixture"], "gameweek": r["gameweek"], "horizon_h": r["horizon_h"],
                    "logged_utc": r["logged_utc"], "candidate": name, "result": y, "log_loss": float(-np.log(prob)),
-                   "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"]}
+                   "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"], "superseded": superseded,
+                   "pE_basis": pe_basis if name == "pE" else None,
+                   "conf_feat_home": act_feat["home"]["f_xi_position"], "conf_feat_away": act_feat["away"]["f_xi_position"]}
             codes = r["lineup_codes"].get(name)
             if codes:
                 row["starters_correct"] = sum(len(set(codes[s]) & set(actual[s])) for s in ("home", "away")) / 2
                 pf = r["xi_features"][name]
                 row["xi_feature_abs_error"] = float(np.mean([abs(pf[sd]["f_xi_position"] - act_feat[s]["f_xi_position"])
                                                             for s, sd in (("home", "H"), ("away", "A"))]))
+                row["pred_feat_home"], row["pred_feat_away"] = pf["H"]["f_xi_position"], pf["A"]["f_xi_position"]
                 row["unresolved_names"] = sum(r["lineup_unresolved"].get(name, {}).values())
             rows.append(row)
     df = pd.DataFrame(rows)
@@ -232,10 +283,19 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
     return df
 
 
+def _played_kickoffs(season: str = LIVE_SEASON) -> dict[int, str]:
+    d = fetch_live_season(season, refresh=False)
+    return {x["id"]: _ko(x["kickoff_time"]) for x in json.loads((d / "fixtures.json").read_text())
+            if x["finished"] and x["kickoff_time"]}
+
+
 def summarise(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.DataFrame:
     """Per candidate: coverage, lineup accuracy, feature error, and log-loss vs p0
-    on the fixtures both have (each fixture counted once)."""
+    on the fixtures both have (each fixture counted once; superseded records
+    from moved kickoffs are excluded and counted separately)."""
     s = scores[scores["horizon_h"] == primary_horizon]
+    if "superseded" in s:
+        s = s[~s["superseded"].astype(bool)]
     base = s[s["candidate"] == "p0"].set_index("fpl_fixture")["log_loss"]
     out = []
     for c, g in s.groupby("candidate"):
@@ -244,20 +304,53 @@ def summarise(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.Da
         out.append({"candidate": c, "n": len(g), "log_loss": g["log_loss"].mean(), "minus_p0": d.mean(),
                     "se": d.std(ddof=1) / np.sqrt(len(d)) if len(d) > 1 else np.nan,
                     "starters_correct_of_11": g["starters_correct"].mean() if "starters_correct" in g else np.nan,
-                    "xi_feature_abs_error": g["xi_feature_abs_error"].mean() if "xi_feature_abs_error" in g else np.nan})
+                    "xi_feature_abs_error": g["xi_feature_abs_error"].mean() if "xi_feature_abs_error" in g else np.nan,
+                    "pE_fallback_rate": (g["pE_basis"] == "p0").mean() if c == "pE" and "pE_basis" in g else np.nan})
     return pd.DataFrame(out).sort_values("log_loss")
 
 
+def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.DataFrame:
+    """Pre-registered secondary analysis (amendment A2). For each lineup source:
+    capture = 1 - mean((predicted XI feature - confirmed XI feature)^2) / var(confirmed feature),
+    over team-matches; confirmed_gain = controlled_confirmed_xi - p0 log-loss on the same fixtures;
+    implied_gain = capture * confirmed_gain, compared with the observed source - p0 gain.
+    The feature error is measured per team-match, so it is far less noisy than log-loss."""
+    s = scores[scores["horizon_h"] == primary_horizon]
+    if "superseded" in s:
+        s = s[~s["superseded"].astype(bool)]
+    ll = s.pivot_table(index="fpl_fixture", columns="candidate", values="log_loss")
+    out = []
+    for src in ("ffs", "rotowire", "fpl_proj", "fpl_proj_hist"):
+        g = s[(s["candidate"] == src) & s["pred_feat_home"].notna()] if "pred_feat_home" in s else s.iloc[0:0]
+        if g.empty or "controlled_confirmed_xi" not in ll:
+            continue
+        pred = np.r_[g["pred_feat_home"], g["pred_feat_away"]].astype(float)
+        conf = np.r_[g["conf_feat_home"], g["conf_feat_away"]].astype(float)
+        cap = 1 - np.mean((pred - conf) ** 2) / np.var(conf, ddof=1) if len(conf) > 2 else np.nan
+        f = g["fpl_fixture"]
+        conf_gain = (ll.loc[f, "controlled_confirmed_xi"] - ll.loc[f, "p0"]).mean()
+        obs = (ll.loc[f, src] - ll.loc[f, "p0"]).mean()
+        out.append({"source": src, "n_fixtures": len(g), "feature_capture": cap, "feature_mae": np.mean(np.abs(pred - conf)),
+                    "confirmed_gain": conf_gain, "implied_gain": cap * conf_gain, "observed_gain": obs})
+    return pd.DataFrame(out)
+
+
 def fit_alpha(scores: pd.DataFrame, through_gameweek: int) -> float:
-    """alpha in [0, 1] minimising log-loss of (1-a) p0 + a pE on gameweeks <= through_gameweek."""
+    """alpha in [0, 1] minimising log-loss of (1-a) p0 + a pE on gameweeks <= through_gameweek.
+    Fitted once (not walk-forward) at the end of the fitting period and frozen. Defaults to 0 when
+    the fit is degenerate: fewer than ALPHA_MIN_FIXTURES fixtures, or a flat log-loss curve."""
+    if "superseded" in scores:
+        scores = scores[~scores["superseded"].astype(bool)]
     s = scores[(scores["gameweek"] <= through_gameweek) & scores["candidate"].isin(["p0", "pE"])]
     w = s.pivot_table(index=["fpl_fixture", "result"], columns="candidate", values=["p_home", "p_draw", "p_away"]).dropna()
-    if w.empty:
+    if len(w) < ALPHA_MIN_FIXTURES:
         return 0.0
     y = w.index.get_level_values("result")
     col = {"H": "p_home", "D": "p_draw", "A": "p_away"}
     p0 = np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)])
     pe = np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)])
     grid = np.linspace(0, 1, 101)
-    ll = [-np.log((1 - a) * p0 + a * pe).mean() for a in grid]
+    ll = np.array([-np.log((1 - a) * p0 + a * pe).mean() for a in grid])
+    if np.ptp(ll) < 1e-12:
+        return 0.0
     return float(grid[int(np.argmin(ll))])
