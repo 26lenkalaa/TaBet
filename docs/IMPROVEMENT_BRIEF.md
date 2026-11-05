@@ -590,6 +590,24 @@ The six largest disagreements in each direction were all already present in the 
 (xG and XI layers moved them by ≤ 4 points), and most involve a promoted or returning team early in
 its season. Script: `prototypes/run_market_comparison.py`.
 
+### 5.20a Results-only Elo blend (F14; pre-registered, addendum E)
+
+Elo with a goal-difference multiplier, home edge 65, newcomers starting at the leavers' mean, and an
+ordered-logit outcome mapping refitted every matchday. K chosen on dev from {10, 20, 30} (30, the
+largest, in both data sets), then one linear blend weight on dev.
+
+| Contrast (log-loss) | Result |
+|---|---|
+| **primary** blend(DC, Elo) − DC, clean 2018-21 (n 1,140; weight on DC 0.79) | **−0.0009 (SE 0.0010) [−0.0030, +0.0009]: not confirmed** |
+| Elo alone − DC, clean 2018-21 | +0.0060 [−0.0038, +0.0148] |
+| blend(V0, Elo) − V0 (weight 0.34): 2022-24 dev / 2024-26 / 2026-27 | −0.0065 / **+0.0020** / −0.0039 |
+| blend(V1x, Elo) − V1x (weight 0.40): 2022-24 dev / 2024-26 / 2026-27 | −0.0054 / **+0.0035** / −0.0039 |
+
+Not kept. Elo alone is worse than Dixon-Coles; the blend's small clean-data gain is inside noise.
+On recent data the dev gain does not carry over to 2024-26, consistent with Elo mostly helping when
+Dixon-Coles has only one season of history (2022-23). K at the grid edge is noted but would not
+change the conclusion, since Elo alone already trails Dixon-Coles.
+
 ### 5.20 Open problem: newly promoted teams
 
 **What we know (documented):**
@@ -682,7 +700,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F11 | **Referee:** shrunk per-referee fouls, cards and penalty rates | stage-2 feature on total goals / draws | football-data `Referee` [have] | none (expected to be null) |
 | F12 | **Weather:** rain, wind and temperature at kickoff | stage-2 feature on total goals | Open-Meteo historical [free]; live must use the *forecast*, not the observed value | V1x |
 | F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
-| F14 | **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
+| F14 | **[done, §5.20a: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
 | F15 | **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything
