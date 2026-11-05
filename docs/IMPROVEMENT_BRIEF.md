@@ -2,9 +2,10 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-05 (evening), before gameweek 10. Since the last review: the third review's
-> items are done (§5.14–5.18), a market comparison (§5.19) and **an open problem with newly
-> promoted teams (§5.20), which is what I want help with this time (§8).**
+> Last updated 2026-11-05 (late), before gameweek 10. Since the last review: every experiment you
+> suggested has been run (§5.14–5.18, §5.20), the protocol was amended twice before any record was
+> logged (§5.10), and a market comparison was added (§5.19). **The one question this time is newly
+> promoted teams (§5.21, asked in §8).**
 
 ## 1. What the project is
 
@@ -78,10 +79,17 @@ rate as the offset. Kept features:
   position prior, divided by the team's usual XI strength, plus the opponent's back-line
   regularity. Needs a lineup.
 
-Tested and not kept (no gain over a simpler alternative on identical fixtures): similar-player
-priors, team-style main effects and interactions, lineup departures by role, continuity-only
-lineup features, faster-adapting league scoring and home advantage, a multinomial outcome-level
-second stage, and temperature/draw calibration.
+Tested and not kept (no gain over a simpler alternative on identical fixtures):
+- **Player and lineup ideas:** similar-player priors, lineup departures by role, continuity-only
+  lineup features, a history-only projected XI (§5.8), and transfer priors for new signings (§5.17).
+- **Team-level ideas:** team-style main effects and interactions, recent match-stat profiles
+  (§5.13), pooling four more leagues (§5.11), and a promoted-team prior from Championship data
+  (§5.15).
+- **Model-form ideas:** faster-adapting league scoring and home advantage, a multinomial
+  outcome-level second stage, temperature/draw calibration, dynamic score-driven ratings (§5.18),
+  a results-only Elo blend (§5.20), and shorter half-lives for team ratings and xG.
+
+The score grid runs 0–15 goals per side and is renormalised to sum to 1.
 
 **Two operating modes:**
 1. **Before team news:** V1x, which needs no lineup.
@@ -318,30 +326,43 @@ score:
 A dashboard shows V1x forecasts for the next four gameweeks, plus V2x forecasts for the next
 gameweek under each lineup source and their average.
 
-### 5.10 Prospective protocol for predicted lineups (from your last review)
+### 5.10 Prospective protocol for predicted lineups
 
-Written before gameweek 10 and summarised here.
+Written before gameweek 10 and amended twice (A2, A3) before any record was logged.
+Full text: `docs/PROSPECTIVE_PROTOCOL.md`.
 
-- **Horizon:** a fixed forecast time of kickoff − 24 h, logged once per fixture by a run every
-  2 hours.
+- **Horizon and logging:**
+  - An hourly GitHub Action logs each fixture once, at the first run 24–26 h before kickoff.
+  - A record is keyed by fixture and kickoff. A moved kickoff is logged again, and only the
+    record matching the kickoff actually played is scored.
+  - Every input is fetched in that run, so the record's cutoff is its logged time.
 - **Each record stores:**
-  - every candidate's probability vector: p0 = V1x; V2x with the Scout XI, the RotoWire XI, and
-    their probability average pE; V2x with our FPL projection with and without the availability
-    filter
-  - lineups as player codes, unresolved names, and each source's own "last updated" text
+  - every candidate's probabilities: p0 = V1x; V2x with the Scout XI, the RotoWire XI and their
+    average pE; V2x with our FPL projection with and without the availability filter
+  - lineups as player codes, unresolved and invalid lineups, and each source's "last updated" text
   - FPL availability flags
-  - the exact inputs to rebuild every candidate (checked: reconstruction difference 0)
-  - git commit and training cutoff
-- **Raw pages** are kept gzipped and the log is append-only.
-- **Fitting:** gameweeks 10–19 fit a single shrinkage α for pα = (1−α)·p0 + α·pE. α is fitted on
-  earlier logged matches only, then frozen.
-- **Evaluation:** gameweeks 20–29. Primary: pα − p0. Secondary: pE − p0, pα − pE,
-  fpl_proj − fpl_proj_hist, and each source − p0. Each uses its own paired variance, counts each
-  fixture once, and reports 14-day block CIs.
-- **Diagnostics:** correct starters, XI-feature error against the confirmed XI, and a *controlled*
-  comparison (same frozen early model with the confirmed XI substituted), reported separately
-  from any operational confirmed-lineup forecast.
-- **Frozen "unavailable" rule:** FPL status not "a" and chance of playing < 50.
+  - the exact inputs to rebuild every candidate (reconstruction difference 0)
+  - git commit and cutoff
+- **Availability rule:** FPL status not "a" and chance of playing < 50. The chance is read for
+  **the fixture's own gameweek**, because FPL's "next round" field moves on at each deadline. A
+  missing chance counts as 0 for a non-"a" status, and a player counts only for his current FPL
+  club.
+- **Valid sources and fallbacks:**
+  - A scraped XI counts only with exactly 11 players and no duplicates.
+  - pE is the single valid source if only one is valid, and p0 if neither is.
+  - The primary analysis includes fallback fixtures; complete cases are reported separately.
+- **Fitting:** α for pα = (1−α)·p0 + α·pE is fitted once, on gameweek 10–19 results known before
+  the first gameweek-20 cutoff. It is constrained to [0, 1], set to 0 if the fit is degenerate,
+  then frozen.
+- **Evaluation:**
+  - Gameweeks 20–29 are a descriptive read. The confirmatory read is gameweeks 20–38, about
+    190 fixtures. Primary: pα − p0, with 14-day block CIs.
+  - Secondary: pE − p0, pα − pE, fpl_proj − fpl_proj_hist, each source − p0, and a pre-registered
+    decomposition (implied gain = XI-feature capture × confirmed-XI gain).
+  - Robustness: each gameweek left out in turn.
+- **Status:** the first fixture (Everton v Coventry) was missed, because the scheduler first fired
+  after its window. It is not backfilled. The first logged record will be Leeds v Spurs. Live FPL
+  xG is snapshotted daily to measure revisions.
 
 ### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
 
@@ -590,7 +611,7 @@ The six largest disagreements in each direction were all already present in the 
 (xG and XI layers moved them by ≤ 4 points), and most involve a promoted or returning team early in
 its season. Script: `prototypes/run_market_comparison.py`.
 
-### 5.20a Results-only Elo blend (F14; pre-registered, addendum E)
+### 5.20 Results-only Elo blend (F14; pre-registered, addendum E)
 
 Elo with a goal-difference multiplier, home edge 65, newcomers starting at the leavers' mean, and an
 ordered-logit outcome mapping refitted every matchday. K chosen on dev from {10, 20, 30} (30, the
@@ -608,7 +629,7 @@ On recent data the dev gain does not carry over to 2024-26, consistent with Elo 
 Dixon-Coles has only one season of history (2022-23). K at the grid edge is noted but would not
 change the conclusion, since Elo alone already trails Dixon-Coles.
 
-### 5.20 Open problem: newly promoted teams
+### 5.21 Open problem: newly promoted teams
 
 **What we know (documented):**
 - **Where we lose to the market.** With a promoted side in its first 10 PL matches, TaBet disagrees
@@ -653,26 +674,28 @@ cannot hide a loss elsewhere.
    the model-vs-market variance. For XI strength vs xG form (paired SD 0.047), 80% power at a
    two-sided 5% level needs roughly 693 / 1,082 / 1,924 matches for true gains of 0.005 / 0.004 /
    0.003 (assuming independence, stable variance and one pre-specified comparison).
-   Plans:
-   - add 2016-17 → 2020-21 for features that existed then (ICT, minutes, no xG), reported
-     separately from xG-era results
-   - keep few primary hypotheses
-   - accumulate prospective forecasts
-   - always report block-bootstrap intervals
+   Done since: 2015-21 results and 2016-21 FPL players were added as a clean replication set
+   (§5.16, §5.18, §5.20). The paired SD there was lower (0.026), so 1,140 matches gave an SE of
+   about 0.0008. Still planned: few primary hypotheses, prospective forecasts, block-bootstrap
+   intervals.
 
    Extra leagues help estimate shared coefficients but are not more Premier League evidence.
    Goal deviance is a diagnostic, not extra independent matches.
 2. **Player defence.** We have no good per-player defensive rating; FPL xG-conceded is a team
    quantity while on the pitch. FPL defensive actions exist only from 2025-26. The Hugging Face
    archive has per-player tackles, interceptions and duels for 2021-25, but nothing live.
-3. **Lineups before team news.** Being handled by the protocol in §5.10. It will produce
-   evidence from gameweek 20 onward. Until then V1x stays the default early forecast.
+3. **Lineups before team news.** Being handled by the protocol in §5.10, with a descriptive read
+   after gameweek 29 and a confirmatory one after gameweek 38. Until then V1x stays the default
+   early forecast.
 4. **XI gain: development and test seasons disagree.** *(Update: §5.14 and §5.16 suggest a small
    average effect concentrated in high-deviation lineups; the original question follows.)* The gain is null on 2022-24 (where stage 2
    is active for only 457 of 760 matches) and about −0.004 on 2024-26 and 2026-27. Is there a
    principled way to tell a real regime difference from noise, beyond the pre-registered test?
-5. **Cross-league player priors.** Solved for history by §5.12; for 2026-27 arrivals we only have
-   the season-level Top-5 CSV (no declared licence, merged from sites that block us).
+5. **Cross-league player priors.** They predict a signing's output well (§5.12) but do not change
+   match forecasts (§5.17), so live coverage for 2026-27 arrivals is no longer a priority.
+8. **The market gap.** TaBet trails the market by 0.014–0.019 log-loss on 2022-26 (§5.19). The
+   largest disagreements come from the team ratings, not the lineup layer, and cluster around
+   promoted and returning teams early in the season (§5.21).
 6. **Draw modelling.** Calibration found no reliable draw shift (δ interval includes 0). Is a
    single diagonal-inflation parameter still worth testing, or should draws be left alone?
 7. **Model class.** Would a gradient-boosted model on the same point-in-time features, or a
@@ -680,7 +703,7 @@ cannot hide a loss elsewhere.
 
 ## 7. Candidate factors not yet tested
 
-None of these has been run. Data status: **[have]** = already ingested and validated;
+F3, F4 and F14 have been run (all null); the others have not. Data status: **[have]** = already ingested and validated;
 **[free]** = a free source exists but has not been retrieved or validated; **[none]** = no
 accessible source. Each must beat the listed simpler alternative on identical chronological
 fixtures, and every feature must be computable at the match cutoff.
@@ -700,8 +723,10 @@ fixtures, and every feature must be computable at the match cutoff.
 | F11 | **Referee:** shrunk per-referee fouls, cards and penalty rates | stage-2 feature on total goals / draws | football-data `Referee` [have] | none (expected to be null) |
 | F12 | **Weather:** rain, wind and temperature at kickoff | stage-2 feature on total goals | Open-Meteo historical [free]; live must use the *forecast*, not the observed value | V1x |
 | F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
-| F14 | **[done, §5.20a: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
+| F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
 | F15 | **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
+| F16 | **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
+| F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything
 behind bot protection. Distance covered and other tracking data: [none].
@@ -711,11 +736,12 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 
 ## 8. What I want from you (the reviewer)
 
-Your previous requests are done (§5.14–5.18) and the prospective log starts at gameweek 10. This
-time I want help with one problem: **forecasting newly promoted and returning teams** (§5.20).
+Your previous requests are done (§5.14–5.18 and the Elo blend in §5.20), and the prospective log
+starts at gameweek 10. This
+time I want help with one problem: **forecasting newly promoted and returning teams** (§5.21).
 Please give me:
 
-1. **A critique of the diagnosis in §5.20.** Is the problem really early-season over-reaction and
+1. **A critique of the diagnosis in §5.21.** Is the problem really early-season over-reaction and
    stale ratings, or does the evidence point elsewhere (for example promoted sides' home advantage,
    or ordinary noise in a small subgroup)? What check would distinguish these?
 2. **A ranking of R1–R5** by expected gain per unit of effort, which to combine, and which are likely
