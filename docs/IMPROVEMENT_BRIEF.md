@@ -200,6 +200,41 @@ What this shows:
   features, never worse), and report this as development evidence. The pre-registered V2 is
   unchanged; V2x would be confirmed separately.
 
+### 5.7 Review round 2, items #3–#5 (all on the V1x base, identical fixtures)
+
+Settings were chosen on dev only (`results/review_round2/results.json`). V1x reproduces its frozen
+ledger exactly. Δ log-loss with SE; [ ] marks a 14-day calendar-block 95% CI.
+
+| Contrast | Dev (760) | Test (760) | 2026-27 (90) |
+|---|---|---|---|
+| **#3 primary** departures − ratio (Ld − Lr) | +0.0001 (0.0014) | −0.0003 (0.0013) | +0.0036 (0.0031) |
+| #3 departures − continuity-only (Ld − Lc) | −0.0004 | −0.0029 [−0.0072, +0.0009] | −0.0086 [−0.0152, −0.0011] |
+| #3 continuity-only − V1x (Lc − L0) | +0.0007 | −0.0015 [−0.0051, +0.0021] | +0.0078 [+0.0021, +0.0151] |
+| #3 ratio − V1x (Lr − L0) | +0.0003 | **−0.0041 [−0.0073, −0.0011]** | −0.0044 [−0.0095, −0.0004] |
+| **#4 primary** + recent league scoring (A1 − L0), half-life 30 d | −0.0003 (0.0003) | −0.0003 (0.0005) | +0.0004 (0.0006) |
+| #4 + recent home advantage (A2 − A1) | +0.0006 [+0.0002, +0.0012] | −0.0002 | +0.0020 |
+| **#5 primary** multinomial − Poisson, same features (M − L0) | −0.0005 (0.0012) | +0.0011 (0.0022) | −0.0025 (0.0050) |
+| #5 multinomial − V1 (calibrated V1 = identity) | −0.0011 | +0.0002 | −0.0027 |
+
+Departures are defined as the role's (FWD/MID/DEF) starter attack ratings minus
+Σ start-probability × rating from preceding selections, plus the chance the opponent's keeper is
+not the usual one, plus the opponent's defenders' mean start probability. Continuity-only uses
+own outfield continuity plus the two opponent proxies.
+
+What this shows:
+- **#3:** departures are no better than V2's ratio. The ratio's gain reappears on the V1x base
+  (test −0.0041, 2026-27 −0.0044), but again not on dev. Continuity alone does not help and is
+  worse on 2026-27. **Keep the pre-registered ratio.**
+- **#4:** no gain from a faster-adapting league scoring level. Adding home-advantage adaptation is
+  worse on dev. **Keep a single decay.**
+- **#5:** the multinomial outcome model is not better than the Poisson adjustment, so there is no
+  evidence that the goals-vs-outcome objective mismatch matters at this sample size. **Keep Poisson.**
+- Many contrasts have now been examined. Apart from XI strength (already pre-registered), none
+  shows a consistent gain.
+
+**Current working model:** Dixon-Coles + opponent-adjusted xG strength + XI-strength ratio
+(position prior), uncalibrated. Its confirmation runs through the pre-registered 2026-27 test.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
