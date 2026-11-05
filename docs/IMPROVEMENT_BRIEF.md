@@ -339,6 +339,37 @@ Written before gameweek 10 and summarised here.
   from any operational confirmed-lineup forecast.
 - **Frozen "unavailable" rule:** FPL status not "a" and chance of playing < 50.
 
+### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
+
+Added 7,370 football-data.co.uk matches (2021-22 → 2026-27, all validated as complete double
+round-robins). Player data for these leagues was not available from an accessible source when
+this was run, so pooling works through a team-level feature every league has:
+**opponent-adjusted shots-on-target strength**. It uses the same quasi-Poisson model as the xG
+strength, fitted within each league.
+
+Each league has its own walk-forward Dixon-Coles fit; team ratings never cross leagues. Stage 2
+is trained on PL rows only (P1), or on all five leagues with a per-league intercept (P2). All
+training rows respect the target fixture's cutoff, and **everything is scored on PL fixtures
+only**. L2 was chosen on PL dev (P1: 1, P2: 100). P0 reproduces the frozen V0 exactly.
+
+| Contrast | Dev (760) | Test (760) | 2026-27 (90) |
+|---|---|---|---|
+| **primary** pooled − PL-only coefficients (P2 − P1) | −0.0011 (SE 0.0015) | +0.0001 (SE 0.0004) | −0.0005 (SE 0.0012) |
+| SoT strength, PL-only − Dixon-Coles (P1 − P0) | −0.0012 | −0.0014 [−0.0029, +0.0002] | −0.0010 |
+| pooled SoT − V1x (FPL xG) | −0.0006 | +0.0018 [−0.0009, +0.0047] | −0.0011 |
+| Dixon-Coles settings tuned on all 5 leagues − PL-tuned | +0.0001 | +0.0002 | −0.0046 (SE 0.0051) |
+
+What this shows:
+- **Pooling did not improve PL forecasts once enough PL data exists.** On test the pooled and
+  PL-only coefficients agree almost exactly.
+- **The dev difference is mostly timing.** With 4× the rows, stage 2 switches on much earlier
+  (active for 698 vs 457 dev fixtures).
+- **Pooled-tuned Dixon-Coles settings** (half-life 231 vs 173 days) make no difference.
+- **FPL xG (V1x) stays slightly ahead of shots-on-target strength** on test.
+- **Read in context:** with only 2–4 shared coefficients, 3–4 PL seasons are already enough to
+  estimate them. Pooling would matter more for richer models, early seasons, or promoted teams,
+  none of which are tested here.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
