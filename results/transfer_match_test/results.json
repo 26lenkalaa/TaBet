@@ -1,0 +1,171 @@
+{
+  "n_priors": {
+    "2023-24": 32,
+    "2024-25": 37,
+    "2025-26": 44
+  },
+  "contrasts": {
+    "2024-26 (primary) | all matches": {
+      "n": 760,
+      "mean": -0.00025003237790884335,
+      "se": 0.0005329921925651614,
+      "ci": [
+        -0.00098985704325336,
+        0.0005209780150195007
+      ],
+      "mean_abs_xi_shift": 0.014367740411890704
+    },
+    "2024-26 (primary) | arrival starts in first 10": {
+      "n": 317,
+      "mean": 0.0005775541012691747,
+      "se": 0.0010558443719140133,
+      "ci": [
+        -0.0007208888181213423,
+        0.0018344367115444777
+      ],
+      "mean_abs_xi_shift": 0.01986896360168445
+    },
+    "2023-24 | all matches": {
+      "n": 380,
+      "mean": 3.9034073084960704e-05,
+      "se": 0.000280120609016314,
+      "ci": [
+        -0.0006086392635964384,
+        0.0006257886414141941
+      ],
+      "mean_abs_xi_shift": 0.008876933685514263
+    },
+    "2023-24 | arrival starts in first 10": {
+      "n": 133,
+      "mean": -0.0003733200972395805,
+      "se": 0.0006648391291388477,
+      "ci": [
+        -0.002104955432363919,
+        0.001142927393513761
+      ],
+      "mean_abs_xi_shift": 0.01612346351863643
+    }
+  },
+  "top_arrivals": [
+    {
+      "name": "Wirtz",
+      "cohort": "2025-26",
+      "position": "MID",
+      "league": "D1",
+      "prior": 0.4998441863593847,
+      "position_prior": 0.2988374035345605,
+      "target": 0.45379106992417867,
+      "pl_minutes": 2374.0
+    },
+    {
+      "name": "Konstantinos Mavropanos",
+      "cohort": "2023-24",
+      "position": "DEF",
+      "league": "D1",
+      "prior": 0.28134994522330714,
+      "position_prior": 0.10954877986816809,
+      "target": 0.0768,
+      "pl_minutes": 1500.0
+    },
+    {
+      "name": "Cherki",
+      "cohort": "2025-26",
+      "position": "MID",
+      "league": "F1",
+      "prior": 0.449044706590199,
+      "position_prior": 0.2988374035345605,
+      "target": 0.6678893905191874,
+      "pl_minutes": 1772.0
+    },
+    {
+      "name": "Frimpong",
+      "cohort": "2025-26",
+      "position": "DEF",
+      "league": "D1",
+      "prior": 0.2521051519617933,
+      "position_prior": 0.10553090161272866,
+      "target": 0.17877906976744184,
+      "pl_minutes": 1032.0
+    },
+    {
+      "name": "Hugo Ekitik\u00c3\u00a9",
+      "cohort": "2025-26",
+      "position": "FWD",
+      "league": "D1",
+      "prior": 0.6419658999610881,
+      "position_prior": 0.5017708231139018,
+      "target": 0.6285475792988314,
+      "pl_minutes": 1797.0
+    },
+    {
+      "name": "Anssumane Fati Vieira",
+      "cohort": "2023-24",
+      "position": "MID",
+      "league": "SP1",
+      "prior": 0.4289972546526671,
+      "position_prior": 0.29516439036276687,
+      "target": 0.7284872298624754,
+      "pl_minutes": 509.0
+    },
+    {
+      "name": "Donyell Malen",
+      "cohort": "2024-25",
+      "position": "MID",
+      "league": "D1",
+      "prior": 0.45304856517883374,
+      "position_prior": 0.32209809866499073,
+      "target": 0.6993243243243243,
+      "pl_minutes": 296.0
+    },
+    {
+      "name": "Tel",
+      "cohort": "2024-25",
+      "position": "MID",
+      "league": "D1",
+      "prior": 0.43807187120519614,
+      "position_prior": 0.32209809866499073,
+      "target": 0.44702643171806167,
+      "pl_minutes": 908.0
+    },
+    {
+      "name": "Chiesa",
+      "cohort": "2024-25",
+      "position": "MID",
+      "league": "I1",
+      "prior": 0.4060297521936419,
+      "position_prior": 0.32209809866499073,
+      "target": 0.42815533980582526,
+      "pl_minutes": 103.0
+    },
+    {
+      "name": "Xavi Simons",
+      "cohort": "2025-26",
+      "position": "MID",
+      "league": "D1",
+      "prior": 0.37724433286334935,
+      "position_prior": 0.2988374035345605,
+      "target": 0.35598168288494564,
+      "pl_minutes": 1747.0
+    },
+    {
+      "name": "Moussa Diaby",
+      "cohort": "2023-24",
+      "position": "MID",
+      "league": "D1",
+      "prior": 0.36777547972468166,
+      "position_prior": 0.29516439036276687,
+      "target": 0.48321033210332104,
+      "pl_minutes": 2168.0
+    },
+    {
+      "name": "Guessand",
+      "cohort": "2025-26",
+      "position": "MID",
+      "league": "F1",
+      "prior": 0.36718987939134673,
+      "position_prior": 0.2988374035345605,
+      "target": 0.23861386138613863,
+      "pl_minutes": 909.0
+    }
+  ]
+}

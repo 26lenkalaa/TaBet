@@ -388,9 +388,13 @@ prior-league seasons, joined to FPL by name voting within shared fixtures.
 
 | Contrast (weighted MSE) | Mean | 95% bootstrap CI |
 |---|---|---|
-| **primary** P1 − P0 | −0.0062 (0.0193 → 0.0131, −32%) | [−0.0113, −0.0014] |
-| P0b − P0 | +0.0031 | [−0.0022, +0.0083] |
-| P2 − P1 (league dummies) | −0.0004 | [−0.0016, +0.0008] |
+| **primary** P1 − P0 | −0.0068 (0.0170 → 0.0102, −40%) | [−0.0121, −0.0018] |
+| P0b − P0 | +0.0036 | [−0.0011, +0.0087] |
+| P2 − P1 (league dummies) | −0.0001 | [−0.0009, +0.0008] |
+
+*Corrected 2026-11-05:* the first run used a stale copy of the appearance table in which
+pre-November-2022 xG was coded 0 instead of missing (the fix in §3 had not been applied to it).
+Rerun on the clean table above; the earlier figures were 0.0193 → 0.0131 (−32%). Same conclusion.
 
 The pre-registered gate passed. Which league a player came from adds nothing once output is
 shrunk. **Not yet done:** the match-level test (P1 priors inside the XI ratings, scored by match
@@ -511,6 +515,32 @@ Reading:
 - **My conclusion:** the average XI effect is probably small (around −0.001 to −0.002), and the
   −0.004 on 2024-26 was at the lucky end. The effect is real mainly when lineups change a lot.
 
+### 5.17 Transfer priors at match level (pre-registered, addendum T)
+
+Priors for every **pre-season-eligible** arrival (≥ 600 previous-league minutes, no condition on PL
+minutes, which the player-level gate had used): 32 / 37 / 44 arrivals in 2023-24 / 2024-25 /
+2025-26. The P1 mapping is trained on earlier cohorts only. The prior replaces the position-prior
+mean in the unchanged V2 rating and fades with PL minutes; debutants are rated at their prior.
+Nothing tuned. The recomputed standard XI feature reproduces the frozen rows exactly.
+
+| V2xT − V2x (log-loss) | n | Mean | 14-day block CI |
+|---|---|---|---|
+| **primary** 2024-26, all matches | 760 | −0.00025 (SE 0.00053) | [−0.0010, +0.0005] |
+| **co-primary** 2024-26, an arrival starts within his first 10 apps | 317 | +0.00058 (SE 0.00106) | [−0.0007, +0.0018] |
+| 2023-24, all / arrival subset | 380 / 133 | +0.00004 / −0.00037 | — |
+
+**Null.** The prior moves the XI ratio by only 0.014–0.020 on average, even when an arrival starts.
+The priors do pick out the obvious names (Wirtz 0.50 vs a 0.30 position prior, Cherki, Ekitiké,
+Frimpong, Xavi Simons), but a regular starter is also part of the team's *usual* XI, so raising his
+rating raises both sides of the ratio. The XI feature measures deviation from the usual lineup, not
+squad quality. A signing's effect on team strength reaches the model through the team's own
+results and xG, which Dixon-Coles and V1x pick up within a few matches.
+
+What this suggests instead (not run): a **season-start team adjustment** from squad changes —
+the minutes-weighted rating of incoming minus outgoing players, applied to the team's attack prior
+at the season boundary — which targets the first weeks, where team ratings still reflect last
+season's squad. It could be combined with your season-boundary shrinkage suggestion.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -553,7 +583,7 @@ fixtures, and every feature must be computable at the match cutoff.
 |---|---|---|---|---|
 | F1 | **Rest and congestion:** days since each team's last match, matches in the last 14 days, rest difference | stage-2 features | PL dates [have]; European and cup dates [free, not retrieved: the HF fixtures table or openfootball may have them] | V1x |
 | F2 | **XI fatigue:** starters' minutes in the previous 7/14 days | XI-level feature in V2x | PL minutes [have]; other competitions [none] | V2x |
-| F3 | **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
+| F3 | **[done, §5.17: null]** **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
 | F4 | **[done, §5.15: null]** **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
 | F5 | **Manager change:** days since a new permanent manager, decayed | stage-2 feature, or faster DC decay after a change | appointment dates [free: Wikipedia lists, not checked] | DC time decay alone |
 | F6 | **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
