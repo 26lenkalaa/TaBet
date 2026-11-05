@@ -2,8 +2,9 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-05, before gameweek 10. Since the previous review: corrections in §5.4,
-> §5.6–5.9, and a new prospective protocol in §5.10.
+> Last updated 2026-11-05, before gameweek 10. Since the previous review: league pooling (§5.11),
+> a free player-match archive (§3), transfer priors (§5.12), match-stat analysis (§5.13), and a
+> list of untested candidate factors (§7) that I want ranked.
 
 ## 1. What the project is
 
@@ -37,6 +38,7 @@ scipy). Success is judged on **probability quality**, not on picking winners:
 | FPL archive (github.com/vaastav/Fantasy-Premier-League) + live FPL API | PL 2021-22 → 2026-27, ~59k player-match rows | player × match | minutes, starts, goals, assists, xG, xA, xG conceded, FPL "threat/creativity/influence" indices; defensive actions only from 2025-26. All 1,990 fixtures join to our match table with identical scores. |
 | Wyscout public dataset (Pappalardo et al. 2019, CC BY 4.0) | top-5 European leagues, **2017-18 only** | event | ~640k events per league with pitch coordinates, lineups, substitutions; no xG. Used only for prototyping. |
 | StatsBomb Open Data | full leagues only for 2015-16 (PL, La Liga, Serie A, Ligue 1); recent seasons are single-club (e.g. Leverkusen 2023-24, PSG 2021-23) | event | attribution required. Not usable for 2021-27 player histories. |
+| Hugging Face `eatpizzanot/soccer-dataset` (tagged CC BY 4.0; provenance API-Football, so republication rights are unclear) | top-5 leagues, full 2021-22 → 2024-25, 50–66% of 2025-26, **none for 2026-27** | player × match | lineups, minutes, dribbles, duels, tackles, interceptions, passes, key passes, fouls. Validated against FPL (starters 100%, minutes within 1 min 94.7%) and football-data (team fouls 98.8% and shots on target 99.4% exact). Player shots undercounted; no player xG. **Historical only: cannot feed live forecasts.** |
 | Predicted lineups: Fantasy Football Scout team-news page, RotoWire lineups page | the **next gameweek only**; no history | team × predicted XI | Plain HTTP, and robots.txt allows both pages. Scout's player photos use Premier League ids that equal FPL `code` (100% join). RotoWire names are matched to FPL by name within the team (98.6%). Each fetch is saved with its retrieval time so it can be scored later against confirmed XIs. |
 | FPL live availability | current only | player | `status`, `chance_of_playing_next_round`, injury/suspension `news`. No historical archive. |
 
@@ -370,6 +372,56 @@ What this shows:
   estimate them. Pooling would matter more for richer models, early seasons, or promoted teams,
   none of which are tested here.
 
+### 5.12 Transfer priors for players arriving from other leagues
+
+Question: does a new signing's previous-league output predict their first Premier League season
+better than the position prior the XI model uses now? Data: the Hugging Face archive (§3) for
+prior-league seasons, joined to FPL by name voting within shared fixtures.
+
+- **Cohort:** 95 players moving to the PL from La Liga, Serie A, Bundesliga or Ligue 1, arriving in
+  2023-24 (26), 2024-25 (32) or 2025-26 (37). Each cohort's mapping is trained only on earlier cohorts
+  (42 / 68 / 100 training players).
+- **Target:** first-PL-season (xG + xA)/90, weighted by minutes.
+- **Models:** P0 = position prior (current); P0b = position average of earlier arrival cohorts (no player information);
+  P1 = ridge on shrunk prior-league per-90 goals+assists, shots and key passes; P2 = P1 + league dummies.
+
+| Contrast (weighted MSE) | Mean | 95% bootstrap CI |
+|---|---|---|
+| **primary** P1 − P0 | −0.0062 (0.0193 → 0.0131, −32%) | [−0.0113, −0.0014] |
+| P0b − P0 | +0.0031 | [−0.0022, +0.0083] |
+| P2 − P1 (league dummies) | −0.0004 | [−0.0016, +0.0008] |
+
+The pre-registered gate passed. Which league a player came from adds nothing once output is
+shrunk. **Not yet done:** the match-level test (P1 priors inside the XI ratings, scored by match
+log-loss). Live use in 2026-27 would need a different prior-season source (the archive stops in
+mid-2025-26).
+
+### 5.13 Match statistics and outcomes (dribbles, duels, passing, defending)
+
+From 3,540 PL team-matches (2021-22 → 2025-26), each stat's home-minus-away difference, against the
+result (odds ratio per SD for a win):
+
+| Stat (same match) | Raw | Given pre-match DC strength | Given strength + shots on target |
+|---|---|---|---|
+| Shots on target | 4.31 | 3.31 | — |
+| Key passes | 2.08 | 1.31 | 0.50 |
+| Passes | 1.38 | **0.59** | 0.45 |
+| Pass completion % | 1.30 | 0.59 | 0.44 |
+| Tackles + interceptions | 0.95 | **1.38** | 1.38 |
+| Duel win % | 1.25 | 1.21 | 1.10 |
+| Dribbles attempted | 1.07 | 0.89 | 0.82 |
+| Dribble success % | 1.12 | 1.12 | 1.04 |
+| Fouls committed | 0.83 | 0.93 | 0.93 |
+
+These are same-match associations and mostly reflect **game state**: a team that leads stops
+passing and starts defending. They are not causal and not usable before kickoff. Distance covered
+is not available from any source we can access.
+
+**Predictive test** (stat profile from *earlier* matches, decay-weighted, added to V1x stage 2,
+L2 = 100 chosen on dev): dev −0.0006 (SE 0.0021), test 2024-25 −0.0028 (SE 0.0026, 14-day block CI
+[−0.0079, +0.0014]). Not kept. Largest coefficients: key passes (+0.06 per SD on log goals) and
+dribble success % (+0.045).
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -386,20 +438,52 @@ What this shows:
    Extra leagues help estimate shared coefficients but are not more Premier League evidence.
    Goal deviance is a diagnostic, not extra independent matches.
 2. **Player defence.** We have no good per-player defensive rating; FPL xG-conceded is a team
-   quantity while on the pitch. Defensive actions exist only from 2025-26.
+   quantity while on the pitch. FPL defensive actions exist only from 2025-26. The Hugging Face
+   archive has per-player tackles, interceptions and duels for 2021-25, but nothing live.
 3. **Lineups before team news.** Being handled by the protocol in §5.10. It will produce
    evidence from gameweek 20 onward. Until then V1x stays the default early forecast.
 4. **XI gain: development and test seasons disagree.** The gain is null on 2022-24 (where stage 2
    is active for only 457 of 760 matches) and about −0.004 on 2024-26 and 2026-27. Is there a
    principled way to tell a real regime difference from noise, beyond the pre-registered test?
-5. **Cross-league player priors** (new signings) need non-PL player data for 2021-27, which we do
-   not have from an accessible source.
+5. **Cross-league player priors.** Solved for history by §5.12; for 2026-27 arrivals we only have
+   the season-level Top-5 CSV (no declared licence, merged from sites that block us).
 6. **Draw modelling.** Calibration found no reliable draw shift (δ interval includes 0). Is a
    single diagonal-inflation parameter still worth testing, or should draws be left alone?
 7. **Model class.** Would a gradient-boosted model on the same point-in-time features, or a
    hierarchical Bayesian version of Dixon-Coles, be a better second stage at this sample size?
 
-## 7. What I want from you (the reviewer)
+## 7. Candidate factors not yet tested
+
+None of these has been run. Data status: **[have]** = already ingested and validated;
+**[free]** = a free source exists but has not been retrieved or validated; **[none]** = no
+accessible source. Each must beat the listed simpler alternative on identical chronological
+fixtures, and every feature must be computable at the match cutoff.
+
+| # | Factor | How it would enter the model | Data | Simpler alternative to beat |
+|---|---|---|---|---|
+| F1 | **Rest and congestion:** days since each team's last match, matches in the last 14 days, rest difference | stage-2 features | PL dates [have]; European and cup dates [free, not retrieved: the HF fixtures table or openfootball may have them] | V1x |
+| F2 | **XI fatigue:** starters' minutes in the previous 7/14 days | XI-level feature in V2x | PL minutes [have]; other competitions [none] | V2x |
+| F3 | **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
+| F4 | **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
+| F5 | **Manager change:** days since a new permanent manager, decayed | stage-2 feature, or faster DC decay after a change | appointment dates [free: Wikipedia lists, not checked] | DC time decay alone |
+| F6 | **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
+| F7 | **Goalkeeper quality:** saves and goals conceded relative to opponent shots on target, shrunk; flag when the usual keeper is out | XI-level feature | FPL saves and goals conceded [have]; no post-shot xG [none] | V2x (outfielders only) |
+| F8 | **Player defensive ratings:** tackles + interceptions, duel win % per 90 for the opponent's back line | XI-level feature | HF 2021-25 [have]; FPL defensive actions 2025-26+ [have] | back-line regularity |
+| F9 | **Penalties and finishing:** split xG into non-penalty xG; penalty-taker absence; shrunk goals-minus-xG | XI-level feature | FPL xG and penalties [have, partial] | V2x |
+| F10 | **Set pieces:** opponent-adjusted corner strength | stage-2 feature | football-data corners [have] | V1x |
+| F11 | **Referee:** shrunk per-referee fouls, cards and penalty rates | stage-2 feature on total goals / draws | football-data `Referee` [have] | none (expected to be null) |
+| F12 | **Weather:** rain, wind and temperature at kickoff | stage-2 feature on total goals | Open-Meteo historical [free]; live must use the *forecast*, not the observed value | V1x |
+| F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
+| F14 | **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
+| F15 | **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
+
+Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything
+behind bot protection. Distance covered and other tracking data: [none].
+
+My concern is power (§6.1): most of these probably move log-loss by under 0.002, which needs
+well over 1,000 matches to detect. I would rather pre-register two or three than test fifteen.
+
+## 8. What I want from you (the reviewer)
 
 The predicted-lineup work is now on a fixed prospective schedule (§5.10), so no new results will
 exist for about ten gameweeks. Please give me:
@@ -412,6 +496,10 @@ exist for about ten gameweeks. Please give me:
    reserved for the pre-registered and prospective tests. For each, give the simpler alternative it
    must beat.
 3. **Problems in §5.4–5.8** that remain after the corrections.
+4. **A ranking of §7:** the top 3 by expected gain per unit of effort, which ones are likely null
+   or leakage-prone (especially F5, F12 and F2), and any important factor I have missed.
+5. **§5.12 next step:** how to run the match-level transfer-prior test without reusing the
+   fixtures the gate was chosen on.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs.
