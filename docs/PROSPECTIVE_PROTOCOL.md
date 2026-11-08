@@ -7,7 +7,12 @@ Written 2026-11-05, before any 2026-27 gameweek-10 match. It answers one questio
 
 ## What is logged
 
-- **Horizon:** each fixture is logged once, by the **first run that finds it 24–26 h before
+- **Horizon (current rule, amendment A4 from gameweek 11):** each fixture can get two records: a
+  **primary** one from the first run that finds its kickoff 24–26 h ahead, and a **fallback** one
+  from the first run that finds it 26–32 h ahead. Scoring uses the primary record when it exists and
+  the fallback otherwise. An external cron service triggers a run every 30 minutes, with GitHub's
+  own schedule as a backup. The hours before kickoff are recorded and results are reported by them.
+- **Horizon (gameweek 10 rule, superseded):** each fixture is logged once, by the **first run that finds it 24–26 h before
   kickoff**. Runs are hourly (`python -m tabet log-forecasts`) on a scheduled GitHub Action
   (`.github/workflows/prospective.yml`), so forecasts are normally made 25–26 h before kickoff.
   The actual hours before kickoff are recorded. *(Amended 2026-11-05 before any record was
@@ -162,6 +167,20 @@ amendment `results/prospective/log.jsonl` was empty.
   first scheduled run came at 21:06 UTC, after the window. Under the logging rule it is not backfilled.
   A fixture missing entirely does not bias any within-record contrast. Amendment A2 and the
   re-registered schedule (:23 past each hour) reached `main` at 22:10 UTC.
+- **2026-11-08: gameweek 10, eight more fixtures not logged.** GitHub started the hourly schedule only
+  every 4–8 hours: runs at Nov 5 21:06, Nov 6 02:34 / 11:10 / 18:06 / 23:17, Nov 7 02:55 / 10:27 /
+  16:54 / 20:58 and Nov 8 00:46 UTC, all successful in 30–50 s. With the 24–26 h window, only fixture
+  97 (Leeds v Tottenham, logged Nov 6 11:10, 25.3 h ahead) fell inside a run. Not backfilled:
+
+  | FPL fixture | Kickoff (UTC) | 24–26 h window | Nearest runs |
+  |---|---|---|---|
+  | 91, 95 | Nov 7 15:00 | Nov 6 13:00–15:00 | 11:10, 18:06 |
+  | 99 | Nov 7 17:30 | Nov 6 15:30–17:30 | 11:10, 18:06 |
+  | 92, 93, 96, 100 | Nov 8 14:00 | Nov 7 12:00–14:00 | 10:27, 16:54 |
+  | 98 | Nov 8 16:30 | Nov 7 14:30–16:30 | 10:27, 16:54 |
+
+  Gameweek 10 therefore has 1 record out of 10 fixtures. The cause was GitHub's scheduler, not the
+  code. Amendment A4 changes the trigger and the window from gameweek 11.
 
 ## Amendment A3 (2026-11-05, before any record was logged)
 
@@ -192,3 +211,49 @@ From a further external review. `results/prospective/log.jsonl` was still empty.
    contrast (both sources valid), and the contrast with each gameweek left out in turn. With 14-day
    blocks the evaluation window holds only about five blocks, so no source "winner" is declared
    unless the interval clearly separates them.
+
+## Amendment A4 (2026-11-08, written before any gameweek-11 record)
+
+Written during the international break, after the gameweek-10 failure in the operations log. The
+first gameweek-11 kickoff is fixture 108 (Man City v Fulham) on 2026-11-21 12:30 UTC. This amendment
+must be on `main` before that fixture's first window opens (2026-11-20 04:30 UTC).
+
+1. **Two windows, one scored record.** Each fixture can get two records per kickoff time, from the
+   same code at the run's own cutoff:
+   - **primary:** the first run that finds the kickoff in [now + 24 h, now + 26 h), stored with
+     `horizon_h = 24`;
+   - **fallback:** the first run that finds it in [now + 26 h, now + 32 h), stored with
+     `horizon_h = 26`.
+
+   Every analysis uses **one record per fixture: the primary if it exists, otherwise the fallback**
+   (`select_records`). This rule depends only on which records exist, and both are kept. `hours_before`
+   is recorded for every record, and results are also reported by hours before kickoff.
+2. **Why.** In gameweek 10 GitHub's schedule ran only every 4–8 hours (one gap was 8.6 h), and only 1
+   of 10 fixtures was logged. A single wide window would survive that, but with a run every 30
+   minutes it logs every fixture at the *start* of the window, making every forecast about 6 hours
+   older than the old rule. The two-window rule keeps forecasts about 25.5 h old when the trigger
+   works, and still produces a record when it does not. Simulated on the gameweek-10 run times, the
+   fallback would have covered all nine fixtures after the first scheduled run (fixture 94's window
+   came before it). Simulated on gameweek 11's fixtures: every 30 minutes gives 10 primary records at
+   25.5 h; GitHub's gameweek-10 gaps alone give 1 primary and 9 fallback records at 26–31 h.
+3. **Trigger (operations, not protocol).** An external free cron service (cron-job.org) calls the
+   workflow's `workflow_dispatch` every 30 minutes; dispatched runs start within about a minute.
+   GitHub's own schedule stays as a backup every 2 hours. The interval can change without a new
+   amendment as long as it stays well under 2 hours. Setup: `docs/LOGGER_SETUP.md`.
+4. **Settings in code.** The windows and the run interval are separate settings: `LOG_HORIZONS`
+   (protocol: (24, 2) and (26, 6)) and `SCHEDULE_EVERY_H` (operations). `--horizon`/`--window` on
+   `log-forecasts` now log a single test window; `--every` is kept as an alias of `--window`.
+5. **Extra runs are harmless.** The workflow's concurrency group runs one job at a time. A queued
+   job checks out `main` after the previous job has pushed, `log_due()` re-reads the log just before
+   appending, and `python -m tabet check-log` refuses to push if a fixture/horizon/kickoff key ever
+   appears twice. Two near-simultaneous runs therefore cannot both append the same record.
+6. **Monitoring.** Every run writes a heartbeat to the job summary: the run time, the last logged
+   record, the next fixture with no record and when its windows open, and any fixture that only got
+   a fallback. If a fixture's primary window closes with no record at all (from gameweek 11 on), or
+   a window is open and no run has succeeded for 3 hours, the workflow opens or updates a GitHub
+   issue titled "Prospective logger alert".
+7. **Actions minutes.** The repo is private. Dispatched runs: 48 a day, about 1,440 minutes a month.
+   Backup schedule: at most 12 a day, about 360. Total about 1,800, within GitHub Free's 2,000 (3,000
+   with GitHub Pro). Each run bills one minute when nothing is due.
+8. **Analysis.** Gameweek 10 (one record, under the old 24–26 h rule) is reported separately. The
+   share of fixtures scored from fallback records is reported alongside every result.

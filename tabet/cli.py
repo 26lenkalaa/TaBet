@@ -92,32 +92,77 @@ def cmd_forecast(args: argparse.Namespace) -> int:
 
 
 def cmd_log_forecasts(args: argparse.Namespace) -> int:
+    import pandas as pd
+
     from .prospective import log_due
-    recs = log_due(horizon_h=args.horizon, every_h=args.every, dry_run=args.dry_run)
+    if args.now and not args.dry_run:
+        raise SystemExit("--now is only allowed with --dry-run (a real record's cutoff is the run time)")
+    now = pd.Timestamp(args.now, tz="UTC") if args.now else None
+    from .prospective import LOG_HORIZONS
+    horizons = ((args.horizon, args.window),) if args.horizon is not None or args.window is not None else LOG_HORIZONS
+    if len(horizons) == 1 and None in horizons[0]:
+        raise SystemExit("--horizon and --window go together")
+    recs = log_due(now=now, horizons=horizons, dry_run=args.dry_run)
     if args.dry_run:
-        print(f"{len(recs)} fixture(s) due:", [f"{r['home_id']} v {r['away_id']}" for r in recs])
+        role = {24.0: "primary", 26.0: "fallback"}
+        print(f"{len(recs)} record(s) due:", [f"{r['fpl_fixture']} {r['home_id']} v {r['away_id']} "
+                                              f"(kickoff {pd.Timestamp(r['kickoff_utc']):%Y-%m-%d %H:%M}, "
+                                              f"{role.get(r['horizon_h'], r['horizon_h'])})" for r in recs])
     else:
         print(f"logged {len(recs)} fixture(s)")
     return 0
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
-    from .prospective import decomposition, robustness, score, summarise
+    from .prospective import by_hours_before, decomposition, robustness, score, select_records, summarise
     s = score()
     if s.empty:
         print("nothing to score yet")
         return 0
     print(summarise(s, args.horizon).round(4).to_string(index=False))
+    sel = select_records(s).drop_duplicates("fpl_fixture")
+    print(f"scored fixtures: {len(sel)}; from fallback records (26-32 h): {(sel['horizon_h'] != 24.0).mean():.0%}")
     if "superseded" in s:
         print(f"superseded records (kickoff moved after logging): {s.loc[s.superseded, 'fpl_fixture'].nunique()}")
     d = decomposition(s, args.horizon)
     if len(d):
         print("\nXI-feature decomposition (secondary, amendment A2):")
         print(d.round(4).to_string(index=False))
+    bh = by_hours_before(s, primary_horizon=args.horizon)
+    if len(bh):
+        print("\nBy hours before kickoff (amendment A4):")
+        print(bh.round(4).to_string(index=False))
     rb = robustness(s, "pE", args.horizon)
     if rb:
         print("\npE - p0 robustness (amendment A3):", {k: v for k, v in rb.items() if k != "leave_one_gameweek_out"})
         print("  leave one gameweek out:", {g: round(v, 4) for g, v in rb["leave_one_gameweek_out"].items()})
+    return 0
+
+
+def cmd_heartbeat(args: argparse.Namespace) -> int:
+    import json
+
+    import pandas as pd
+
+    from .prospective import LOG, heartbeat, heartbeat_markdown
+    hb = heartbeat(pd.Timestamp.now(tz="UTC").floor("min"))
+    last = None
+    if LOG.exists() and LOG.read_text().strip():
+        r = json.loads(LOG.read_text().splitlines()[-1])
+        last = f"FPL {r['fpl_fixture']} {r['home_id']} v {r['away_id']}, logged {r['logged_utc']} ({r['hours_before']:.1f} h ahead)"
+    print(heartbeat_markdown(hb, last))
+    if args.json:
+        print(json.dumps(hb))
+    return 0
+
+
+def cmd_check_log(args: argparse.Namespace) -> int:
+    from .prospective import duplicate_keys
+    dup = duplicate_keys()
+    if dup:
+        print(f"duplicate log keys: {dup}")
+        return 1
+    print("log OK: no fixture/kickoff appears twice")
     return 0
 
 
@@ -178,11 +223,20 @@ def main(argv: list[str] | None = None) -> int:
     f.add_argument("--no-lineups", action="store_true")
     f.set_defaults(func=cmd_forecast)
 
-    lg = sub.add_parser("log-forecasts", help="log forecasts for fixtures due at the fixed horizon (run hourly)")
-    lg.add_argument("--horizon", type=float, default=24.0, help="hours before kickoff")
-    lg.add_argument("--every", type=float, default=2.0, help="hours between scheduled runs")
-    lg.add_argument("--dry-run", action="store_true")
+    lg = sub.add_parser("log-forecasts", help="log primary (24-26 h) and fallback (26-32 h) records for due fixtures "
+                                              "(amendment A4); safe to run often")
+    lg.add_argument("--horizon", type=float, default=None,
+                    help="with --window: log a single window instead of the protocol's two (testing only)")
+    lg.add_argument("--window", "--every", dest="window", type=float, default=None,
+                    help="window width in hours for --horizon. Not the run interval; --every is a deprecated alias")
+    lg.add_argument("--dry-run", action="store_true", help="list the fixtures a run would log; fetches only the FPL fixture list and logs nothing")
+    lg.add_argument("--now", help="with --dry-run only: pretend the run happens at this UTC time, e.g. 2026-11-20T05:00")
+    hb = sub.add_parser("heartbeat", help="print logger status as Markdown (for the Actions job summary)")
+    hb.add_argument("--json", action="store_true", help="also print the status as JSON")
+    sub.add_parser("check-log", help="fail if any fixture/kickoff appears twice in the prospective log")
     lg.set_defaults(func=cmd_log_forecasts)
+    hb.set_defaults(func=cmd_heartbeat)
+    sub.choices["check-log"].set_defaults(func=cmd_check_log)
 
     sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
         func=cmd_check_sources)
