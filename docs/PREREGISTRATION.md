@@ -89,6 +89,15 @@ on earlier matches only. **Primary:** S2 − frozen Dixon-Coles on the clean 201
 Early-season, shorter-half-life, no-summer and recent-season contrasts are secondary; the stage-2
 comparison with adjusted xG is reported, not decisive.
 
+## Addendum E (2026-11-05, committed before the run): Elo blend (F14)
+
+Specified in full in the header of `prototypes/run_elo_blend.py` (model in `tabet/elo.py`).
+Results-only Elo with an ordered-logit outcome mapping, blended linearly with Dixon-Coles; K and
+the blend weight chosen on development seasons only. **Primary:** blend(DC, Elo) − DC on the
+clean 2018-21 results (n = 1,140); confirmed if the mean is below 0 and the 14-day block
+bootstrap interval excludes 0. Secondary: Elo alone − DC, and blends with V0 and V1x on recent
+seasons (reused validation).
+
 ## Addendum M (2026-11-08, committed before the run): alternative team-strength models
 
 Specified in full in the header of `prototypes/run_alt_models.py`; one file per model in
