@@ -1,12 +1,12 @@
 """Prospective forecast log and scoring (docs/PROSPECTIVE_PROTOCOL.md).
 
 log_due():  run every SCHEDULE_EVERY_H (an external trigger every 30 min, with
-            GitHub's own schedule as a backup). Each fixture is logged once per
-            kickoff time, by the first run that finds its kickoff in
-            [now + HORIZON_H, now + HORIZON_H + WINDOW_H), i.e. 24-32 h ahead
-            under amendment A4. The run interval and the window are separate
-            settings: the window is a protocol value, the interval is how often
-            something checks. The results file is
+            GitHub's own schedule as a backup). Amendment A4: each fixture can get
+            two records per kickoff time, a *primary* one from the first run that
+            finds its kickoff 24-26 h ahead and a *fallback* one from the first run
+            that finds it 26-32 h ahead. Scoring uses the primary record when it
+            exists and the fallback otherwise (select_records). The windows are
+            protocol values; the run interval is how often something checks. The results file is
             refreshed, forecasts are made at that moment, and one JSON record per
             fixture is appended to results/prospective/log.jsonl. A fixture whose
             kickoff moves after it was logged is logged again against the new
@@ -51,9 +51,12 @@ from .validate import has_errors, validate
 ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = ROOT / "results" / "prospective"
 LOG = LOG_DIR / "log.jsonl"
-HORIZON_H = 24.0       # protocol: forecasts are made at least this long before kickoff
-WINDOW_H = 8.0         # protocol (amendment A4): a fixture is due while its kickoff is 24-32 h ahead
-SCHEDULE_EVERY_H = 0.5  # operations only: how often a run is triggered (external cron, 30 min)
+HORIZON_H = 24.0          # protocol: forecasts are made at least this long before kickoff
+WINDOW_H = 2.0            # protocol: primary record while kickoff is 24-26 h ahead
+FALLBACK_H = 26.0         # protocol (amendment A4): fallback record while kickoff is 26-32 h ahead
+FALLBACK_WINDOW_H = 6.0
+LOG_HORIZONS = ((HORIZON_H, WINDOW_H), (FALLBACK_H, FALLBACK_WINDOW_H))  # (horizon, window): primary first
+SCHEDULE_EVERY_H = 0.5    # operations only: how often a run is triggered (external cron, 30 min)
 RESULTS_URL = "https://football-data.co.uk/mmz4281/2627/E0.csv"
 RESULTS_FILE = ROOT / "res" / "Premier League 26-27.csv"
 CANDIDATES = ("p0", "ffs", "rotowire", "pE", "fpl_proj", "fpl_proj_hist")
@@ -133,7 +136,7 @@ def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: floa
     return due[[(int(i), horizon_h, _ko(k)) not in done for i, k in zip(due["fpl_fixture"], due["kickoff_utc"])]]
 
 
-def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
+def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float], ...] = LOG_HORIZONS,
             dry_run: bool = False) -> list[dict]:
     now = (now or pd.Timestamp.now(tz="UTC")).floor("min")
     if not dry_run:
@@ -141,9 +144,14 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, windo
             snapshot_live_xg(now)
         except Exception as e:
             print(f"xG snapshot failed ({e})")
-    due = due_fixtures(now, horizon_h, window_h)
-    if due.empty or dry_run:
-        return due.to_dict("records") if dry_run else []
+    fx = upcoming_fixtures(refresh=True)
+    due_by_h = {h: due_fixtures(now, h, w, fixtures=fx) for h, w in horizons}
+    if dry_run:
+        return [dict(r, horizon_h=h) for h, d in due_by_h.items() for r in d.to_dict("records")]
+    wanted = {(int(i), h) for h, d in due_by_h.items() for i in d["fpl_fixture"]}
+    if not wanted:
+        return []
+    due = pd.concat(due_by_h.values()).drop_duplicates("fpl_fixture")
     results_refreshed = refresh_results()
     fc = forecast(cutoff=now, fixture_ids=[int(i) for i in due["fpl_fixture"]], refresh=True, lineups=True)
     stamp = fc["lineup_sources"]["retrieved_utc"]
@@ -169,7 +177,7 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, windo
         if "source_average" in w:
             cands["pE"] = {k: w["source_average"][k] for k in ("p_home", "p_draw", "p_away")}
         rec = {
-            "fpl_fixture": f["fpl_fixture"], "horizon_h": horizon_h, "logged_utc": now.isoformat(),
+            "fpl_fixture": f["fpl_fixture"], "horizon_h": None, "logged_utc": now.isoformat(),
             "kickoff_utc": f["kickoff_utc"], "hours_before": (pd.Timestamp(f["kickoff_utc"]) - now).total_seconds() / 3600,
             "gameweek": f["gameweek"], "home_id": f["home_id"], "away_id": f["away_id"],
             "git_commit": fc["git_commit"], "code_dirty": dirty, "results_through": fc["results_through"],
@@ -184,7 +192,9 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, windo
             "lineup_invalid": {s: {t: n for t, n in d.items() if t in teams} for s, d in fc.get("lineup_invalid", {}).items()},
             "availability": [a for a in fc["availability"] if a["team_id"] in teams and a["status"] != "a"],
         }
-        records.append(rec)
+        for h, _ in horizons:  # one record per window this fixture is due in (same forecast, same cutoff)
+            if (int(f["fpl_fixture"]), h) in wanted:
+                records.append(dict(rec, horizon_h=h, record_role="primary" if h == HORIZON_H else "fallback"))
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     done = _logged()  # re-read just before appending: never write a key that is already there
     records = [r for r in records if (r["fpl_fixture"], r["horizon_h"], _ko(r["kickoff_utc"])) not in done]
@@ -210,24 +220,32 @@ def duplicate_keys(path: Path = LOG) -> list[tuple]:
 A4_EFFECTIVE = pd.Timestamp("2026-11-19", tz="UTC")  # misses before this are in the operations log
 
 
-def heartbeat(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
-              fixtures: pd.DataFrame | None = None, logged: set | None = None) -> dict:
-    """Status for the job summary: the next fixture still to be logged, when its window opens and
-    closes, whether a window is open now, and fixtures whose window closed without a record."""
+def heartbeat(now: pd.Timestamp, fixtures: pd.DataFrame | None = None, logged: set | None = None) -> dict:
+    """Status for the job summary: the next fixture with no record yet, when its windows open, whether
+    one is open now, fixtures whose primary window closed with no record at all (missed), and fixtures
+    that only got a fallback record."""
     fx = upcoming_fixtures(refresh=False) if fixtures is None else fixtures
     done = _logged() if logged is None else logged
-    fx = fx.assign(opens=fx["kickoff_utc"] - pd.Timedelta(hours=horizon_h + window_h),
-                   closes=fx["kickoff_utc"] - pd.Timedelta(hours=horizon_h))
-    fx["logged"] = [(int(i), horizon_h, _ko(k)) in done for i, k in zip(fx["fpl_fixture"], fx["kickoff_utc"])]
-    pending = fx[~fx["logged"] & (fx["closes"] > now)].sort_values("opens")
-    missed = fx[~fx["logged"] & (fx["closes"] <= now) & (fx["kickoff_utc"] > now - pd.Timedelta(days=3))
-                & (fx["kickoff_utc"] >= A4_EFFECTIVE)]
-    out = {"now": now.isoformat(), "window_open_now": bool(((pending["opens"] <= now)).any()),
-           "missed": [int(i) for i in missed["fpl_fixture"]], "next": None}
+    first = max(h + w for h, w in LOG_HORIZONS)
+    fx = fx.assign(opens=fx["kickoff_utc"] - pd.Timedelta(hours=first),
+                   primary_opens=fx["kickoff_utc"] - pd.Timedelta(hours=HORIZON_H + WINDOW_H),
+                   closes=fx["kickoff_utc"] - pd.Timedelta(hours=HORIZON_H))
+    key = [(int(i), _ko(k)) for i, k in zip(fx["fpl_fixture"], fx["kickoff_utc"])]
+    have = {(f, k) for f, h, k in done}
+    have_primary = {(f, k) for f, h, k in done if h == HORIZON_H}
+    fx["any"] = [k in have for k in key]
+    fx["primary"] = [k in have_primary for k in key]
+    recent = (fx["kickoff_utc"] > now - pd.Timedelta(days=3)) & (fx["kickoff_utc"] >= A4_EFFECTIVE)
+    pending = fx[~fx["any"] & (fx["closes"] > now)].sort_values("opens")
+    out = {"now": now.isoformat(), "window_open_now": bool((pending["opens"] <= now).any()),
+           "missed": [int(i) for i in fx.loc[~fx["any"] & (fx["closes"] <= now) & recent, "fpl_fixture"]],
+           "fallback_only": [int(i) for i in fx.loc[fx["any"] & ~fx["primary"] & (fx["closes"] <= now) & recent, "fpl_fixture"]],
+           "next": None}
     if len(pending):
         n = pending.iloc[0]
         out["next"] = {"fpl_fixture": int(n["fpl_fixture"]), "match": f"{n['home_id']} v {n['away_id']}",
                        "kickoff_utc": n["kickoff_utc"].isoformat(), "window_opens_utc": n["opens"].isoformat(),
+                       "primary_window_opens_utc": n["primary_opens"].isoformat(),
                        "window_closes_utc": n["closes"].isoformat(),
                        "hours_to_window": round((n["opens"] - now).total_seconds() / 3600, 1)}
     return out
@@ -240,9 +258,12 @@ def heartbeat_markdown(hb: dict, last_record: str | None) -> str:
     if n:
         when = "open now" if hb["window_open_now"] else f"opens in {n['hours_to_window']} h"
         lines.append(f"- Next fixture to log: {n['match']} (FPL {n['fpl_fixture']}), kickoff {n['kickoff_utc']}; "
-                     f"window {n['window_opens_utc']} to {n['window_closes_utc']} ({when})")
+                     f"fallback window opens {n['window_opens_utc']}, primary {n['primary_window_opens_utc']} to "
+                     f"{n['window_closes_utc']} ({when})")
     else:
         lines.append("- Next fixture to log: none scheduled")
+    if hb.get("fallback_only"):
+        lines.append(f"- Fallback record only (primary window passed): FPL fixtures {hb['fallback_only']}")
     if hb["missed"]:
         lines.append(f"- **Missed (window closed, no record): FPL fixtures {hb['missed']}**")
     return "\n".join(lines) + "\n"
@@ -329,7 +350,7 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
         for name, p in cands.items():
             prob = {"H": p["p_home"], "D": p["p_draw"], "A": p["p_away"]}[y]
             row = {"fpl_fixture": r["fpl_fixture"], "gameweek": r["gameweek"], "horizon_h": r["horizon_h"],
-                   "kickoff_utc": r["kickoff_utc"],
+                   "kickoff_utc": r["kickoff_utc"], "hours_before": r.get("hours_before"),
                    "logged_utc": r["logged_utc"], "candidate": name, "result": y, "log_loss": float(-np.log(prob)),
                    "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"], "superseded": superseded,
                    "pE_basis": pe_basis if name == "pE" else None,
@@ -355,13 +376,23 @@ def _played_kickoffs(season: str = LIVE_SEASON) -> dict[int, str]:
             if x["finished"] and x["kickoff_time"]}
 
 
+def select_records(scores: pd.DataFrame) -> pd.DataFrame:
+    """Amendment A4: one record per fixture. Drop superseded records (moved kickoffs), then use the
+    primary (24-26 h) record where one exists, else the fallback (26-32 h) one."""
+    s = scores
+    if "superseded" in s:
+        s = s[~s["superseded"].astype(bool)]
+    if s.empty:
+        return s
+    best = s.groupby("fpl_fixture")["horizon_h"].min()
+    return s[s["horizon_h"] == s["fpl_fixture"].map(best)]
+
+
 def summarise(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.DataFrame:
     """Per candidate: coverage, lineup accuracy, feature error, and log-loss vs p0
     on the fixtures both have (each fixture counted once; superseded records
     from moved kickoffs are excluded and counted separately)."""
-    s = scores[scores["horizon_h"] == primary_horizon]
-    if "superseded" in s:
-        s = s[~s["superseded"].astype(bool)]
+    s = select_records(scores)
     base = s[s["candidate"] == "p0"].set_index("fpl_fixture")["log_loss"]
     out = []
     for c, g in s.groupby("candidate"):
@@ -378,9 +409,7 @@ def summarise(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.Da
 def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: float = HORIZON_H) -> dict:
     """Amendment A3 reporting: the candidate - p0 mean with fallbacks included (primary), on complete
     cases only (both sources valid), and with each gameweek left out in turn."""
-    s = scores[scores["horizon_h"] == primary_horizon]
-    if "superseded" in s:
-        s = s[~s["superseded"].astype(bool)]
+    s = select_records(scores)
     ll = s.pivot_table(index="fpl_fixture", columns="candidate", values="log_loss")
     if candidate not in ll or "p0" not in ll:
         return {}
@@ -406,15 +435,28 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
     return out
 
 
+def by_hours_before(scores: pd.DataFrame, bands=((24, 26), (26, 32)), primary_horizon: float = HORIZON_H) -> pd.DataFrame:
+    """Amendment A4: each candidate - p0 by how long before kickoff the record was made."""
+    s = select_records(scores)
+    if "hours_before" not in s or s["hours_before"].isna().all():
+        return pd.DataFrame()
+    base = s[s["candidate"] == "p0"].set_index("fpl_fixture")["log_loss"]
+    out = []
+    for lo, hi in bands:
+        b = s[(s["hours_before"] >= lo) & (s["hours_before"] < hi)]
+        for c, g in b.groupby("candidate"):
+            d = g.set_index("fpl_fixture")["log_loss"] - base.reindex(g["fpl_fixture"]).to_numpy()
+            out.append({"hours_before": f"{lo}-{hi}", "candidate": c, "n": len(g), "minus_p0": float(d.mean())})
+    return pd.DataFrame(out)
+
+
 def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> pd.DataFrame:
     """Pre-registered secondary analysis (amendment A2). For each lineup source:
     capture = 1 - mean((predicted XI feature - confirmed XI feature)^2) / var(confirmed feature),
     over team-matches; confirmed_gain = controlled_confirmed_xi - p0 log-loss on the same fixtures;
     implied_gain = capture * confirmed_gain, compared with the observed source - p0 gain.
     The feature error is measured per team-match, so it is far less noisy than log-loss."""
-    s = scores[scores["horizon_h"] == primary_horizon]
-    if "superseded" in s:
-        s = s[~s["superseded"].astype(bool)]
+    s = select_records(scores)
     ll = s.pivot_table(index="fpl_fixture", columns="candidate", values="log_loss")
     out = []
     for src in ("ffs", "rotowire", "fpl_proj", "fpl_proj_hist"):
@@ -436,8 +478,7 @@ def fit_alpha(scores: pd.DataFrame, through_gameweek: int, known_before: pd.Time
     """alpha in [0, 1] minimising log-loss of (1-a) p0 + a pE on gameweeks <= through_gameweek.
     Fitted once (not walk-forward) at the end of the fitting period and frozen. Defaults to 0 when
     the fit is degenerate: fewer than ALPHA_MIN_FIXTURES fixtures, or a flat log-loss curve."""
-    if "superseded" in scores:
-        scores = scores[~scores["superseded"].astype(bool)]
+    scores = select_records(scores)
     if known_before is not None:  # amendment A3: only results known before the first evaluation cutoff
         scores = scores[pd.to_datetime(scores["kickoff_utc"], utc=True) + RESULT_LAG <= known_before]
     s = scores[(scores["gameweek"] <= through_gameweek) & scores["candidate"].isin(["p0", "pE"])]

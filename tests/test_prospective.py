@@ -188,14 +188,71 @@ def test_moved_kickoff_is_logged_again_once_and_the_original_is_kept(tmp_path, m
     assert PR.duplicate_keys(log) == []
 
 
-def test_heartbeat_reports_next_window_and_misses_after_a4():
-    fx = _fx(["2026-11-21 12:30", "2026-11-21 15:00"])
-    # 13:00 on the 20th: fixture 1's window (04:30-12:30) has closed without a record; fixture 2's is open
-    hb = PR.heartbeat(pd.Timestamp("2026-11-20 13:00", tz="UTC"), window_h=8.0, fixtures=fx, logged=set())
-    assert hb["missed"] == [1] and hb["next"]["fpl_fixture"] == 2 and hb["window_open_now"]
-    # once fixture 1 is logged it is no longer reported as missed
-    done = {(1, 24.0, PR._ko("2026-11-21 12:30Z"))}
-    assert PR.heartbeat(pd.Timestamp("2026-11-20 13:00", tz="UTC"), window_h=8.0, fixtures=fx, logged=done)["missed"] == []
-    # misses before amendment A4 took effect are in the operations log and are not re-reported
-    old = _fx(["2026-11-08 14:00"])
-    assert PR.heartbeat(pd.Timestamp("2026-11-08 05:00", tz="UTC"), window_h=8.0, fixtures=old, logged=set())["missed"] == []
+def _simulate_both(tmp_path, monkeypatch, fixtures, run_times):
+    """Both A4 windows, as log_due runs them: one record per window a fixture is due in."""
+    log = tmp_path / "log2.jsonl"
+    monkeypatch.setattr(PR, "LOG", log)
+    for t in run_times:
+        for h, w in PR.LOG_HORIZONS:
+            for f in PR.due_fixtures(t, h, w, fixtures=fixtures).itertuples():
+                with log.open("a") as fh:
+                    fh.write(_json.dumps({"fpl_fixture": int(f.fpl_fixture), "horizon_h": h,
+                                          "kickoff_utc": f.kickoff_utc.isoformat(),
+                                          "hours_before": (f.kickoff_utc - t).total_seconds() / 3600}) + "\n")
+    return [_json.loads(x) for x in log.read_text().splitlines()], log
+
+
+def test_every_30_minutes_gives_a_fresh_primary_and_an_early_fallback(tmp_path, monkeypatch):
+    fx = _fx(["2026-11-21 12:30", "2026-11-21 15:00", "2026-11-23 20:00"])
+    runs = pd.date_range("2026-11-19 00:00", "2026-11-23 20:00", freq="30min", tz="UTC")
+    recs, log = _simulate_both(tmp_path, monkeypatch, fx, runs)
+    assert PR.duplicate_keys(log) == []
+    for i in (1, 2, 3):
+        hb = sorted(r["hours_before"] for r in recs if r["fpl_fixture"] == i)
+        assert len(hb) == 2 and 24 < hb[0] <= 26 and 26 < hb[1] <= 32
+
+
+def test_gameweek_10_gaps_still_leave_a_record_for_every_fixture(tmp_path, monkeypatch):
+    runs = pd.to_datetime(["2026-11-05 21:06", "2026-11-06 02:34", "2026-11-06 11:10", "2026-11-06 18:06",
+                           "2026-11-06 23:17", "2026-11-07 02:55", "2026-11-07 10:27", "2026-11-07 16:54",
+                           "2026-11-07 20:58", "2026-11-08 00:46"], utc=True)
+    # the nine gameweek-10 kickoffs after the first scheduled run (fixture 94's window came before it)
+    fx = _fx(["2026-11-07 12:30", "2026-11-07 15:00", "2026-11-07 15:00", "2026-11-07 17:30", "2026-11-08 14:00",
+              "2026-11-08 14:00", "2026-11-08 14:00", "2026-11-08 14:00", "2026-11-08 16:30"])
+    recs, _ = _simulate_both(tmp_path, monkeypatch, fx, runs)
+    assert {r["fpl_fixture"] for r in recs} == set(range(1, 10))
+
+
+def test_scoring_uses_the_primary_record_and_falls_back_otherwise():
+    rows = []
+    for fix, horizons in ((1, (24.0, 26.0)), (2, (26.0,))):
+        for h in horizons:
+            for c in ("p0", "pE"):
+                rows.append({"fpl_fixture": fix, "horizon_h": h, "candidate": c, "superseded": False})
+    sel = PR.select_records(pd.DataFrame(rows))
+    assert set(sel.loc[sel.fpl_fixture == 1, "horizon_h"]) == {24.0}
+    assert set(sel.loc[sel.fpl_fixture == 2, "horizon_h"]) == {26.0}
+    assert len(sel) == 4
+
+
+def test_heartbeat_reports_next_window_misses_and_fallback_only():
+    fx = _fx(["2026-11-21 12:30", "2026-11-21 15:00", "2026-11-21 17:30"])
+    now = pd.Timestamp("2026-11-20 13:00", tz="UTC")
+    fb = {(2, 26.0, PR._ko("2026-11-21 15:00Z"))}  # fixture 2 got only a fallback record
+    hb = PR.heartbeat(now, fixtures=fx, logged=fb)
+    assert hb["missed"] == [1]  # fixture 1: primary window closed at 12:30 with no record at all
+    assert hb["fallback_only"] == []  # fixture 2's primary window is still open
+    assert hb["next"]["fpl_fixture"] == 3 and hb["window_open_now"]
+    later = PR.heartbeat(pd.Timestamp("2026-11-20 15:30", tz="UTC"), fixtures=fx, logged=fb)
+    assert later["fallback_only"] == [2]
+    old = _fx(["2026-11-08 14:00"])  # before A4: already in the operations log, not re-reported
+    assert PR.heartbeat(pd.Timestamp("2026-11-08 05:00", tz="UTC"), fixtures=old, logged=set())["missed"] == []
+
+
+def test_results_split_by_hours_before_kickoff():
+    s = _scores(n=40).assign(superseded=False)
+    s["hours_before"] = np.where(s["fpl_fixture"] < 15, 25.0, 30.0)
+    t = PR.by_hours_before(s)
+    assert set(t["hours_before"]) == {"24-26", "26-32"}
+    assert t[(t.candidate == "p0")]["minus_p0"].abs().max() == 0
+    assert t.groupby("hours_before")["n"].max().to_dict() == {"24-26": 15, "26-32": 25}

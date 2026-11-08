@@ -1,7 +1,7 @@
 name: Prospective forecast log
 
-# Logs each fixture's forecasts once, while its kickoff is 24-32 h ahead (docs/PROSPECTIVE_PROTOCOL.md,
-# amendment A4), and commits the log back to main.
+# Logs a primary forecast for each fixture while its kickoff is 24-26 h ahead, and a fallback while it is
+# 26-32 h ahead (docs/PROSPECTIVE_PROTOCOL.md, amendment A4), and commits the log back to main.
 #
 # Triggers (operations, not protocol):
 #   - primary: an external cron service (cron-job.org) calls workflow_dispatch every 30 minutes;

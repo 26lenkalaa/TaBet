@@ -98,28 +98,40 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
     if args.now and not args.dry_run:
         raise SystemExit("--now is only allowed with --dry-run (a real record's cutoff is the run time)")
     now = pd.Timestamp(args.now, tz="UTC") if args.now else None
-    recs = log_due(now=now, horizon_h=args.horizon, window_h=args.window, dry_run=args.dry_run)
+    from .prospective import LOG_HORIZONS
+    horizons = ((args.horizon, args.window),) if args.horizon is not None or args.window is not None else LOG_HORIZONS
+    if len(horizons) == 1 and None in horizons[0]:
+        raise SystemExit("--horizon and --window go together")
+    recs = log_due(now=now, horizons=horizons, dry_run=args.dry_run)
     if args.dry_run:
-        print(f"{len(recs)} fixture(s) due:", [f"{r['fpl_fixture']} {r['home_id']} v {r['away_id']} "
-                                              f"(kickoff {pd.Timestamp(r['kickoff_utc']):%Y-%m-%d %H:%M})" for r in recs])
+        role = {24.0: "primary", 26.0: "fallback"}
+        print(f"{len(recs)} record(s) due:", [f"{r['fpl_fixture']} {r['home_id']} v {r['away_id']} "
+                                              f"(kickoff {pd.Timestamp(r['kickoff_utc']):%Y-%m-%d %H:%M}, "
+                                              f"{role.get(r['horizon_h'], r['horizon_h'])})" for r in recs])
     else:
         print(f"logged {len(recs)} fixture(s)")
     return 0
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
-    from .prospective import decomposition, robustness, score, summarise
+    from .prospective import by_hours_before, decomposition, robustness, score, select_records, summarise
     s = score()
     if s.empty:
         print("nothing to score yet")
         return 0
     print(summarise(s, args.horizon).round(4).to_string(index=False))
+    sel = select_records(s).drop_duplicates("fpl_fixture")
+    print(f"scored fixtures: {len(sel)}; from fallback records (26-32 h): {(sel['horizon_h'] != 24.0).mean():.0%}")
     if "superseded" in s:
         print(f"superseded records (kickoff moved after logging): {s.loc[s.superseded, 'fpl_fixture'].nunique()}")
     d = decomposition(s, args.horizon)
     if len(d):
         print("\nXI-feature decomposition (secondary, amendment A2):")
         print(d.round(4).to_string(index=False))
+    bh = by_hours_before(s, primary_horizon=args.horizon)
+    if len(bh):
+        print("\nBy hours before kickoff (amendment A4):")
+        print(bh.round(4).to_string(index=False))
     rb = robustness(s, "pE", args.horizon)
     if rb:
         print("\npE - p0 robustness (amendment A3):", {k: v for k, v in rb.items() if k != "leave_one_gameweek_out"})
@@ -211,12 +223,12 @@ def main(argv: list[str] | None = None) -> int:
     f.add_argument("--no-lineups", action="store_true")
     f.set_defaults(func=cmd_forecast)
 
-    from .prospective import HORIZON_H, WINDOW_H
-    lg = sub.add_parser("log-forecasts", help="log fixtures whose kickoff is 24-32 h ahead (amendment A4); safe to run often")
-    lg.add_argument("--horizon", type=float, default=HORIZON_H, help="minimum hours before kickoff (protocol)")
-    lg.add_argument("--window", "--every", dest="window", type=float, default=WINDOW_H,
-                    help="window width in hours: a fixture is due while its kickoff is horizon to horizon + window "
-                         "hours ahead (protocol value, amendment A4). Not the run interval; --every is a deprecated alias")
+    lg = sub.add_parser("log-forecasts", help="log primary (24-26 h) and fallback (26-32 h) records for due fixtures "
+                                              "(amendment A4); safe to run often")
+    lg.add_argument("--horizon", type=float, default=None,
+                    help="with --window: log a single window instead of the protocol's two (testing only)")
+    lg.add_argument("--window", "--every", dest="window", type=float, default=None,
+                    help="window width in hours for --horizon. Not the run interval; --every is a deprecated alias")
     lg.add_argument("--dry-run", action="store_true", help="list the fixtures a run would log; fetches only the FPL fixture list and logs nothing")
     lg.add_argument("--now", help="with --dry-run only: pretend the run happens at this UTC time, e.g. 2026-11-20T05:00")
     hb = sub.add_parser("heartbeat", help="print logger status as Markdown (for the Actions job summary)")
