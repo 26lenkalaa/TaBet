@@ -67,12 +67,16 @@ jobs:
             warm)          python -m tabet forecast --gameweeks 1 ;;
             *)             python -m tabet log-forecasts ;;
           esac
+      - name: Refresh the match explorer's data (daily, or when a forecast was logged)
+        if: env.MODE == 'log' || env.MODE == 'score'
+        continue-on-error: true   # the site data must never block the forecast log
+        run: python -m tabet site-data --if-stale 20
       - name: Commit log
         if: env.MODE == 'log' || env.MODE == 'score'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add results/prospective res/ results/lineup_snapshots 2>/dev/null || true
+          git add results/prospective res/ results/lineup_snapshots site/data 2>/dev/null || true
           if git diff --cached --quiet; then echo "Nothing new to commit."; exit 0; fi
           git commit -m "Prospective log: $MODE at $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase origin main
