@@ -660,8 +660,8 @@ change the conclusion, since Elo alone already trails Dixon-Coles.
 
 | # | Idea | Data | What it fixes | Simpler alternative to beat |
 |---|---|---|---|---|
-| R1 | **Reset returning teams:** if a team missed the previous PL season, drop or heavily shrink its old ratings and treat it as newly promoted | have | Stale ratings (Burnley 2025-26) | current decayed ratings |
-| R2 | **Slower early reaction for promoted sides:** a larger L2 penalty on a promoted team's ratings for its first N matches, shrinking toward the promoted prior instead of league average; penalty learned on earlier cohorts | have | Over-reaction to 2–3 results (Sunderland, Hull) | shared offset (D1) |
+| R1 | **[done, §5.22: worse]** **Reset returning teams:** if a team missed the previous PL season, drop or heavily shrink its old ratings and treat it as newly promoted | have | Stale ratings (Burnley 2025-26) | current decayed ratings |
+| R2 | **[done, §5.22: worse]** **Slower early reaction for promoted sides:** a larger L2 penalty on a promoted team's ratings for its first N matches, shrinking toward the promoted prior instead of league average; penalty learned on earlier cohorts | have | Over-reaction to 2–3 results (Sunderland, Hull) | shared offset (D1) |
 | R3 | **Pool five second tiers:** Championship, Segunda, Serie B, 2. Bundesliga and Ligue 2 (football-data files confirmed available) give about 15 promotions a season instead of 3, to learn "second-tier strength → first-season top-flight rating", with league intercepts; scored on PL only | free, not yet ingested | Too few cohorts (§5.15) | PL-only mapping |
 | R4 | **Squad-based prior:** minutes-weighted player ratings of the promoted squad plus summer signings, using the §5.12 mapping for arrivals. The Hugging Face archive lists Championship player tables (not yet validated); it ends mid-2025-26, so live use needs another source | partly free | The prior knows nothing about who is in the squad | R1 + R2 |
 | R6 | **Long history for the Championship mapping:** football-data has Premier League and Championship results with shots on target from 2000-01 (checked), about 75 promotion cohorts instead of 18. Refit the §5.15 mapping (Championship SoT and goal strength → first-season PL attack and defence, used as the prior mean the L2 penalty shrinks toward), trained only on earlier promotions | free, confirmed available | §5.15 failed for lack of cohorts, not necessarily signal | shared offset (D1) and no prior |
@@ -672,6 +672,36 @@ settle this. Results-only ideas (R1, R2, R3, R5, R6) can use 2000-01 onward, rou
 early-promoted matches, with older seasons for choices and later ones scored once. I would pre-register a primary contrast on
 early-promoted matches pooled over 2016-26, plus all matches, so that a gain for promoted teams
 cannot hide a loss elsewhere.
+
+### 5.22 Alternative team-strength models (pre-registered, addendum M)
+
+One file per model in `tabet/alt/`, each compared with frozen Dixon-Coles (D0) on identical fixtures.
+Five primaries on clean 2018-21 (n 1,140), so a model counts as better only if the Bonferroni 99%
+14-day block interval excludes 0.
+
+| Model | 2018-21 (99% interval) | Early promoted 2018-21 (n 86) | 2024-26 | Inside V2x, 2024-26 |
+|---|---|---|---|---|
+| **Bivariate Poisson goals** (same ratings, shared goal component) | **−0.0028 [−0.0051, −0.0005]: passes** | −0.0025 | +0.0009 | n/a (grid only) |
+| Negative binomial goals | −0.0001 [−0.0003, +0.0001] | 0.0000 | 0.0000 | n/a |
+| Returning-team reset (R1) | +0.0008 [−0.0001, +0.0023] | +0.0086 | +0.0011 | +0.0014 |
+| Reset + shared promoted offset | +0.0035 [+0.0003, +0.0069] (worse) | +0.0108 | −0.0018 | −0.0007 |
+| Hierarchical Bayesian DC (R2; Laplace; tighter first-season prior, lam_new 100) | +0.0063 [−0.0000, +0.0126] | +0.0155 | −0.0020 | −0.0018 |
+| Elo blend (§5.20, for reference) | −0.0009 (95% [−0.0030, +0.0009]) | — | +0.0020 | — |
+
+Reading:
+- **Bivariate Poisson passed the pre-registered test** on clean data, but does not repeat on recent
+  seasons (2022-24 −0.0003, 2024-26 +0.0009, 2026-27 +0.0015). Its fitted shared component is near
+  zero on recent data. Treated as a lead to confirm prospectively, not adopted.
+- **Negative binomial collapses to Poisson** (fitted size r at the upper bound): no over-dispersion.
+- **The promoted-team fixes did not help.** On clean data the reset, the reset with an offset and
+  the Bayesian model are all worse, including on early-promoted matches (small n). On recent seasons
+  the offset versions are slightly better on 2024-26 but clearly worse on 2026-27, when promoted
+  sides started well. The Sunderland-type misses look more like ordinary noise in a small subgroup
+  than a fixable structural error, at least with results-only information.
+- **Bayesian averaging adds nothing** beyond the mode (BH vs BH-mode within 0.0001).
+- **Two bugs in the Bayesian model were fixed before results were saved** (every team flagged as new
+  in the earliest season; an unidentified offset early in a season). Both are recorded in addendum
+  M. The clean-data result was +0.0063 before and after.
 
 ## 6. Known weaknesses and open questions
 
