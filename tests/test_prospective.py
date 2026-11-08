@@ -256,3 +256,18 @@ def test_results_split_by_hours_before_kickoff():
     assert set(t["hours_before"]) == {"24-26", "26-32"}
     assert t[(t.candidate == "p0")]["minus_p0"].abs().max() == 0
     assert t.groupby("hours_before")["n"].max().to_dict() == {"24-26": 15, "26-32": 25}
+
+
+def test_nothing_due_keeps_columns_and_a_real_run_exits_cleanly(tmp_path, monkeypatch):
+    """Regression: with no fixture in any window, due_fixtures returned a frame with no columns and
+    log_due crashed on d["fpl_fixture"] (every non-dry run between gameweeks failed)."""
+    monkeypatch.setattr(PR, "LOG", tmp_path / "log.jsonl")
+    fx = _fx(["2026-11-21 12:30"])
+    now = pd.Timestamp("2026-11-08 13:37", tz="UTC")  # nothing due for 12 days
+    due = PR.due_fixtures(now, fixtures=fx)
+    assert due.empty and "fpl_fixture" in due.columns
+    monkeypatch.setattr(PR, "upcoming_fixtures", lambda refresh=True: fx)
+    monkeypatch.setattr(PR, "snapshot_live_xg", lambda now: None)
+    assert PR.log_due(now=now) == []          # real run, nothing due: no crash, nothing written
+    assert PR.log_due(now=now, dry_run=True) == []
+    assert not (tmp_path / "log.jsonl").exists()
