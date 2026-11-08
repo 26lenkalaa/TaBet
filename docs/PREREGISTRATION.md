@@ -107,3 +107,8 @@ which makes the promoted-group offset collinear with the scoring level. Fixed to
 `promoted_team_seasons` (no team is "new" in the earliest season). This changes only the Bayesian
 model; its pre-fix clean result (+0.0063 vs D0, 95% [+0.0016, +0.0109], lam_new = 100) is reported
 alongside the corrected one. The other models are unchanged by the fix.
+*Second correction (2026-11-08), before results were saved:* early in the first scored recent
+season the training data held no promoted-team matches, so the group offset was unidentified and
+its Laplace variance unbounded, giving non-finite forecasts. When no promoted-team matches are in
+training, the offset is now held at 0 and not sampled (what the Dixon-Coles promoted model does).
+This cannot occur on the clean 2018-21 data, whose results are unchanged.

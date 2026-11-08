@@ -105,10 +105,14 @@ class BayesDC:
         p0 = np.zeros(5 + 2 * n)
         p0[0] = np.log(max((w * (x + y)).sum() / (2 * w.sum()), 0.1))
         bounds = [(None, None), (None, None), (-RHO_BOUND, RHO_BOUND)] + [(None, None)] * (2 + 2 * n)
+        identified = (ph.sum() + pa.sum()) > 0
+        if not identified:  # no promoted-team matches in training yet: hold the offset at 0 (as Dixon-Coles D1 does)
+            bounds[3] = bounds[4] = (0.0, 0.0)
         res = minimize(f, p0, jac=True, method="L-BFGS-B", bounds=bounds, options={"maxiter": 3000})
         mode = res.x
-        # Laplace: Hessian by central differences of the analytic gradient (rho held at its mode)
-        free = np.r_[0, 1, np.arange(3, 5 + 2 * n)]
+        # Laplace: Hessian by central differences of the analytic gradient (rho held at its mode; the
+        # group offset is also held fixed when the data cannot identify it)
+        free = np.r_[0, 1, np.arange(3, 5 + 2 * n)] if identified else np.r_[0, 1, np.arange(5, 5 + 2 * n)]
         H = np.empty((len(free), len(free)))
         eps = 1e-5
         for j, k in enumerate(free):
