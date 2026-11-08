@@ -133,7 +133,9 @@ def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: floa
     lo, hi = now + pd.Timedelta(hours=horizon_h), now + pd.Timedelta(hours=horizon_h + window_h)
     due = fx[(fx["kickoff_utc"] >= lo) & (fx["kickoff_utc"] < hi)]
     done = _logged()
-    return due[[(int(i), horizon_h, _ko(k)) not in done for i, k in zip(due["fpl_fixture"], due["kickoff_utc"])]]
+    keep = np.array([(int(i), horizon_h, _ko(k)) not in done for i, k in zip(due["fpl_fixture"], due["kickoff_utc"])],
+                    dtype=bool)
+    return due[keep]  # a boolean array keeps the columns even when nothing is due (a plain [] would drop them)
 
 
 def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float], ...] = LOG_HORIZONS,
