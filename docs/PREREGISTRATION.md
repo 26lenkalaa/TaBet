@@ -88,3 +88,14 @@ on earlier matches only. **Primary:** S2 − frozen Dixon-Coles on the clean 201
 (n = 1,140); confirmed if the mean is below 0 and the 14-day block bootstrap interval excludes 0.
 Early-season, shorter-half-life, no-summer and recent-season contrasts are secondary; the stage-2
 comparison with adjusted xG is reported, not decisive.
+
+## Addendum M (2026-11-08, committed before the run): alternative team-strength models
+
+Specified in full in the header of `prototypes/run_alt_models.py`; one file per model in
+`tabet/alt/` (returning-team reset, hierarchical Bayesian Dixon-Coles with a Laplace approximation,
+negative binomial and bivariate Poisson goals). Each is compared with the frozen Dixon-Coles model on
+the clean 2018-21 results (n = 1,140). With five primary contrasts, a model counts as better only if
+its mean is below 0 **and** the Bonferroni 99% 14-day block interval excludes 0. Early-promoted
+matches, recent seasons and the effect inside the main V1x/V2x model are secondary. The only tuned
+choice is the Bayesian model's first-season prior strength, picked on dev seasons. The Elo blend
+was run earlier (addendum E) and is not repeated.
