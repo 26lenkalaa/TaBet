@@ -64,6 +64,11 @@ a:hover { text-decoration-color: var(--ink); }
 .crumbs { display: flex; gap: 2px; align-items: center; color: var(--ink); min-width: 0; }
 .crumbs span { padding: 2px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .crumbs .sep { color: var(--faint); padding: 0 2px; }
+.topnav { display: flex; align-items: center; gap: 4px; }
+.navlink { font-size: 14px; color: var(--ink); text-decoration: none; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--line); white-space: nowrap; }
+.navlink:hover { background: var(--hover); }
+.theme { white-space: nowrap; }
+@media (max-width: 520px) { .crumbs .sep, .crumbs span:nth-child(3) { display: none; } }
 .theme { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
 .theme:hover { background: var(--hover); }
 
@@ -159,7 +164,7 @@ blockquote { margin: 8px 0; padding: 2px 14px; border-left: 3px solid var(--ink)
 
 <div class="topbar">
   <div class="crumbs"><span>TaBet</span><span class="sep">/</span><span>Model notebook</span></div>
-  <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button>
+  <div class="topnav"><a class="navlink" href="/matches">Match explorer</a><button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button></div>
 </div>
 
 <div class="cover" aria-hidden="true">
@@ -197,7 +202,7 @@ blockquote { margin: 8px 0; padding: 2px 14px; border-left: 3px solid var(--ink)
       <p>None of them beats the betting market yet. The best one, which also knows the starting lineups, closes about half the gap between our simplest model and the market.</p>
     </div>
   </div>
-  <p><a href="matches.html">Open the match explorer</a> to look up any match since 2022-23, or an upcoming one, and compare our forecast with the betting market and the result.</p>
+  <p><a href="/matches"><strong>Open the match explorer</strong></a> to look up any match since 2022-23, or an upcoming one, and compare our forecast with the betting market and the result.</p>
 
   <h2>Scoreboard</h2>
   <p>All models are scored on the same matches, using only information available before kickoff. The bar is how far each one is from the closing betting odds, so a shorter bar is better.</p>
