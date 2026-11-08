@@ -88,3 +88,36 @@ on earlier matches only. **Primary:** S2 − frozen Dixon-Coles on the clean 201
 (n = 1,140); confirmed if the mean is below 0 and the 14-day block bootstrap interval excludes 0.
 Early-season, shorter-half-life, no-summer and recent-season contrasts are secondary; the stage-2
 comparison with adjusted xG is reported, not decisive.
+
+## Addendum E (2026-11-05, committed before the run): Elo blend (F14)
+
+Specified in full in the header of `prototypes/run_elo_blend.py` (model in `tabet/elo.py`).
+Results-only Elo with an ordered-logit outcome mapping, blended linearly with Dixon-Coles; K and
+the blend weight chosen on development seasons only. **Primary:** blend(DC, Elo) − DC on the
+clean 2018-21 results (n = 1,140); confirmed if the mean is below 0 and the 14-day block
+bootstrap interval excludes 0. Secondary: Elo alone − DC, and blends with V0 and V1x on recent
+seasons (reused validation).
+
+## Addendum M (2026-11-08, committed before the run): alternative team-strength models
+
+Specified in full in the header of `prototypes/run_alt_models.py`; one file per model in
+`tabet/alt/` (returning-team reset, hierarchical Bayesian Dixon-Coles with a Laplace approximation,
+negative binomial and bivariate Poisson goals). Each is compared with the frozen Dixon-Coles model on
+the clean 2018-21 results (n = 1,140). With five primary contrasts, a model counts as better only if
+its mean is below 0 **and** the Bonferroni 99% 14-day block interval excludes 0. Early-promoted
+matches, recent seasons and the effect inside the main V1x/V2x model are secondary. The only tuned
+choice is the Bayesian model's first-season prior strength, picked on dev seasons. The Elo blend
+was run earlier (addendum E) and is not repeated.
+*Correction to addendum M before the scored results were written (2026-11-08):* the first run
+printed results but crashed before saving them, and showed non-finite Bayesian forecasts on recent
+seasons. Cause: the Bayesian model treated every team's first season *in the data* as the first
+season of its spell, flagging all teams as promoted in the earliest season (2015-16 / 2021-22),
+which makes the promoted-group offset collinear with the scoring level. Fixed to match
+`promoted_team_seasons` (no team is "new" in the earliest season). This changes only the Bayesian
+model; its pre-fix clean result (+0.0063 vs D0, 95% [+0.0016, +0.0109], lam_new = 100) is reported
+alongside the corrected one. The other models are unchanged by the fix.
+*Second correction (2026-11-08), before results were saved:* early in the first scored recent
+season the training data held no promoted-team matches, so the group offset was unidentified and
+its Laplace variance unbounded, giving non-finite forecasts. When no promoted-team matches are in
+training, the offset is now held at 0 and not sampled (what the Dixon-Coles promoted model does).
+This cannot occur on the clean 2018-21 data, whose results are unchanged.

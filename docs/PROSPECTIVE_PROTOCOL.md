@@ -183,7 +183,11 @@ From a further external review. `results/prospective/log.jsonl` was still empty.
    ratings, FPL availability, both lineup pages) is fetched in that run, so there is no separate
    assembly step and no input is older than the run itself. Each source's own "last updated" text
    is kept where it shows one.
-5. **Reporting.** The primary contrast includes fallback fixtures, so it measures the forecast a
+5. **Reporting.** The paired normal SE is the primary uncertainty measure at this sample size; a
+   gameweek-clustered SE with a t reference on (gameweeks − 1) degrees of freedom is the
+   sensitivity check, and the 14-day block bootstrap is reported as well. If α is fitted at 0,
+   pα equals p0 and the result is reported as "the fit chose no lineup weight", with pE − p0
+   carrying the information. The primary contrast includes fallback fixtures, so it measures the forecast a
    user would actually get. Alongside it: source coverage, the fallback rate, the complete-case
    contrast (both sources valid), and the contrast with each gameweek left out in turn. With 14-day
    blocks the evaluation window holds only about five blocks, so no source "winner" is declared

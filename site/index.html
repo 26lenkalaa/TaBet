@@ -408,6 +408,45 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </details>
 
+  <h2>Other models compared with ours</h2>
+  <p>Four approaches (six versions), each tested against our current team ratings (Dixon-Coles) on the same matches. The main test uses 1,140 matches from 2018-19 to 2020-21, seasons never used for any earlier decision. Negative numbers mean the new model was better.</p>
+
+  <div class="db-title"><span aria-hidden="true">🔬</span>Model comparison <span class="view">Table</span></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Model</th><th class="num">2018-21</th><th class="num wide">2024-26</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Bivariate Poisson goals<span class="note">Same ratings; lets the two teams' goal counts move together</span></td><td class="num">−0.0028</td><td class="num wide">+0.0009</td><td><span class="tag t-yellow">Passed, not repeated</span></td></tr>
+        <tr><td class="name">Negative binomial goals<span class="note">Same ratings; allows more lopsided scorelines</span></td><td class="num">−0.0001</td><td class="num wide">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
+        <tr><td class="name">Elo blend<span class="note">Mix in a simple Elo rating</span></td><td class="num">−0.0009</td><td class="num wide">+0.0020</td><td><span class="tag t-gray">No effect</span></td></tr>
+        <tr><td class="name">Returning-team reset<span class="note">Clubs back after a season away start fresh</span></td><td class="num">+0.0008</td><td class="num wide">+0.0011</td><td><span class="tag t-red">Slightly worse</span></td></tr>
+        <tr><td class="name">Reset + promoted-team start<span class="note">Fresh start below average for promoted sides</span></td><td class="num">+0.0035</td><td class="num wide">−0.0018</td><td><span class="tag t-red">Worse</span></td></tr>
+        <tr><td class="name">Bayesian Dixon-Coles<span class="note">Tracks how sure we are of each rating</span></td><td class="num">+0.0063</td><td class="num wide">−0.0020</td><td><span class="tag t-red">Worse</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
+
+  <div class="callout">
+    <div class="e" aria-hidden="true">🧭</div>
+    <div>
+      <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
+    </div>
+  </div>
+
+  <details>
+    <summary><span class="tri"><svg viewBox="0 0 10 10"><path d="M2 1l6 4-6 4z"/></svg></span><span class="lab">How each alternative works</span></summary>
+    <div class="tbody">
+      <ul>
+        <li><strong>Bivariate Poisson goals.</strong> Our model treats the two teams' goal counts as independent, apart from a small fix for low scores. This version adds a shared part, so in games that open up both sides tend to score more. The team ratings are unchanged.</li>
+        <li><strong>Negative binomial goals.</strong> Allows more spread in goals than a Poisson count. The data pushed it straight back to Poisson, so it changed nothing.</li>
+        <li><strong>Returning-team reset.</strong> A club that comes back after a season or more away (Burnley, Leeds, Ipswich) gets a fresh rating instead of its old one from a different squad.</li>
+        <li><strong>Reset + promoted-team start.</strong> As above, but every promoted side starts from how promoted teams have usually done, rather than league average.</li>
+        <li><strong>Bayesian Dixon-Coles.</strong> Keeps track of how uncertain each rating is, pulls promoted teams' early ratings harder toward a promoted-team average so a few results can't swing them, and averages forecasts over that uncertainty.</li>
+      </ul>
+    </div>
+  </details>
+
   <h2>Reading the numbers</h2>
   <p><strong>Log-loss</strong> scores the probability a model gave to what actually happened. If the model said 50% and the home team won, the score is −log(0.5) ≈ 0.69. If it said 20% and the home team won, the score is −log(0.2) ≈ 1.61. Confident wrong answers cost the most. Lower is better.</p>
   <p>Differences look tiny because football is mostly luck. Giving each outcome a one-in-three chance scores 1.10. The whole gap between our simplest model and the betting market is 0.015, so a change of 0.003 is a fifth of that gap.</p>
