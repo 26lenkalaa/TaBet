@@ -99,3 +99,11 @@ its mean is below 0 **and** the Bonferroni 99% 14-day block interval excludes 0.
 matches, recent seasons and the effect inside the main V1x/V2x model are secondary. The only tuned
 choice is the Bayesian model's first-season prior strength, picked on dev seasons. The Elo blend
 was run earlier (addendum E) and is not repeated.
+*Correction to addendum M before the scored results were written (2026-11-08):* the first run
+printed results but crashed before saving them, and showed non-finite Bayesian forecasts on recent
+seasons. Cause: the Bayesian model treated every team's first season *in the data* as the first
+season of its spell, flagging all teams as promoted in the earliest season (2015-16 / 2021-22),
+which makes the promoted-group offset collinear with the scoring level. Fixed to match
+`promoted_team_seasons` (no team is "new" in the earliest season). This changes only the Bayesian
+model; its pre-fix clean result (+0.0063 vs D0, 95% [+0.0016, +0.0109], lam_new = 100) is reported
+alongside the corrected one. The other models are unchanged by the fix.

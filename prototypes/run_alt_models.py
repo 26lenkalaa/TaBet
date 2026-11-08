@@ -157,7 +157,8 @@ for k in ("R2a", "R2b", "BH-mode"):
             res["recent"]["main_model"][f"{main} with {k} - {main} | {pname}"] = r
             print(f"  {main} with {k:7s} - {main} {pname:14s} n={r['n']:4d} {r['mean']:+.4f} [{r['ci95'][0]:+.4f}, {r['ci95'][1]:+.4f}]")
 
-res["elo_blend_reference"] = json.loads((ROOT / "results/elo_blend/results.json").read_text())["clean"]["primary blend-DC"]
+elo = ROOT / "results/elo_blend/results.json"  # lives on another branch until it is merged
+res["elo_blend_reference"] = json.loads(elo.read_text())["clean"]["primary blend-DC"] if elo.exists() else None
 for name, P in (("clean", Ph), ("recent", Pr)):
     pd.concat([v.assign(model=k) for k, v in P.items()]).to_csv(out / f"ledger_{name}.csv", index=False)
 (out / "results.json").write_text(json.dumps(res, indent=2, default=float))

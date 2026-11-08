@@ -151,6 +151,8 @@ class BayesDC:
         m[:, 1, 1] *= 1 - rho
         m /= m.sum(axis=(1, 2), keepdims=True)
         m = m.mean(axis=0)
+        if not np.isfinite(m).all():
+            raise FloatingPointError(f"non-finite score grid for {home} v {away}")
         return np.array([np.tril(m, -1).sum(), np.trace(m), np.triu(m, 1).sum()]), float(lh0[0]), float(la0[0])
 
 
@@ -158,6 +160,10 @@ def walk_forward(matches: pd.DataFrame, eval_seasons: tuple[str, ...], lam_new: 
     """Per matchday: fit on earlier results (spell-relabelled), predict with and without averaging."""
     m = relabel(matches)
     first_season = m.melt(id_vars="season", value_vars=["home_id", "away_id"]).groupby("value")["season"].min().to_dict()
+    # The first season in the data cannot tell us who was promoted (as in promoted_team_seasons), so no
+    # team is "new" in it. Flagging every team there makes the group offset collinear with mu.
+    earliest = m["season"].min()
+    first_season = {t: s for t, s in first_season.items() if s != earliest}
     store = MatchStore(m)
     target = m[m["season"].isin(eval_seasons) & (m["status"] == "completed")]
     day = target["kickoff_utc"].dt.tz_convert(LOCAL_TZ).dt.date
