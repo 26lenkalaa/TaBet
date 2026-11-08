@@ -107,3 +107,95 @@ def test_robustness_reports_complete_case_and_leave_one_gameweek_out():
     r = robustness(s)
     assert r["n"] == 80 and r["n_complete"] == 60
     assert set(r["leave_one_gameweek_out"]) == set(s["gameweek"].unique())
+
+
+# ---- amendment A4: window [24, 24 + W) h, separate from the run interval ----
+import json as _json  # noqa: E402
+
+import tabet.prospective as PR  # noqa: E402
+
+
+def _fx(kickoffs):
+    return pd.DataFrame({"fpl_fixture": list(range(1, len(kickoffs) + 1)),
+                         "kickoff_utc": pd.to_datetime(kickoffs, utc=True),
+                         "home_id": "h", "away_id": "a", "gameweek": 11})
+
+
+def _simulate(tmp_path, monkeypatch, fixtures, run_times, window_h):
+    """Run due_fixtures at each time, appending a minimal record for each due fixture, as log_due does."""
+    log = tmp_path / "log.jsonl"
+    monkeypatch.setattr(PR, "LOG", log)
+    logged = {}
+    for t in run_times:
+        t = pd.Timestamp(t, tz="UTC") if pd.Timestamp(t).tzinfo is None else pd.Timestamp(t)
+        due = PR.due_fixtures(t, window_h=window_h, fixtures=fixtures)
+        with log.open("a") as fh:
+            for f in due.itertuples():
+                fh.write(_json.dumps({"fpl_fixture": int(f.fpl_fixture), "horizon_h": PR.HORIZON_H,
+                                      "kickoff_utc": f.kickoff_utc.isoformat(), "logged_utc": t.isoformat()}) + "\n")
+                logged.setdefault(int(f.fpl_fixture), []).append(t)
+    return logged, log
+
+
+def test_fixture_is_logged_by_the_first_run_inside_the_window(tmp_path, monkeypatch):
+    fx = _fx(["2026-11-21 12:30"])
+    runs = pd.date_range("2026-11-20 00:00", "2026-11-21 12:00", freq="30min", tz="UTC")
+    logged, _ = _simulate(tmp_path, monkeypatch, fx, runs, window_h=8.0)
+    # the window is half-open, kickoff in [now + 24, now + 32): a run at exactly kickoff - 32 h is outside,
+    # so with 30-minute runs the first one inside is 05:00
+    assert logged[1] == [pd.Timestamp("2026-11-20 05:00", tz="UTC")]
+
+
+def test_fixture_is_never_logged_twice(tmp_path, monkeypatch):
+    fx = _fx(["2026-11-21 12:30", "2026-11-21 15:00", "2026-11-22 14:00"])
+    runs = pd.date_range("2026-11-19 00:00", "2026-11-22 14:00", freq="30min", tz="UTC")
+    logged, log = _simulate(tmp_path, monkeypatch, fx, runs, window_h=8.0)
+    assert all(len(v) == 1 for v in logged.values()) and len(logged) == 3
+    assert PR.duplicate_keys(log) == []
+
+
+def test_a_7_5_hour_gap_still_catches_every_fixture_when_the_window_is_8_hours(tmp_path, monkeypatch):
+    # kickoffs spread across a day; runs only every 7.5 h (worse than GitHub's gameweek-10 gaps)
+    fx = _fx(list(pd.date_range("2026-11-21 00:00", periods=48, freq="30min")))
+    runs = pd.date_range("2026-11-19 00:17", "2026-11-21 00:00", freq="450min", tz="UTC")
+    logged, _ = _simulate(tmp_path, monkeypatch, fx, runs, window_h=8.0)
+    assert sorted(logged) == list(range(1, 49))
+    for i, ts in logged.items():
+        ko = fx.set_index("fpl_fixture").loc[i, "kickoff_utc"]
+        assert pd.Timedelta(hours=24) < ko - ts[0] <= pd.Timedelta(hours=32)
+
+
+def test_a_two_hour_window_misses_fixtures_with_the_same_gaps(tmp_path, monkeypatch):
+    fx = _fx(list(pd.date_range("2026-11-21 00:00", periods=48, freq="30min")))
+    runs = pd.date_range("2026-11-19 00:17", "2026-11-21 00:00", freq="450min", tz="UTC")
+    logged, _ = _simulate(tmp_path, monkeypatch, fx, runs, window_h=2.0)
+    assert len(logged) < 48  # the gameweek-10 failure mode, reproduced
+
+
+def test_moved_kickoff_is_logged_again_once_and_the_original_is_kept(tmp_path, monkeypatch):
+    log = tmp_path / "log.jsonl"
+    monkeypatch.setattr(PR, "LOG", log)
+    first = _fx(["2026-11-21 12:30"])
+    for t in pd.date_range("2026-11-20 04:00", "2026-11-20 06:00", freq="30min", tz="UTC"):
+        for f in PR.due_fixtures(t, window_h=8.0, fixtures=first).itertuples():
+            log.open("a").write(_json.dumps({"fpl_fixture": 1, "horizon_h": 24.0, "kickoff_utc": f.kickoff_utc.isoformat()}) + "\n")
+    moved = _fx(["2026-11-22 16:30"])  # broadcaster moves the match after it was logged
+    for t in pd.date_range("2026-11-20 06:30", "2026-11-21 16:30", freq="30min", tz="UTC"):
+        for f in PR.due_fixtures(t, window_h=8.0, fixtures=moved).itertuples():
+            log.open("a").write(_json.dumps({"fpl_fixture": 1, "horizon_h": 24.0, "kickoff_utc": f.kickoff_utc.isoformat()}) + "\n")
+    recs = [_json.loads(x) for x in log.read_text().splitlines()]
+    assert [r["kickoff_utc"][:16] for r in recs] == ["2026-11-21T12:30", "2026-11-22T16:30"]
+    assert PR.duplicate_keys(log) == []
+
+
+def test_heartbeat_reports_next_window_and_misses_after_a4():
+    fx = _fx(["2026-11-21 12:30", "2026-11-21 15:00"])
+    # 13:00 on the 20th: fixture 1's window (04:30-12:30) has closed without a record; fixture 2's is open
+    hb = PR.heartbeat(pd.Timestamp("2026-11-20 13:00", tz="UTC"), window_h=8.0, fixtures=fx, logged=set())
+    assert hb["missed"] == [1] and hb["next"]["fpl_fixture"] == 2 and hb["window_open_now"]
+    # once fixture 1 is logged it is no longer reported as missed
+    done = {(1, 24.0, PR._ko("2026-11-21 12:30Z"))}
+    assert PR.heartbeat(pd.Timestamp("2026-11-20 13:00", tz="UTC"), window_h=8.0, fixtures=fx, logged=done)["missed"] == []
+    # misses before amendment A4 took effect are in the operations log and are not re-reported
+    old = _fx(["2026-11-08 14:00"])
+    assert PR.heartbeat(pd.Timestamp("2026-11-08 05:00", tz="UTC"), window_h=8.0, fixtures=old, logged=set())["missed"] == []

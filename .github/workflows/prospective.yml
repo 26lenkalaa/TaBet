@@ -1,12 +1,20 @@
 name: Prospective forecast log
 
-# Logs each fixture's forecasts once, 24-26 h before kickoff (docs/PROSPECTIVE_PROTOCOL.md),
-# and commits the log back to main. Most hourly runs find nothing due and finish in about a minute.
+# Logs each fixture's forecasts once, while its kickoff is 24-32 h ahead (docs/PROSPECTIVE_PROTOCOL.md,
+# amendment A4), and commits the log back to main.
+#
+# Triggers (operations, not protocol):
+#   - primary: an external cron service (cron-job.org) calls workflow_dispatch every 30 minutes;
+#     dispatched runs start within about a minute. Setup: docs/LOGGER_SETUP.md.
+#   - backup: GitHub's own schedule below. In gameweek 10 GitHub started these only every 4-8 h,
+#     so they are a safety net, not the main trigger.
+# Extra runs are harmless: the concurrency group runs one job at a time, a queued job checks out main
+# after the previous one has pushed, and log_due() re-reads the log before appending.
+# Budget: 48 dispatched runs/day (~1,440 min/month) + at most 12 backup runs/day (~360) is within the
+# 2,000 private-repo minutes of GitHub Free. Most runs find nothing due and bill one minute.
 on:
   schedule:
-    # Minute changed from :17 on 2026-11-05: the first schedule never fired, and editing the
-    # workflow on main makes GitHub register the schedule again.
-    - cron: "23 * * * *"
+    - cron: "23 */2 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -17,6 +25,8 @@ on:
 
 permissions:
   contents: write
+  issues: write
+  actions: read
 
 concurrency:
   group: prospective-log
@@ -28,10 +38,13 @@ jobs:
     timeout-minutes: 30
     env:
       MODE: ${{ inputs.mode || 'log' }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - name: Make sure the log is the latest one on main
+        run: git pull --ff-only origin main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -63,4 +76,35 @@ jobs:
           if git diff --cached --quiet; then echo "Nothing new to commit."; exit 0; fi
           git commit -m "Prospective log: $MODE at $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase origin main
+          python -m tabet check-log   # refuse to push if any fixture/kickoff now appears twice
           git push origin HEAD:main
+      - name: Heartbeat
+        if: always()
+        run: |
+          python -m tabet heartbeat --json > heartbeat.txt || { echo "heartbeat failed" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          sed '$d' heartbeat.txt >> "$GITHUB_STEP_SUMMARY"
+          tail -n 1 heartbeat.txt > heartbeat.json
+      - name: Alert on a missed fixture or a long gap between runs
+        if: always() && hashFiles('heartbeat.json') != ''
+        run: |
+          missed=$(jq -r '.missed | join(", ")' heartbeat.json)
+          open_now=$(jq -r '.window_open_now' heartbeat.json)
+          # previous successful run of this workflow (excluding this one)
+          prev=$(gh api "repos/${{ github.repository }}/actions/workflows/prospective.yml/runs?status=success&per_page=5" \
+                 --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }})][0].created_at // empty")
+          gap_h=""
+          if [ -n "$prev" ]; then gap_h=$(( ( $(date -u +%s) - $(date -u -d "$prev" +%s) ) / 3600 )); fi
+          reason=""
+          if [ -n "$missed" ]; then reason="Fixture(s) $missed passed their logging window without a record."; fi
+          if [ "$open_now" = "true" ] && [ -n "$gap_h" ] && [ "$gap_h" -ge 3 ]; then
+            reason="$reason No successful run for ${gap_h} h before this one while a logging window is open; check the external trigger."
+          fi
+          if [ -z "$reason" ]; then echo "No alert."; exit 0; fi
+          title="Prospective logger alert"
+          if gh issue list --state open --search "in:title \"$title\"" --json number --jq 'length' | grep -qv '^0$'; then
+            gh issue comment "$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')" \
+              --body "$(date -u +%Y-%m-%dT%H:%MZ): $reason Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          else
+            gh issue create --title "$title" \
+              --body "$(date -u +%Y-%m-%dT%H:%MZ): $reason Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi

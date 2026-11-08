@@ -1,7 +1,12 @@
 """Prospective forecast log and scoring (docs/PROSPECTIVE_PROTOCOL.md).
 
-log_due():  run hourly. Each fixture is logged once per kickoff time, by the
-            first run that finds it 24-26 h before kickoff: the results file is
+log_due():  run every SCHEDULE_EVERY_H (an external trigger every 30 min, with
+            GitHub's own schedule as a backup). Each fixture is logged once per
+            kickoff time, by the first run that finds its kickoff in
+            [now + HORIZON_H, now + HORIZON_H + WINDOW_H), i.e. 24-32 h ahead
+            under amendment A4. The run interval and the window are separate
+            settings: the window is a protocol value, the interval is how often
+            something checks. The results file is
             refreshed, forecasts are made at that moment, and one JSON record per
             fixture is appended to results/prospective/log.jsonl. A fixture whose
             kickoff moves after it was logged is logged again against the new
@@ -46,8 +51,9 @@ from .validate import has_errors, validate
 ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = ROOT / "results" / "prospective"
 LOG = LOG_DIR / "log.jsonl"
-HORIZON_H = 24.0
-RUN_EVERY_H = 2.0
+HORIZON_H = 24.0       # protocol: forecasts are made at least this long before kickoff
+WINDOW_H = 8.0         # protocol (amendment A4): a fixture is due while its kickoff is 24-32 h ahead
+SCHEDULE_EVERY_H = 0.5  # operations only: how often a run is triggered (external cron, 30 min)
 RESULTS_URL = "https://football-data.co.uk/mmz4281/2627/E0.csv"
 RESULTS_FILE = ROOT / "res" / "Premier League 26-27.csv"
 CANDIDATES = ("p0", "ffs", "rotowire", "pE", "fpl_proj", "fpl_proj_hist")
@@ -115,17 +121,19 @@ def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
     return dest
 
 
-def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, every_h: float = RUN_EVERY_H) -> pd.DataFrame:
-    """Fixtures whose kickoff - horizon falls in [now, now + every_h): this run is
-    the last scheduled run at or before their forecast time."""
-    fx = upcoming_fixtures(refresh=True)
-    lo, hi = now + pd.Timedelta(hours=horizon_h), now + pd.Timedelta(hours=horizon_h + every_h)
+def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
+                 fixtures: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Fixtures whose kickoff lies in [now + horizon_h, now + horizon_h + window_h) and that have no
+    record yet for that kickoff. The first run inside the window logs a fixture; later runs in the
+    same window find it already logged. `fixtures` is for tests; by default the live FPL list."""
+    fx = upcoming_fixtures(refresh=True) if fixtures is None else fixtures
+    lo, hi = now + pd.Timedelta(hours=horizon_h), now + pd.Timedelta(hours=horizon_h + window_h)
     due = fx[(fx["kickoff_utc"] >= lo) & (fx["kickoff_utc"] < hi)]
     done = _logged()
     return due[[(int(i), horizon_h, _ko(k)) not in done for i, k in zip(due["fpl_fixture"], due["kickoff_utc"])]]
 
 
-def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every_h: float = RUN_EVERY_H,
+def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
             dry_run: bool = False) -> list[dict]:
     now = (now or pd.Timestamp.now(tz="UTC")).floor("min")
     if not dry_run:
@@ -133,7 +141,7 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every
             snapshot_live_xg(now)
         except Exception as e:
             print(f"xG snapshot failed ({e})")
-    due = due_fixtures(now, horizon_h, every_h)
+    due = due_fixtures(now, horizon_h, window_h)
     if due.empty or dry_run:
         return due.to_dict("records") if dry_run else []
     results_refreshed = refresh_results()
@@ -178,10 +186,66 @@ def log_due(now: pd.Timestamp | None = None, horizon_h: float = HORIZON_H, every
         }
         records.append(rec)
     LOG_DIR.mkdir(parents=True, exist_ok=True)
+    done = _logged()  # re-read just before appending: never write a key that is already there
+    records = [r for r in records if (r["fpl_fixture"], r["horizon_h"], _ko(r["kickoff_utc"])) not in done]
     with LOG.open("a") as fh:
         for r in records:
             fh.write(json.dumps(r, default=str) + "\n")
     return records
+
+
+def duplicate_keys(path: Path = LOG) -> list[tuple]:
+    """(fixture, horizon, kickoff) keys that appear more than once in the log (should be none)."""
+    if not path.exists():
+        return []
+    keys = [(r["fpl_fixture"], r["horizon_h"], _ko(r["kickoff_utc"])) for r in map(json.loads, path.read_text().splitlines())]
+    seen, dup = set(), []
+    for k in keys:
+        if k in seen:
+            dup.append(k)
+        seen.add(k)
+    return dup
+
+
+A4_EFFECTIVE = pd.Timestamp("2026-11-19", tz="UTC")  # misses before this are in the operations log
+
+
+def heartbeat(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
+              fixtures: pd.DataFrame | None = None, logged: set | None = None) -> dict:
+    """Status for the job summary: the next fixture still to be logged, when its window opens and
+    closes, whether a window is open now, and fixtures whose window closed without a record."""
+    fx = upcoming_fixtures(refresh=False) if fixtures is None else fixtures
+    done = _logged() if logged is None else logged
+    fx = fx.assign(opens=fx["kickoff_utc"] - pd.Timedelta(hours=horizon_h + window_h),
+                   closes=fx["kickoff_utc"] - pd.Timedelta(hours=horizon_h))
+    fx["logged"] = [(int(i), horizon_h, _ko(k)) in done for i, k in zip(fx["fpl_fixture"], fx["kickoff_utc"])]
+    pending = fx[~fx["logged"] & (fx["closes"] > now)].sort_values("opens")
+    missed = fx[~fx["logged"] & (fx["closes"] <= now) & (fx["kickoff_utc"] > now - pd.Timedelta(days=3))
+                & (fx["kickoff_utc"] >= A4_EFFECTIVE)]
+    out = {"now": now.isoformat(), "window_open_now": bool(((pending["opens"] <= now)).any()),
+           "missed": [int(i) for i in missed["fpl_fixture"]], "next": None}
+    if len(pending):
+        n = pending.iloc[0]
+        out["next"] = {"fpl_fixture": int(n["fpl_fixture"]), "match": f"{n['home_id']} v {n['away_id']}",
+                       "kickoff_utc": n["kickoff_utc"].isoformat(), "window_opens_utc": n["opens"].isoformat(),
+                       "window_closes_utc": n["closes"].isoformat(),
+                       "hours_to_window": round((n["opens"] - now).total_seconds() / 3600, 1)}
+    return out
+
+
+def heartbeat_markdown(hb: dict, last_record: str | None) -> str:
+    lines = ["### Prospective logger heartbeat", "", f"- Run time: {hb['now']}",
+             f"- Last logged record: {last_record or 'none yet'}"]
+    n = hb["next"]
+    if n:
+        when = "open now" if hb["window_open_now"] else f"opens in {n['hours_to_window']} h"
+        lines.append(f"- Next fixture to log: {n['match']} (FPL {n['fpl_fixture']}), kickoff {n['kickoff_utc']}; "
+                     f"window {n['window_opens_utc']} to {n['window_closes_utc']} ({when})")
+    else:
+        lines.append("- Next fixture to log: none scheduled")
+    if hb["missed"]:
+        lines.append(f"- **Missed (window closed, no record): FPL fixtures {hb['missed']}**")
+    return "\n".join(lines) + "\n"
 
 
 # ---- scoring -----------------------------------------------------------------
