@@ -269,8 +269,9 @@ record no rule changes.
    07:00 and 13:00 UK time, which is before most clubs' Friday press conferences. So the lineup
    forecasts can be worth less in fallback records, and the primary/fallback mix depends on the
    scheduler. Every pE − p0 and pα − p0 result is also reported separately for primary and fallback
-   records, and, where a source's "last updated" text parses as a time, by hours between that update
-   and the record. Descriptive.
+   records, and, where a source's "last updated" text parses as a date (the sources show a date such
+   as "Tue 3rd Nov", not a time), by whether that update was on the record's own UK date or earlier.
+   Descriptive.
 2. **α's uncertainty.** α is still fitted once on gameweeks 10–19 (A2, A3). Reported with it: a
    likelihood interval (every α on the 0.01 grid whose summed log-loss is within 1.92 of the
    minimum), and the evaluation contrast at α = 0, 0.5 and 1 as sensitivity. If α is fitted at 1,

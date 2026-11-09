@@ -271,3 +271,44 @@ def test_nothing_due_keeps_columns_and_a_real_run_exits_cleanly(tmp_path, monkey
     assert PR.log_due(now=now) == []          # real run, nothing due: no crash, nothing written
     assert PR.log_due(now=now, dry_run=True) == []
     assert not (tmp_path / "log.jsonl").exists()
+
+
+# ---- amendment A5 ---------------------------------------------------------
+from tabet.alt.goal_distributions import _hda3, bp_grid  # noqa: E402
+from tabet.prospective import alpha_report, by_record_role, robustness, _updated_days  # noqa: E402
+
+
+def test_source_update_date_is_read_as_days_before_the_record():
+    upd = {"ffs:leeds": "Tue 3rd Nov", "ffs:tottenham": "Wed 4th Nov", "rotowire:leeds": "no date"}
+    assert _updated_days(upd, "ffs", "2026-11-04T15:00:00+00:00") == 1.0
+    assert _updated_days(upd, "rotowire", "2026-11-04T15:00:00+00:00") is None
+    assert _updated_days({"ffs:x": "Thu 31st Dec"}, "ffs", "2027-01-01T10:00:00+00:00") == 1.0
+
+
+def test_results_are_split_by_record_role():
+    s = _scores(80)
+    s.loc[s["fpl_fixture"] % 2 == 1, "horizon_h"] = 26.0
+    t = by_record_role(s, candidates=("pE",)).set_index("split")
+    assert t.loc["record primary", "n"] == 40 and t.loc["record fallback", "n"] == 40
+
+
+def test_alpha_report_gives_an_interval_containing_alpha_and_evaluation_sensitivity():
+    s = _scores(800)
+    r = alpha_report(s, through_gameweek=19, eval_gameweeks=(20, 29))
+    assert r["interval"][0] <= r["alpha"] <= r["interval"][1]
+    assert r["eval_minus_p0"]["0.0"] == pytest.approx(0.0)
+    assert r["eval_minus_p0"]["1.0"] < 0  # pE carries real signal in this simulation
+
+
+def test_robustness_reports_a_gameweek_sign_flip_p_value_and_works_for_pBP():
+    s = _scores(200)
+    s.loc[s["candidate"] == "pE", "candidate"] = "pBP"
+    r = robustness(s, "pBP")
+    assert 0 < r["sign_flip_p_gameweek"] <= 1 and r["n_gameweeks"] == 5
+
+
+def test_bivariate_poisson_grid_sums_to_one_and_more_draws_with_shared_goals():
+    lh, la = np.array([1.5]), np.array([1.1])
+    p_ind = _hda3(bp_grid(lh, la, 1e-9))[0]
+    p_bp = _hda3(bp_grid(lh, la, 0.15))[0]
+    assert p_bp.sum() == pytest.approx(1.0) and p_bp[1] > p_ind[1]

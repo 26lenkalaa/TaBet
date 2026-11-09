@@ -114,7 +114,8 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
-    from .prospective import by_hours_before, decomposition, robustness, score, select_records, summarise
+    from .prospective import (alpha_report, by_hours_before, by_record_role, decomposition, robustness, score,
+                              select_records, summarise)
     s = score()
     if s.empty:
         print("nothing to score yet")
@@ -136,6 +137,16 @@ def cmd_score_forecasts(args: argparse.Namespace) -> int:
     if rb:
         print("\npE - p0 robustness (amendment A3):", {k: v for k, v in rb.items() if k != "leave_one_gameweek_out"})
         print("  leave one gameweek out:", {g: round(v, 4) for g, v in rb["leave_one_gameweek_out"].items()})
+    rr = by_record_role(s)
+    if len(rr):
+        print("\nBy record type and lineup-source age (amendment A5):")
+        print(rr.round(4).to_string(index=False))
+    bp = robustness(s, "pBP", args.horizon)
+    if bp:
+        n_rec = select_records(s).drop_duplicates("fpl_fixture").shape[0]
+        print(f"\npBP - p0 (secondary, amendment A5; {n_rec - bp['n']} scored fixture(s) without pBP):",
+              {k: v for k, v in bp.items() if k != "leave_one_gameweek_out"})
+    print("\nalpha (amendment A5):", alpha_report(s))
     return 0
 
 

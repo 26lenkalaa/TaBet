@@ -713,6 +713,47 @@ Reading:
   in the earliest season; an unidentified offset early in a season). Both are recorded in addendum
   M. The clean-data result was +0.0063 before and after.
 
+### 5.23 Fifth review: bivariate Poisson on four leagues, table stakes, amendment A5
+
+Both offline tests were pre-registered and committed before they ran (addenda B and S).
+
+| Test | Primary contrast | Result |
+|---|---|---|
+| **Bivariate Poisson − Dixon-Coles**, La Liga, Serie A, Bundesliga and Ligue 1 pooled, 2022-26 (addendum B) | n 5,562 | −0.0006, 95% [−0.0017, +0.0004]: **not confirmed** |
+| **Table stakes (F6) − V0**, clean 2018-21, matches with a side that has played 29+ (addendum S) | n 273 | +0.0035, 95% [−0.0063, +0.0149]: **not confirmed** (worse on average) |
+
+Bivariate Poisson by league: La Liga −0.0015, Serie A −0.0007, Ligue 1 −0.0023 (95% [−0.0044, −0.0002]),
+Bundesliga +0.0022. 2026-27 so far: −0.0004 (n 362). Negative binomial again equals Poisson (+0.000003).
+The fitted shared rate λ3 is about 0.04–0.17 in Spain, Italy and France and almost 0 in Germany.
+Where λ3 is about 0, the model is a plain Poisson grid without the Dixon-Coles ρ correction, which is
+probably why the Bundesliga is worse. So the contrast mixes "add a shared component" with "drop ρ".
+Together with §5.22 (Premier League 2018-21 passes, 2022-26 does not), the evidence is a small,
+inconsistent gain of about 0.0005–0.003 that no single dataset confirms.
+
+Table stakes: about 23% of sides in qualifying late-season matches were "settled" (unable to cross
+the title, top-4, top-6 or relegation line on points). The fitted effect is mostly on the opponent:
+a team facing a settled side scores about 18% more (final coefficient +0.17), while a settled team's
+own scoring barely moves (−0.01). It does not improve log-loss. 2017-18 (secondary) gives −0.0011,
+and the 91 matches before closed doors give +0.020.
+
+**Data reuse rule, adopted from the review.** Clean 2018-21 has now been scored for six primaries
+(R, D, E, M's five, S). It takes no new ideas from now on: only pre-registered replications of a
+result found elsewhere. 2024-26 counts as development data.
+
+**Amendment A5** (`docs/PROSPECTIVE_PROTOCOL.md`, before the first gameweek-11 record):
+- Every pE − p0 result is also split by primary vs fallback record, and by whether each lineup
+  source updated on the record's own day. A fallback record for a Saturday 15:00 kickoff is made on
+  Friday morning, before most press conferences.
+- α is reported with a likelihood interval and the evaluation contrast at α = 0, 0.5 and 1.
+- For the gameweek 20–38 confirmatory read, the gameweek-clustered SE (t on gameweeks − 1 df) is
+  the primary inference, with a gameweek sign-flip test as a check.
+- **pBP** (same expected goals as p0, bivariate Poisson grid) is logged from gameweek 11 as a
+  secondary prospective contrast. It is the only fresh Premier League test of §5.22's lead.
+
+The reviewer's power estimate (paired SD 0.02–0.03) was optimistic: the measured paired SD is 0.047,
+so a 100-fixture read has an SE near 0.005. This is why the confirmatory read already runs to
+gameweek 38 (amendment A2).
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -760,7 +801,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F3 | **[done, §5.17: null]** **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
 | F4 | **[done, §5.15: null]** **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
 | F5 | **Manager change:** days since a new permanent manager, decayed | stage-2 feature, or faster DC decay after a change | appointment dates [free: Wikipedia lists, not checked] | DC time decay alone |
-| F6 | **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
+| F6 | **[done, §5.23: null]** **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
 | F7 | **Goalkeeper quality:** saves and goals conceded relative to opponent shots on target, shrunk; flag when the usual keeper is out | XI-level feature | FPL saves and goals conceded [have]; no post-shot xG [none] | V2x (outfielders only) |
 | F8 | **Player defensive ratings:** tackles + interceptions, duel win % per 90 for the opponent's back line | XI-level feature | HF 2021-25 [have]; FPL defensive actions 2025-26+ [have] | back-line regularity |
 | F9 | **Penalties and finishing:** split xG into non-penalty xG; penalty-taker absence; shrunk goals-minus-xG | XI-level feature | FPL xG and penalties [have, partial] | V2x |
@@ -769,7 +810,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F12 | **Weather:** rain, wind and temperature at kickoff | stage-2 feature on total goals | Open-Meteo historical [free]; live must use the *forecast*, not the observed value | V1x |
 | F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
 | F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
-| F15 | **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
+| F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 | F16 | **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 

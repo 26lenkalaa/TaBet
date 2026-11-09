@@ -59,7 +59,7 @@ LOG_HORIZONS = ((HORIZON_H, WINDOW_H), (FALLBACK_H, FALLBACK_WINDOW_H))  # (hori
 SCHEDULE_EVERY_H = 0.5    # operations only: how often a run is triggered (external cron, 30 min)
 RESULTS_URL = "https://football-data.co.uk/mmz4281/2627/E0.csv"
 RESULTS_FILE = ROOT / "res" / "Premier League 26-27.csv"
-CANDIDATES = ("p0", "ffs", "rotowire", "pE", "fpl_proj", "fpl_proj_hist")
+CANDIDATES = ("p0", "ffs", "rotowire", "pE", "fpl_proj", "fpl_proj_hist", "pBP")
 XG_SNAP_DIR = LOG_DIR / "xg_snapshots"
 ALPHA_MIN_FIXTURES = 20  # fewer fitting fixtures than this: alpha defaults to 0 (amendment A2)
 
@@ -176,6 +176,8 @@ def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float]
         cands = {"p0": {k: f[k] for k in ("p_home", "p_draw", "p_away")}}
         for src, p in w.get("sources", {}).items():
             cands[src] = {k: p[k] for k in ("p_home", "p_draw", "p_away")}
+        if f.get("bivariate_poisson"):  # secondary contrast pBP - p0 (amendment A5)
+            cands["pBP"] = dict(f["bivariate_poisson"])
         if "source_average" in w:
             cands["pE"] = {k: w["source_average"][k] for k in ("p_home", "p_draw", "p_away")}
         rec = {
@@ -311,6 +313,28 @@ def _lam(rec: dict, side: str, xi_feat: dict) -> float:
     return c[f"dc_rate_{side}"] * float(np.exp(st["coef"][0] + z @ np.array(st["coef"][1:])))
 
 
+def _updated_days(updated: dict, source: str, logged_utc: str) -> float | None:
+    """Amendment A5: whole days between a source's "last updated" date (e.g. "Tue 3rd Nov") and the
+    record's UK date, the larger over the fixture's two teams. None if no text parses."""
+    import re
+    logged = pd.Timestamp(logged_utc).tz_convert("Europe/London")
+    out = []
+    for key, text in updated.items():
+        if key.split(":")[0] != source or not isinstance(text, str):
+            continue
+        mt = re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]{3})", text)
+        if not mt:
+            continue
+        try:
+            d = pd.Timestamp(f"{mt.group(1)} {mt.group(2)} {logged.year}")
+        except ValueError:
+            continue
+        if d.date() > logged.date():  # e.g. "31st Dec" read in January
+            d = d - pd.DateOffset(years=1)
+        out.append(float((pd.Timestamp(logged.date()) - d).days))
+    return max(out) if out else None
+
+
 def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
     if not LOG.exists():
         return pd.DataFrame()
@@ -348,6 +372,7 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
         pe_basis = "+".join(r.get("pE_sources") or [s for s in ("ffs", "rotowire") if s in cands])
         if "pE" not in cands:  # neither source had both XIs: pE falls back to p0 (amendment A2)
             cands["pE"], pe_basis = dict(cands["p0"]), "p0"
+        ages = {src: _updated_days(r.get("source_updated", {}), src, r["logged_utc"]) for src in ("ffs", "rotowire")}
         superseded = _ko(r["kickoff_utc"]) != played_ko.get(r["fpl_fixture"], _ko(r["kickoff_utc"]))
         for name, p in cands.items():
             prob = {"H": p["p_home"], "D": p["p_draw"], "A": p["p_away"]}[y]
@@ -355,7 +380,8 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
                    "kickoff_utc": r["kickoff_utc"], "hours_before": r.get("hours_before"),
                    "logged_utc": r["logged_utc"], "candidate": name, "result": y, "log_loss": float(-np.log(prob)),
                    "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"], "superseded": superseded,
-                   "pE_basis": pe_basis if name == "pE" else None,
+                   "pE_basis": pe_basis if name == "pE" else None, "record_role": r.get("record_role"),
+                   "ffs_updated_days": ages["ffs"], "rotowire_updated_days": ages["rotowire"],
                    "conf_feat_home": act_feat["home"]["f_xi_position"], "conf_feat_away": act_feat["away"]["f_xi_position"]}
             codes = r["lineup_codes"].get(name)
             if codes:
@@ -423,7 +449,8 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
         cc = d[basis == "ffs+rotowire"]
         out.update({"n_complete": int(len(cc)), "mean_complete_case": float(cc.mean()) if len(cc) else None})
     out["leave_one_gameweek_out"] = {int(g): float(d[gw != g].mean()) for g in sorted(gw.unique())}
-    # paired SE (primary at this sample size) and a gameweek-clustered SE with a t reference on G - 1 df
+    # paired SE and a gameweek-clustered SE with a t reference on G - 1 df; the clustered SE is the
+    # primary measure for the gameweek 20-38 confirmatory read (amendment A5), plus a sign-flip test
     from scipy.stats import t as tdist
     out["se_paired"] = float(d.std(ddof=1) / np.sqrt(len(d))) if len(d) > 1 else None
     g = d.groupby(gw.to_numpy())
@@ -432,6 +459,10 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
         resid = (g.sum() - g.size() * d.mean())
         se_c = float(np.sqrt(G / (G - 1) * (resid ** 2).sum()) / len(d))
         q = float(tdist.ppf(0.975, G - 1))
+        sums = g.sum().to_numpy()
+        flips = np.random.default_rng(0).choice([-1.0, 1.0], size=(10_000, G))
+        null = np.abs(flips @ sums)
+        out["sign_flip_p_gameweek"] = float((1 + (null >= abs(sums.sum()) - 1e-12).sum()) / (1 + len(null)))
         out.update({"se_gameweek_clustered": se_c, "ci_gameweek_clustered": [float(d.mean() - q * se_c), float(d.mean() + q * se_c)],
                     "n_gameweeks": int(G)})
     return out
@@ -496,3 +527,64 @@ def fit_alpha(scores: pd.DataFrame, through_gameweek: int, known_before: pd.Time
     if np.ptp(ll) < 1e-12:
         return 0.0
     return float(grid[int(np.argmin(ll))])
+
+
+def by_record_role(scores: pd.DataFrame, candidates=("pE", "pBP")) -> pd.DataFrame:
+    """Amendment A5: candidate - p0 separately for primary and fallback records (the scored record
+    per fixture), and by days since each lineup source last updated."""
+    s = select_records(scores)
+    if s.empty:
+        return pd.DataFrame()
+    role = np.where(s["horizon_h"] == HORIZON_H, "primary", "fallback")
+    s = s.assign(role=role)
+    base = s[s["candidate"] == "p0"].set_index("fpl_fixture")["log_loss"]
+    out = []
+    for c in candidates:
+        g = s[s["candidate"] == c]
+        d = g.set_index("fpl_fixture")["log_loss"] - base.reindex(g["fpl_fixture"]).to_numpy()
+        for r in ("primary", "fallback"):
+            dd = d[(g["role"] == r).to_numpy()]
+            out.append({"candidate": c, "split": f"record {r}", "n": len(dd), "minus_p0": float(dd.mean()) if len(dd) else np.nan})
+        for src in ("ffs", "rotowire"):
+            col = f"{src}_updated_days"
+            if col not in g:
+                continue
+            age = g[col].to_numpy(dtype=float)
+            for lab, m in ((f"{src} updated same day", age == 0), (f"{src} updated 1+ days before", age >= 1)):
+                dd = d[m]
+                out.append({"candidate": c, "split": lab, "n": len(dd), "minus_p0": float(dd.mean()) if len(dd) else np.nan})
+    return pd.DataFrame(out)
+
+
+def alpha_report(scores: pd.DataFrame, through_gameweek: int = 19, known_before: pd.Timestamp | None = None,
+                 eval_gameweeks: tuple[int, int] = (20, 38)) -> dict:
+    """Amendment A5: the fitted alpha, its likelihood interval (grid values whose summed log-loss is
+    within 1.92 of the minimum), and the evaluation contrast pa - p0 at alpha = 0, 0.5 and 1."""
+    a = fit_alpha(scores, through_gameweek, known_before)
+    s = select_records(scores)
+    fit = s
+    if known_before is not None:
+        fit = fit[pd.to_datetime(fit["kickoff_utc"], utc=True) + RESULT_LAG <= known_before]
+    col = {"H": "p_home", "D": "p_draw", "A": "p_away"}
+
+    def probs(df):
+        w = df[df["candidate"].isin(["p0", "pE"])].pivot_table(index=["fpl_fixture", "result"], columns="candidate",
+                                                                values=["p_home", "p_draw", "p_away"]).dropna()
+        y = w.index.get_level_values("result")
+        return (np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)]),
+                np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)]))
+
+    out = {"alpha": a}
+    p0, pe = probs(fit[fit["gameweek"] <= through_gameweek])
+    if len(p0) >= ALPHA_MIN_FIXTURES:
+        grid = np.linspace(0, 1, 101)
+        tot = np.array([-np.log((1 - g) * p0 + g * pe).sum() for g in grid])
+        ok = grid[tot <= tot.min() + 1.92]
+        out.update({"n_fit": int(len(p0)), "interval": [float(ok.min()), float(ok.max())]})
+    lo, hi = eval_gameweeks
+    e0, ee = probs(s[(s["gameweek"] >= lo) & (s["gameweek"] <= hi)])
+    if len(e0):
+        out["eval_minus_p0"] = {str(g): float((-np.log((1 - g) * e0 + g * ee) + np.log(e0)).mean()) for g in (0.0, 0.5, 1.0)}
+        out["n_eval"] = int(len(e0))
+    return out
+
