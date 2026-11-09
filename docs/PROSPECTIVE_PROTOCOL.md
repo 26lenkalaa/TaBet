@@ -257,3 +257,37 @@ must be on `main` before that fixture's first window opens (2026-11-20 04:30 UTC
    with GitHub Pro). Each run bills one minute when nothing is due.
 8. **Analysis.** Gameweek 10 (one record, under the old 24–26 h rule) is reported separately. The
    share of fixtures scored from fallback records is reported alongside every result.
+
+## Amendment A5 (2026-11-09, written before any gameweek-11 record)
+
+From the fifth external review. Items 1–3 change only what is reported and how the confirmatory read
+is judged; item 4 adds one logged candidate. Nothing about p0, pE, α's fitting rule or the record
+windows changes. This must be on `main` before 2026-11-20 04:30 UTC; after the first gameweek-11
+record no rule changes.
+
+1. **Results by record type.** A fallback record for a Saturday 15:00 kickoff is made between Friday
+   07:00 and 13:00 UK time, which is before most clubs' Friday press conferences. So the lineup
+   forecasts can be worth less in fallback records, and the primary/fallback mix depends on the
+   scheduler. Every pE − p0 and pα − p0 result is also reported separately for primary and fallback
+   records, and, where a source's "last updated" text parses as a time, by hours between that update
+   and the record. Descriptive.
+2. **α's uncertainty.** α is still fitted once on gameweeks 10–19 (A2, A3). Reported with it: a
+   likelihood interval (every α on the 0.01 grid whose summed log-loss is within 1.92 of the
+   minimum), and the evaluation contrast at α = 0, 0.5 and 1 as sensitivity. If α is fitted at 1,
+   pα equals pE and is reported that way; α is never refitted.
+3. **Inference for the confirmatory read.** For the gameweek 20–38 read, the **gameweek-clustered SE
+   with a t reference on (gameweeks − 1) degrees of freedom is the primary uncertainty measure**; the
+   paired normal SE and the 14-day block bootstrap are reported beside it. Reason: fixtures in one
+   gameweek share their information timing (same lineup snapshots, same news cycle), and 14-day
+   blocks give too few blocks to bootstrap. A sign-flip test on gameweek sums (10,000 random flips,
+   seed 0) is reported as a check. The gameweek 20–29 read stays descriptive, with both SEs.
+   The measured paired SD (0.047) puts the SE of a 100-fixture read near 0.005, so that read cannot
+   detect the gains in question; this is why the confirmatory read runs to gameweek 38.
+4. **Secondary prospective contrast pBP − p0.** From gameweek 11, each record also stores `pBP`:
+   the same expected goals as p0, turned into a score grid by the bivariate Poisson of addendum M
+   instead of the Dixon-Coles grid, with the shared rate λ3 fitted at the record's cutoff on the
+   training matches' Dixon-Coles rates (decay 0.004 per day). λ3 is stored in `components.bp_l3`.
+   pBP − p0 is read at gameweeks 20–29 (descriptive) and 20–38, with the same inference as item 3.
+   It is not blended into pα and does not affect the primary contrast. If pBP fails for a record,
+   that record lacks it; pBP − p0 is computed on the records that have it and the missing count is
+   reported. Its offline counterpart is addendum B of `docs/PREREGISTRATION.md`.
