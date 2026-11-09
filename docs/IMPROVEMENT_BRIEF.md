@@ -2,10 +2,10 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-05 (late), before gameweek 10. Since the last review: every experiment you
-> suggested has been run (§5.14–5.18, §5.20), the protocol was amended twice before any record was
-> logged (§5.10), and a market comparison was added (§5.19). **The one question this time is newly
-> promoted teams (§5.21, asked in §8).**
+> Last updated 2026-11-08, international break after gameweek 10. Since the last version: four
+> alternative team-strength models were tested, including two of the promoted-team ideas (§5.22);
+> the logging protocol got amendment A4 after GitHub's scheduler missed 9 of 10 gameweek-10
+> fixtures (§5.10). Questions for you are in §8.
 
 ## 1. What the project is
 
@@ -328,12 +328,18 @@ gameweek under each lineup source and their average.
 
 ### 5.10 Prospective protocol for predicted lineups
 
-Written before gameweek 10 and amended twice (A2, A3) before any record was logged.
-Full text: `docs/PROSPECTIVE_PROTOCOL.md`.
+Written before gameweek 10; amended before any record (A2, A3) and before any gameweek-11 record
+(A4). Full text: `docs/PROSPECTIVE_PROTOCOL.md`.
 
-- **Horizon and logging:**
-  - An hourly GitHub Action logs each fixture once, at the first run 24–26 h before kickoff.
-  - A record is keyed by fixture and kickoff. A moved kickoff is logged again, and only the
+- **Horizon and logging (A4, from gameweek 11):**
+  - Each fixture can get a **primary** record (first run finding its kickoff 24–26 h ahead) and a
+    **fallback** record (first run finding it 26–32 h ahead). Every analysis uses one record per
+    fixture: the primary if it exists, otherwise the fallback. Both are kept.
+  - Runs are triggered every 30 minutes by an external cron service calling the workflow's
+    `workflow_dispatch`, with GitHub's schedule as a 2-hourly backup. Simulated on gameweek 11,
+    working triggers give primary records 25.5 h ahead; GitHub's gameweek-10 gaps alone still give
+    a record for every fixture (mostly fallbacks at 26–31 h).
+  - A record is keyed by fixture, horizon and kickoff. A moved kickoff is logged again, and only the
     record matching the kickoff actually played is scored.
   - Every input is fetched in that run, so the record's cutoff is its logged time.
 - **Each record stores:**
@@ -360,9 +366,13 @@ Full text: `docs/PROSPECTIVE_PROTOCOL.md`.
   - Secondary: pE − p0, pα − pE, fpl_proj − fpl_proj_hist, each source − p0, and a pre-registered
     decomposition (implied gain = XI-feature capture × confirmed-XI gain).
   - Robustness: each gameweek left out in turn.
-- **Status:** the first fixture (Everton v Coventry) was missed, because the scheduler first fired
-  after its window. It is not backfilled. The first logged record will be Leeds v Spurs. Live FPL
-  xG is snapshotted daily to measure revisions.
+- **Status:** gameweek 10 produced **1 record out of 10 fixtures.** GitHub started the "hourly"
+  schedule only every 4–8 hours, so most 2-hour windows had no run. The misses are in the
+  operations log and are not backfilled. The one record, Leeds v Tottenham (logged 25.3 h ahead), had
+  p0 44 / 30 / 26 and pE 43 / 29 / 28, against the pre-closing market's 35 / 28 / 37. Leeds won 1-0.
+  Retrospective p0 replays for the missed fixtures exist but are not records, and predicted-lineup
+  candidates cannot be rebuilt for them, because the lineup pages from those hours were not saved.
+  Live FPL xG is snapshotted daily to measure revisions.
 
 ### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
 
@@ -703,6 +713,47 @@ Reading:
   in the earliest season; an unidentified offset early in a season). Both are recorded in addendum
   M. The clean-data result was +0.0063 before and after.
 
+### 5.23 Fifth review: bivariate Poisson on four leagues, table stakes, amendment A5
+
+Both offline tests were pre-registered and committed before they ran (addenda B and S).
+
+| Test | Primary contrast | Result |
+|---|---|---|
+| **Bivariate Poisson − Dixon-Coles**, La Liga, Serie A, Bundesliga and Ligue 1 pooled, 2022-26 (addendum B) | n 5,562 | −0.0006, 95% [−0.0017, +0.0004]: **not confirmed** |
+| **Table stakes (F6) − V0**, clean 2018-21, matches with a side that has played 29+ (addendum S) | n 273 | +0.0035, 95% [−0.0063, +0.0149]: **not confirmed** (worse on average) |
+
+Bivariate Poisson by league: La Liga −0.0015, Serie A −0.0007, Ligue 1 −0.0023 (95% [−0.0044, −0.0002]),
+Bundesliga +0.0022. 2026-27 so far: −0.0004 (n 362). Negative binomial again equals Poisson (+0.000003).
+The fitted shared rate λ3 is about 0.04–0.17 in Spain, Italy and France and almost 0 in Germany.
+Where λ3 is about 0, the model is a plain Poisson grid without the Dixon-Coles ρ correction, which is
+probably why the Bundesliga is worse. So the contrast mixes "add a shared component" with "drop ρ".
+Together with §5.22 (Premier League 2018-21 passes, 2022-26 does not), the evidence is a small,
+inconsistent gain of about 0.0005–0.003 that no single dataset confirms.
+
+Table stakes: about 23% of sides in qualifying late-season matches were "settled" (unable to cross
+the title, top-4, top-6 or relegation line on points). The fitted effect is mostly on the opponent:
+a team facing a settled side scores about 18% more (final coefficient +0.17), while a settled team's
+own scoring barely moves (−0.01). It does not improve log-loss. 2017-18 (secondary) gives −0.0011,
+and the 91 matches before closed doors give +0.020.
+
+**Data reuse rule, adopted from the review.** Clean 2018-21 has now been scored for six primaries
+(R, D, E, M's five, S). It takes no new ideas from now on: only pre-registered replications of a
+result found elsewhere. 2024-26 counts as development data.
+
+**Amendment A5** (`docs/PROSPECTIVE_PROTOCOL.md`, before the first gameweek-11 record):
+- Every pE − p0 result is also split by primary vs fallback record, and by whether each lineup
+  source updated on the record's own day. A fallback record for a Saturday 15:00 kickoff is made on
+  Friday morning, before most press conferences.
+- α is reported with a likelihood interval and the evaluation contrast at α = 0, 0.5 and 1.
+- For the gameweek 20–38 confirmatory read, the gameweek-clustered SE (t on gameweeks − 1 df) is
+  the primary inference, with a gameweek sign-flip test as a check.
+- **pBP** (same expected goals as p0, bivariate Poisson grid) is logged from gameweek 11 as a
+  secondary prospective contrast. It is the only fresh Premier League test of §5.22's lead.
+
+The reviewer's power estimate (paired SD 0.02–0.03) was optimistic: the measured paired SD is 0.047,
+so a 100-fixture read has an SE near 0.005. This is why the confirmatory read already runs to
+gameweek 38 (amendment A2).
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -750,7 +801,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F3 | **[done, §5.17: null]** **Transfer priors in the XI** (finishes §5.12) | replace the position prior for arrivals | [have] for 2022-25 | V2x with position prior |
 | F4 | **[done, §5.15: null]** **Promoted-team prior from Championship data:** shots-on-target strength in the Championship mapped to first PL games by ridge, like §5.12 | prior on attack/defence for promoted sides | football-data E1 CSVs [free, same format] | DC with no prior (a fixed promoted prior already failed) |
 | F5 | **Manager change:** days since a new permanent manager, decayed | stage-2 feature, or faster DC decay after a change | appointment dates [free: Wikipedia lists, not checked] | DC time decay alone |
-| F6 | **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
+| F6 | **[done, §5.23: null]** **Table stakes:** point-in-time gap to relegation, Europe and title places; "nothing to play for" late in the season | stage-2 features, active from about gameweek 30 | [have] (standings from our results) | V1x |
 | F7 | **Goalkeeper quality:** saves and goals conceded relative to opponent shots on target, shrunk; flag when the usual keeper is out | XI-level feature | FPL saves and goals conceded [have]; no post-shot xG [none] | V2x (outfielders only) |
 | F8 | **Player defensive ratings:** tackles + interceptions, duel win % per 90 for the opponent's back line | XI-level feature | HF 2021-25 [have]; FPL defensive actions 2025-26+ [have] | back-line regularity |
 | F9 | **Penalties and finishing:** split xG into non-penalty xG; penalty-taker absence; shrunk goals-minus-xG | XI-level feature | FPL xG and penalties [have, partial] | V2x |
@@ -759,7 +810,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F12 | **Weather:** rain, wind and temperature at kickoff | stage-2 feature on total goals | Open-Meteo historical [free]; live must use the *forecast*, not the observed value | V1x |
 | F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
 | F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
-| F15 | **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
+| F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 | F16 | **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
@@ -771,22 +822,25 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 
 ## 8. What I want from you (the reviewer)
 
-Your previous requests are done (§5.14–5.18 and the Elo blend in §5.20), and the prospective log
-starts at gameweek 10. This
-time I want help with one problem: **forecasting newly promoted and returning teams** (§5.21).
-Please give me:
+Since the last version, two of the promoted-team ideas you might have ranked (R1 reset, R2 slower
+early reaction inside a Bayesian model) were run and were worse (§5.22). A bivariate Poisson goal
+model passed its pre-registered test on clean 2018-21 data but did not repeat on recent seasons. The
+logging protocol was amended (A4). Please give me:
 
-1. **A critique of the diagnosis in §5.21.** Is the problem really early-season over-reaction and
-   stale ratings, or does the evidence point elsewhere (for example promoted sides' home advantage,
-   or ordinary noise in a small subgroup)? What check would distinguish these?
-2. **A ranking of R1–R6** by expected gain per unit of effort, which to combine, and which are likely
-   null. If you would build something not on the list, describe it and the simpler alternative it
-   must beat.
-3. **How to learn the promoted prior with so few cohorts:** whether pooling second tiers (R3) is
-   sound given that leagues differ in strength, and how to set the shrinkage for promoted teams'
-   early matches (R2) without fitting it to the same handful of seasons I evaluate on.
-4. **An evaluation design:** a primary contrast and subgroup definition (first N matches? first
-   season?), how to use 2016-21 as clean data, and the power I can expect.
+1. **Promoted teams after §5.22.** Given that the reset, the shared offset, the Championship slopes
+   and the Bayesian prior all failed, is the remaining evidence (§5.19, §5.21) more consistent with
+   a fixable structural error or with noise in a small subgroup? Are R3 (pooled second tiers), R4
+   (squad-based prior) and R6 (Championship mapping on 2000+ data) still worth running, and in what
+   order? What result would make you stop?
+2. **The bivariate Poisson result.** It improved clean 2018-21 log-loss by 0.0028 (Bonferroni 99%
+   interval excludes 0), but recent seasons show no gain and its shared component is fitted near
+   zero there. Is that a plausible era difference, or a sign the clean result is a fluke? How would
+   you confirm it without reusing the same seasons?
+3. **A critique of amendment A4.** Is scoring "primary if present, else fallback" unbiased, given
+   that a fallback is used only when the trigger fails (which should be unrelated to the match)?
+   Should results be reported separately by record type, or is the hours-before breakdown enough?
+4. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
+   evaluate): at most two experiments, each with the simpler alternative it must beat.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices

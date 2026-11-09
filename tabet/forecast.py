@@ -99,6 +99,19 @@ def proj_usual_codes(hist: pd.DataFrame, cutoff: pd.Timestamp, threshold: float 
     return set(sp.loc[sp["start_prob"] >= threshold, "player_code"].astype(int))
 
 
+def _bp_l3(dc, train: pd.DataFrame, cutoff: pd.Timestamp) -> float | None:
+    """Shared-goal rate of the bivariate Poisson (amendment A5), fitted at the cutoff on the training
+    matches' Dixon-Coles rates with the addendum-M decay. None if the fit fails: pBP is then missing."""
+    try:
+        from .alt.goal_distributions import XI as BP_DECAY, fit_l3
+        lam = np.array([dc.expected_goals(h, a, s) for h, a, s in zip(train["home_id"], train["away_id"], train["season"])])
+        w = np.exp(-BP_DECAY * (cutoff - train["kickoff_utc"]).dt.total_seconds().to_numpy() / 86400)
+        return fit_l3(lam[:, 0], lam[:, 1], train["home_goals"].to_numpy(int), train["away_goals"].to_numpy(int), w / w.mean())
+    except Exception as e:  # never let the secondary contrast stop a forecast
+        print(f"bivariate Poisson fit skipped ({e})")
+        return None
+
+
 def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, refresh: bool = True,
              lineups: bool = True, fixture_ids: list[int] | None = None,
              rows_cache: Path | None = ROOT / "data/processed/forecast_rows.pkl") -> dict:
@@ -115,6 +128,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     store = MatchStore(matches)
     train = store.completed_before(cutoff)
     dc = DixonColes(Hyperparams()).fit(train, cutoff, promoted_team_seasons(matches))
+    bp_l3 = _bp_l3(dc, train, cutoff)
     xg_r, xg_mu, xg_home = fit_xg_strength(known(side_xg(app), cutoff), cutoff, XG_HALF_LIFE)
 
     rows = training_rows(matches, app, rows_cache)
@@ -224,6 +238,11 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         ah, aa = side_adj(f.home_id, f.away_id), side_adj(f.away_id, f.home_id)
         lh, la = lh0 * np.exp(ah), la0 * np.exp(aa)
         base, final = _score_matrix(lh0, la0, dc.rho), _score_matrix(lh, la, dc.rho)
+        bp = None
+        if bp_l3 is not None:  # amendment A5: same expected goals, bivariate Poisson score grid
+            from .alt.goal_distributions import _hda3, bp_grid
+            pbp = _hda3(bp_grid(np.array([lh]), np.array([la]), bp_l3))[0]
+            bp = {"p_home": float(pbp[0]), "p_draw": float(pbp[1]), "p_away": float(pbp[2])}
         top = np.dstack(np.unravel_index(np.argsort(final, axis=None)[::-1][:3], final.shape))[0]
         pb, pf = _hda(base), _hda(final)
         preds.append({
@@ -236,8 +255,8 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
             "p_btts": float(final[1:, 1:].sum()), "p_over_2_5": float(sum(final[i, j] for i in range(MAX_GOALS + 1)
                                                                           for j in range(MAX_GOALS + 1) if i + j > 2)),
             "home_promoted": [f.home_id, f.season] in dc.promoted, "away_promoted": [f.away_id, f.season] in dc.promoted,
-            "with_lineups": xi_preds.get(int(f.fpl_fixture)),
-            "components": {"dc_rate_home": lh0, "dc_rate_away": la0, "rho": dc.rho,
+            "with_lineups": xi_preds.get(int(f.fpl_fixture)), "bivariate_poisson": bp,
+            "components": {"dc_rate_home": lh0, "dc_rate_away": la0, "rho": dc.rho, "bp_l3": bp_l3,
                            "xgadj_home": [float(xg_r["att"].get(f.home_id, 0.0)), -float(xg_r["def"].get(f.away_id, 0.0))],
                            "xgadj_away": [float(xg_r["att"].get(f.away_id, 0.0)), -float(xg_r["def"].get(f.home_id, 0.0))]},
         })
