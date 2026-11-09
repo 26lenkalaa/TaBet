@@ -6,3 +6,5 @@ __pycache__/
 data/processed/
 data/raw/
 *.pkl
+.DS_Store
+.claude/
