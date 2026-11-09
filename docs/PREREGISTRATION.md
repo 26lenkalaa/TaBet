@@ -121,3 +121,54 @@ season the training data held no promoted-team matches, so the group offset was 
 its Laplace variance unbounded, giving non-finite forecasts. When no promoted-team matches are in
 training, the offset is now held at 0 and not sampled (what the Dixon-Coles promoted model does).
 This cannot occur on the clean 2018-21 data, whose results are unchanged.
+
+## Addendum B (2026-11-09, committed before the run): bivariate Poisson on four other leagues
+
+From the fifth external review. The bivariate Poisson passed on clean 2018-21 Premier League data
+(addendum M, −0.0028) but did not repeat on 2024-26. A shared goal component is a property of the
+goal likelihood, not of one league, so this replicates the mechanism on data no goal-distribution
+model has been scored on. It is **not** Premier League evidence (§6.1 of the brief).
+
+- **Data:** La Liga, Serie A, Bundesliga and Ligue 1, 2021-22 → 2026-27 (`res/other_leagues/`).
+  These files were used before only to learn shared shots-on-target coefficients and to tune
+  Dixon-Coles settings, scored on Premier League matches (`prototypes/run_multileague.py`). No
+  forecast *in* these leagues has been scored for a goal-distribution comparison.
+- **Models:** `tabet/alt/goal_distributions.py`, unchanged. Per league, at each matchday: the
+  frozen Dixon-Coles fit (`Hyperparams()` defaults, ratings never shared across leagues); **DC** is
+  its own score grid with ρ; **BP** keeps the same expected goals and replaces the grid with a
+  bivariate Poisson whose shared rate λ3 is fitted at the cutoff by decay-weighted maximum
+  likelihood on that league's training matches. 2021-22 is burn-in (training only).
+- **Single primary:** BP − DC mean log-loss, pooled over the four leagues, on the completed
+  seasons 2022-23 → 2025-26 (about 5,500 matches). Confirmed if the mean is below 0 **and** the 95%
+  14-day calendar-block bootstrap interval (blocks by date across leagues, 2,000 resamples, seed 0)
+  excludes 0.
+- **Secondary, not decisive:** each league separately; 2026-27 so far; negative binomial − DC (the
+  same run produces it); the fitted λ3 over time.
+- **Consequence:** none for p0 or the primary prospective contrast. The result is read next to the
+  secondary prospective contrast pBP − p0 (protocol amendment A5).
+
+## Addendum S (2026-11-09, committed before the run): table stakes (F6)
+
+From the fifth external review. Results only, so it can be tested on the clean 2015-21 data.
+
+- **Feature, per side, from standings built only on results before the cutoff:** `settled` = 1 if
+  the team has played at least 29 league matches and, for each boundary 1/2, 4/5, 6/7 and 17/18,
+  it can no longer cross it on points: a team above a boundary is settled for it if its points
+  exceed every team below the boundary's points + 3 × that team's remaining matches; a team below
+  is settled for it if its points + 3 × its remaining matches are below the points of the team
+  currently on the last place above the boundary. Equal points count as not settled (goal
+  difference is ignored). Otherwise `settled` = 0. Two features per side: own `settled` and the
+  opponent's `settled`.
+- **Model:** V0 Dixon-Coles walk-forward (`Hyperparams()` defaults; 2015-16 burn-in, forecasts
+  from 2016-17), then a stage-2 penalised Poisson on goals per side (`tabet.experiments._fit_poisson`)
+  with offset log(V0 rate) and the two features, **L2 fixed at 10** (no tuning). Stage 2 is
+  refitted at every matchday on all earlier side-rows from 2016-17 on, using their out-of-sample
+  V0 rates; probabilities use the Dixon-Coles grid with that matchday's ρ.
+- **Single primary:** F6 − V0 mean log-loss on 2018-19 → 2020-21 matches where at least one side
+  has played 29 or more matches before the cutoff (about 300 matches). Confirmed if the mean is
+  below 0 **and** the 95% 14-day block bootstrap interval excludes 0.
+- **Reuse, stated plainly:** clean 2018-21 has now been scored for addenda R, D, E and M (five
+  primaries). This is the last new idea sent there; from now on it takes only pre-registered
+  primaries that replicate a result found elsewhere, and 2024-26 counts as development data.
+- **Secondary, not decisive:** 2017-18; 2018-21 excluding matches played behind closed doors
+  (from 2020-06-01); the share of settled sides; the two fitted coefficients over time.
