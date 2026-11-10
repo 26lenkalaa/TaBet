@@ -110,7 +110,39 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
                                               f"{role.get(r['horizon_h'], r['horizon_h'])})" for r in recs])
     else:
         print(f"logged {len(recs)} fixture(s)")
+        _archive_odds(now or pd.Timestamp.now(tz="UTC"))
     return 0
+
+
+def _archive_odds(now, out_dir: Path | None = None, force: bool = False) -> dict:
+    """Amendment A6: archive pre-match odds on every logging run. Benchmark only; runs after the
+    forecasts are logged and can never stop or change them."""
+    from . import odds_archive
+    from .forecast import upcoming_fixtures
+    try:
+        fx = upcoming_fixtures(refresh=False)
+    except Exception as e:
+        print(f"odds archive: no FPL fixture list ({e}); rows are kept unmatched")
+        fx = None
+    try:
+        r = odds_archive.archive(now, fx, out_dir=out_dir or odds_archive.ODDS_DIR, force=force)
+    except Exception as e:
+        print(f"odds archive failed ({e})")
+        return {"status": "error", "error": str(e)}
+    if r["status"] == "ok":
+        print(f"odds archive: {r['n_rows']} rows ({r['n_e0']} E0, {r['n_e0_upcoming']} upcoming E0 fixtures); "
+              f"{'new copy saved ' + r['raw_file'] if r['changed'] else 'unchanged, nothing saved'}; "
+              f"football-data Last-Modified {r['source_last_modified'] or 'n/a'}")
+        if r["unmatched"]:
+            print(f"odds archive: {len(r['unmatched'])} E0 row(s) not matched to an FPL fixture (kept): {r['unmatched']}")
+    else:
+        print(f"odds archive: {r['status']} ({r.get('reason') or r.get('error')})")
+    return r
+
+
+def cmd_archive_odds(args: argparse.Namespace) -> int:
+    r = _archive_odds(pd.Timestamp.now(tz="UTC"), out_dir=args.dir, force=True)
+    return 0 if r["status"] == "ok" else 1
 
 
 def cmd_score_forecasts(args: argparse.Namespace) -> int:
@@ -147,7 +179,29 @@ def cmd_score_forecasts(args: argparse.Namespace) -> int:
         print(f"\npBP - p0 (secondary, amendment A5; {n_rec - bp['n']} scored fixture(s) without pBP):",
               {k: v for k, v in bp.items() if k != "leave_one_gameweek_out"})
     print("\nalpha (amendment A5):", alpha_report(s))
+    _print_benchmark(s)
     return 0
+
+
+def _print_benchmark(s: pd.DataFrame) -> None:
+    """Amendment A6: TaBet vs bookmaker odds on identical fixtures. Benchmark only: printed and saved,
+    never used for alpha or any model choice."""
+    from . import market_benchmark
+    try:
+        b = market_benchmark.benchmark(s)
+    except Exception as e:
+        print(f"\nmarket benchmark failed ({e})")
+        return
+    if b.empty:
+        print("\nmarket benchmark (amendment A6): no scored fixtures")
+        return
+    p = market_benchmark.save(b)
+    print(f"\nMarket benchmark (amendment A6, benchmark only; TaBet - market log-loss, negative = TaBet better; "
+          f"p_alpha uses alpha = {b['alpha'].iloc[0]:.2f}, provisional until gameweek 19 is complete). Saved {p}:")
+    show = [c for c in ("snapshot", "candidate", "n", "coverage", "log_loss_tabet", "log_loss_market",
+                        "tabet_minus_market", "se_paired", "se_gameweek_clustered", "agree_rate", "tabet_only_right",
+                        "market_only_right", "both_wrong", "n_later", "median_hours_after_cutoff") if c in b]
+    print(b[show].round(4).to_string(index=False))
 
 
 def cmd_heartbeat(args: argparse.Namespace) -> int:
@@ -155,13 +209,41 @@ def cmd_heartbeat(args: argparse.Namespace) -> int:
 
     import pandas as pd
 
-    from .prospective import LOG, heartbeat, heartbeat_markdown
-    hb = heartbeat(pd.Timestamp.now(tz="UTC").floor("min"))
+    from .prospective import LOG, heartbeat, heartbeat_markdown, results_behind
+    now = pd.Timestamp.now(tz="UTC").floor("min")
+    hb = heartbeat(now)
     last = None
     if LOG.exists() and LOG.read_text().strip():
         r = json.loads(LOG.read_text().splitlines()[-1])
         last = f"FPL {r['fpl_fixture']} {r['home_id']} v {r['away_id']}, logged {r['logged_utc']} ({r['hours_before']:.1f} h ahead)"
-    print(heartbeat_markdown(hb, last))
+    md = heartbeat_markdown(hb, last)
+    extra = []
+    try:  # amendment A6 monitoring; never breaks the heartbeat
+        hb.update(results_behind(now))
+        d = hb["results_detail"]
+        if d:
+            extra.append(f"- Results file: {d['local_rows']} matches locally, {d['remote_rows']} at football-data "
+                         f"(last check {d['last_attempt_utc']}, ok={d['ok']})")
+        if hb["results_behind"]:
+            extra.append("- **Results file behind football-data for 2 days in a row**")
+    except Exception as e:
+        extra.append(f"- Results file check failed: {e}")
+    try:
+        from . import odds_archive
+        from .forecast import LIVE_SEASON, upcoming_fixtures
+        from .fpl import fetch_live_season
+        allfx = pd.DataFrame(json.loads((fetch_live_season(LIVE_SEASON, refresh=False) / "fixtures.json").read_text()))
+        allfx = allfx.rename(columns={"id": "fpl_fixture", "event": "gameweek"})[["fpl_fixture", "gameweek"]]
+        hb.update(odds_archive.status(now, upcoming_fixtures(refresh=False), gameweek_fixtures=allfx))
+        cov = hb["odds_coverage"]
+        if cov:
+            extra.append(f"- Odds archive: gameweek {cov['gameweek']} has a snapshot for {cov['with_snapshot']} of "
+                         f"{cov['fixtures']} fixtures; last fetch {hb['odds_last_fetch_utc'] or 'never'}")
+        if hb["odds_missing"]:
+            extra.append(f"- **No odds snapshot yet for fixtures kicking off within 24 h: FPL {hb['odds_missing']}**")
+    except Exception as e:
+        extra.append(f"- Odds archive check failed: {e}")
+    print(md + "\n".join(extra) + ("\n" if extra else ""))
     if args.json:
         print(json.dumps(hb))
     return 0
@@ -266,6 +348,11 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
         func=cmd_check_sources)
+
+    ao = sub.add_parser("archive-odds", help="fetch football-data's fixtures.csv once now and archive it (benchmark "
+                                             "only; log-forecasts already does this hourly)")
+    ao.add_argument("--dir", type=Path, default=None, help="archive directory (default results/prospective/odds)")
+    ao.set_defaults(func=cmd_archive_odds)
 
     sc = sub.add_parser("score-forecasts", help="score logged forecasts against confirmed XIs and results")
     sc.add_argument("--horizon", type=float, default=24.0)

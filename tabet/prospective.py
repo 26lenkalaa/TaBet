@@ -14,6 +14,8 @@ log_due():  run every SCHEDULE_EVERY_H (an external trigger every 30 min, with
             played (amendment A2). Raw lineup pages are kept gzipped next to it;
             nothing is ever overwritten. Each run also keeps one daily snapshot
             of live FPL xG for recent gameweeks, to measure later revisions.
+            Amendment A6: the first run of each UTC day also refreshes the results file
+            (daily_refresh), whether or not anything is due.
 score():    after matches are played, joins the confirmed XI and result (FPL
             live data) to every logged forecast and writes per-candidate scores.
 fit_alpha(): the one-parameter shrinkage p = (1-a) p0 + a pE, fitted on earlier
@@ -68,13 +70,22 @@ def _ko(x) -> str:
     return pd.Timestamp(x).tz_convert("UTC").isoformat()
 
 
-def refresh_results() -> bool:
+def _n_rows(path: Path) -> int:
+    """Data rows in a football-data CSV (blank trailing rows of commas are not matches)."""
+    lines = path.read_text(encoding="utf-8-sig", errors="replace").splitlines()[1:]
+    return sum(1 for ln in lines if ln.strip(", \t"))
+
+
+def refresh_results(info: dict | None = None) -> bool:
     """Download the current-season results file; replace ours only if the new
-    one parses and validates and has at least as many matches."""
+    one parses and validates and has at least as many matches. `info`, if given,
+    receives the downloaded and resulting local row counts (for monitoring)."""
     tmp = RESULTS_FILE.with_suffix(".download")
     req = urllib.request.Request(RESULTS_URL, headers={"User-Agent": "tabet-research/0.1"})
     with urllib.request.urlopen(req, timeout=60, context=_ssl_context()) as r:
         tmp.write_bytes(r.read())
+    if info is not None:
+        info["remote_rows"] = _n_rows(tmp)
     backup = RESULTS_FILE.with_suffix(".bak")
     shutil.copy(RESULTS_FILE, backup)
     shutil.move(tmp, RESULTS_FILE)
@@ -86,9 +97,68 @@ def refresh_results() -> bool:
         ok = False
     if not ok:
         shutil.move(backup, RESULTS_FILE)
-        return False
-    backup.unlink()
-    return True
+    else:
+        backup.unlink()
+    if info is not None:
+        info["local_rows"] = _n_rows(RESULTS_FILE)
+    return bool(ok)
+
+
+RESULTS_REFRESH_LOG = LOG_DIR / "results_refresh.csv"
+REFRESH_RETRY = pd.Timedelta(minutes=55)
+
+
+def _refresh_log() -> pd.DataFrame:
+    if not RESULTS_REFRESH_LOG.exists():
+        d = pd.DataFrame(columns=["attempted_utc", "ok", "remote_rows", "local_rows", "error"])
+    else:
+        d = pd.read_csv(RESULTS_REFRESH_LOG)
+    d["attempted_utc"] = pd.to_datetime(d["attempted_utc"], utc=True)
+    return d
+
+
+def daily_refresh(now: pd.Timestamp) -> dict | None:
+    """Keep the results file current when no forecast is due (amendment A6, item 4). On the first run
+    of each UTC day, call refresh_results() (validate-or-restore unchanged). After a failed attempt it
+    retries at most hourly until one succeeds that day. Every attempt is appended to
+    results/prospective/results_refresh.csv. Returns the attempt, or None if not needed."""
+    log = _refresh_log()
+    today = log[log["attempted_utc"].dt.strftime("%Y-%m-%d") == f"{now:%Y-%m-%d}"]
+    if (today["ok"].astype(str) == "True").any():
+        return None
+    if len(log) and now - log["attempted_utc"].iloc[-1] < REFRESH_RETRY:
+        return None
+    info: dict = {"attempted_utc": now.isoformat(), "ok": False, "remote_rows": None, "local_rows": None, "error": ""}
+    try:
+        info["ok"] = refresh_results(info)
+    except Exception as e:
+        info["error"] = str(e)[:200]
+        if RESULTS_FILE.exists():
+            info["local_rows"] = _n_rows(RESULTS_FILE)
+    new = not RESULTS_REFRESH_LOG.exists()
+    RESULTS_REFRESH_LOG.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame([info]).to_csv(RESULTS_REFRESH_LOG, mode="a", header=new, index=False)
+    return info
+
+
+def results_behind(now: pd.Timestamp, log: pd.DataFrame | None = None) -> dict:
+    """Monitoring: a UTC day is "behind" if it had refresh attempts but none left the local file with
+    as many matches as football-data's (a failed download counts as behind). Alert when today and
+    yesterday are both behind."""
+    log = _refresh_log() if log is None else log
+    if log.empty:
+        return {"results_behind": False, "results_detail": None}
+    log = log.assign(day=log["attempted_utc"].dt.strftime("%Y-%m-%d"),
+                     current=pd.to_numeric(log["local_rows"], errors="coerce")
+                     >= pd.to_numeric(log["remote_rows"], errors="coerce"))
+    day_ok = log.groupby("day")["current"].any()
+    d0, d1 = f"{now:%Y-%m-%d}", f"{now - pd.Timedelta(days=1):%Y-%m-%d}"
+    behind = d0 in day_ok and d1 in day_ok and not day_ok[d0] and not day_ok[d1]
+    last = log.iloc[-1]
+    return {"results_behind": bool(behind),
+            "results_detail": {"last_attempt_utc": last["attempted_utc"].isoformat(), "ok": str(last["ok"]) == "True",
+                               "local_rows": None if pd.isna(last["local_rows"]) else int(last["local_rows"]),
+                               "remote_rows": None if pd.isna(last["remote_rows"]) else int(last["remote_rows"])}}
 
 
 def _logged() -> set[tuple[int, float, str]]:
@@ -146,6 +216,13 @@ def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float]
             snapshot_live_xg(now)
         except Exception as e:
             print(f"xG snapshot failed ({e})")
+        try:  # nor may the daily results refresh (amendment A6)
+            r = daily_refresh(now)
+            if r:
+                print(f"daily results refresh: ok={r['ok']} local={r['local_rows']} football-data={r['remote_rows']}"
+                      + (f" ({r['error']})" if r["error"] else ""))
+        except Exception as e:
+            print(f"daily results refresh failed ({e})")
     fx = upcoming_fixtures(refresh=True)
     due_by_h = {h: due_fixtures(now, h, w, fixtures=fx) for h, w in horizons}
     if dry_run:
@@ -377,6 +454,7 @@ def score(out: Path = LOG_DIR / "scores.csv") -> pd.DataFrame:
         for name, p in cands.items():
             prob = {"H": p["p_home"], "D": p["p_draw"], "A": p["p_away"]}[y]
             row = {"fpl_fixture": r["fpl_fixture"], "gameweek": r["gameweek"], "horizon_h": r["horizon_h"],
+                   "home_id": r["home_id"], "away_id": r["away_id"],
                    "kickoff_utc": r["kickoff_utc"], "hours_before": r.get("hours_before"),
                    "logged_utc": r["logged_utc"], "candidate": name, "result": y, "log_loss": float(-np.log(prob)),
                    "p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"], "superseded": superseded,

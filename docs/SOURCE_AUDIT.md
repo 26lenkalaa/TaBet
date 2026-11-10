@@ -40,6 +40,27 @@ which we will not do.
 - **Not confirmed:** the claim that "Pinnacle odds have been stale since July 2025 and are
   excluded from market averages". We found no such statement on data.php or in notes.txt. Our
   benchmarks use only the market averages, not the Pinnacle columns.
+- **`fixtures.csv` (pre-match odds) [retrieved 2026-11-10]:** `https://football-data.co.uk/fixtures.csv`
+  (the `www.` address redirects there). It is one file for all leagues, so filter on `Div == "E0"`.
+  It is archived for the market benchmark only (amendment A6, `tabet/odds_archive.py`); the match
+  explorer already read it for upcoming fixtures (`site_data.py`).
+  - **Columns:** these are not the same as the results file's. The file has `Div, Date, Time,
+    HomeTeam, AwayTeam, Referee`; 1X2 odds for the groups `B365, BFD, BV, BW, PP, SKB, Max, Avg, BFE`;
+    over/under 2.5 and Asian handicap for some of them; and closing (`…C…`) versions of all of these.
+    There are no result or match-stat columns. The codes are football-data's (see its notes.txt).
+  - **State on 2026-11-10:** the file is not empty during the break. It still held 160 rows from
+    19 divisions dated 6–9 November, 10 of them E0 (gameweek 10, all played), with Last-Modified
+    Fri, 06 Nov 2026 11:14:29 GMT. The pre-match columns were filled and every closing column was
+    empty. All ten E0 rows matched their FPL fixtures (91–100) with identical kickoff times, which
+    confirms that `Time` is UK local time, as in the results files.
+  - **Still to learn:** when the file first fills before a round. The first gameweek-11 fetches will
+    show it (`results/prospective/odds/fetch_log.csv` records every fetch with Last-Modified).
+  - **robots.txt [retrieved 2026-11-10]:** `User-agent: *` with an empty `Disallow` (everything
+    allowed). Named AI and scraper agents are blocked from the whole site: GPTBot, ChatGPT-User,
+    Google-Extended, Anthropic-AI, Claude-Web, ClaudeBot, PerplexityBot, Applebot-Extended, CCBot,
+    Meta-ExternalAgent, Diffbot and Omgilibot. TaBet's downloads identify as `tabet-research/0.1`,
+    run from GitHub Actions at most once an hour for this file and once a day for the results file.
+    The terms question (§2.0, top) was decided by the project owner.
 
 ### 2.1 WhoScored (via `soccerdata` 2026.43.0)
 - **[documented]** `soccerdata.WhoScored` exposes `read_leagues`, `read_seasons`,

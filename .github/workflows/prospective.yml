@@ -8,6 +8,8 @@ name: Prospective forecast log
 #     dispatched runs start within about a minute. Setup: docs/LOGGER_SETUP.md.
 #   - backup: GitHub's own schedule below. In gameweek 10 GitHub started these only every 4-8 h,
 #     so they are a safety net, not the main trigger.
+# Each log run also refreshes the results file once a UTC day and archives football-data's fixtures.csv
+# at most hourly (amendment A6; odds are a benchmark only), inside the same job: no extra runs.
 # Extra runs are harmless: the concurrency group runs one job at a time, a queued job checks out main
 # after the previous one has pushed, and log_due() re-reads the log before appending.
 # Budget: 48 dispatched runs/day (~1,440 min/month) + at most 12 backup runs/day (~360) is within the
@@ -103,10 +105,23 @@ jobs:
           if [ "$open_now" = "true" ] && [ -n "$gap_h" ] && [ "$gap_h" -ge 3 ]; then
             reason="$reason No successful run for ${gap_h} h before this one while a logging window is open; check the external trigger."
           fi
+          # amendment A6 monitoring (benchmark data; never affects forecasts)
+          if [ "$(jq -r '.results_behind // false' heartbeat.json)" = "true" ]; then
+            reason="$reason The local results file has been behind football-data (or failed to refresh) for 2 days in a row."
+          fi
+          odds_missing=$(jq -r '(.odds_missing // []) | join(", ")' heartbeat.json)
+          if [ -n "$odds_missing" ]; then
+            reason="$reason No odds snapshot yet for fixture(s) $odds_missing, kicking off within 24 h."
+          fi
+          reason="${reason# }"
           if [ -z "$reason" ]; then echo "No alert."; exit 0; fi
           title="Prospective logger alert"
           if gh issue list --state open --search "in:title \"$title\"" --json number --jq 'length' | grep -qv '^0$'; then
-            gh issue comment "$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')" \
+            num=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+            # a condition can hold for many 30-minute runs: comment only when the reason changes
+            last=$(gh issue view "$num" --json comments,body --jq '(.comments | last | .body) // .body')
+            if printf '%s' "$last" | grep -qF -- "$reason"; then echo "Same alert as the last comment; not repeated."; exit 0; fi
+            gh issue comment "$num" \
               --body "$(date -u +%Y-%m-%dT%H:%MZ): $reason Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
             gh issue create --title "$title" \
