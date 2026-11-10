@@ -70,6 +70,14 @@ def _logged() -> dict[int, dict]:
     return best
 
 
+def _logged_forecasts(r: dict) -> list[dict]:
+    role = "primary" if r["horizon_h"] == 24.0 else "fallback"
+    note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
+    return [{"key": key, "label": label, "kind": "logged", "note": note, "p": _p(r["candidates"][key])}
+            for key, label in (("p0", "TaBet, no lineups (p0)"), ("pE", "TaBet, predicted lineups (pE)"))
+            if key in r["candidates"]]
+
+
 def build(preview: bool = True, out: Path = OUT) -> dict:
     matches, odds = load_all(ROOT / "res")
     pre = implied_probabilities(odds, "Avg").set_index("match_id")
@@ -84,6 +92,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     fpl = pd.DataFrame(json.loads((d / "fixtures.json").read_text()))
     fpl["home_id"], fpl["away_id"] = fpl["team_h"].map(tid), fpl["team_a"].map(tid)
     gw_of = {(h, a): int(e) for h, a, e in zip(fpl["home_id"], fpl["away_id"], fpl["event"]) if pd.notna(e)}
+    fpl_id = {(h, a): int(i) for h, a, i in zip(fpl["home_id"], fpl["away_id"], fpl["id"])}
 
     entries = []
     done = matches[(matches["status"] == "completed") & (matches["season"] >= "2022-23")]
@@ -102,6 +111,12 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         if m.season == LIVE_SEASON:
             e["gameweek"] = gw_of.get((m.home_id, m.away_id))
             seen_live.add((m.home_id, m.away_id))
+            # a logged record stays on the site after the match reaches the results file
+            r = logged.get(fpl_id.get((m.home_id, m.away_id), -1))
+            if r:
+                e["forecasts"] = _logged_forecasts(r) + e["forecasts"]
+            elif not e["forecasts"]:
+                e["missing"] = "No forecast was logged for this match (the logger missed its window)."
         entries.append(e)
 
     # current season: fixtures not (yet) in the football-data results file
@@ -130,11 +145,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
             e.update(score=f"{h}-{a}", result="H" if h > a else ("A" if a > h else "D"))
         r = logged.get(int(f.id))
         if r:
-            role = "primary" if r["horizon_h"] == 24.0 else "fallback"
-            note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
-            for key, label in (("p0", "TaBet, no lineups (p0)"), ("pE", "TaBet, predicted lineups (pE)")):
-                if key in r["candidates"]:
-                    e["forecasts"].append({"key": key, "label": label, "kind": "logged", "note": note, "p": _p(r["candidates"][key])})
+            e["forecasts"] += _logged_forecasts(r)
         elif int(f.id) in previews and not played:
             pv = previews[int(f.id)]
             e["forecasts"].append({"key": "preview", "label": "TaBet, no lineups (preview)", "kind": "preview",
