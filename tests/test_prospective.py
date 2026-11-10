@@ -268,6 +268,7 @@ def test_nothing_due_keeps_columns_and_a_real_run_exits_cleanly(tmp_path, monkey
     assert due.empty and "fpl_fixture" in due.columns
     monkeypatch.setattr(PR, "upcoming_fixtures", lambda refresh=True: fx)
     monkeypatch.setattr(PR, "snapshot_live_xg", lambda now: None)
+    monkeypatch.setattr(PR, "daily_refresh", lambda now: None)  # amendment A6; tested in test_odds_archive.py
     assert PR.log_due(now=now) == []          # real run, nothing due: no crash, nothing written
     assert PR.log_due(now=now, dry_run=True) == []
     assert not (tmp_path / "log.jsonl").exists()

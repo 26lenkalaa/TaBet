@@ -73,6 +73,10 @@ curl -i -X POST \
 - **Run summary:** each run's heartbeat shows the next fixture and the hours until its window opens.
 - **Issues tab:** an issue titled "Prospective logger alert" appears if a fixture's window closes
   without a record, or a window is open and no run has succeeded for 3 hours.
+- **Results file and odds archive (amendment A6):** the summary also shows the results file's match
+  count against football-data's, and how many of the current gameweek's fixtures have an archived odds
+  snapshot. The alert issue also opens if the results file stays behind for 2 days in a row, or a fixture
+  is within 24 hours of kickoff with no odds snapshot. Repeated runs with the same alert don't add comments.
 - **Minutes:** 48 runs a day is about 1,440 Actions minutes a month, plus at most 360 for the backup
   schedule, within the 2,000 free minutes. You can check usage under **Settings → Billing**.
 

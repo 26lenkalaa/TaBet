@@ -181,6 +181,12 @@ amendment `results/prospective/log.jsonl` was empty.
 
   Gameweek 10 therefore has 1 record out of 10 fixtures. The cause was GitHub's scheduler, not the
   code. Amendment A4 changes the trigger and the window from gameweek 11.
+- **2026-11-10: amendment A6 written (odds archive and daily results refresh).** During the break no
+  fixture was due, so the results file was last refreshed on 2026-11-02 (90 matches) while
+  football-data already had all of gameweek 10 (100). A6 adds a daily refresh and a pre-match odds
+  archive for the market benchmark. Both run inside the existing runs. Neither changes any forecast,
+  record or rule of the primary contrast. On 2026-11-10 `fixtures.csv` still held gameweek 10's
+  fixtures (Last-Modified Fri 6 Nov 11:14 GMT), all already played, so the archive starts empty.
 
 ## Amendment A3 (2026-11-05, before any record was logged)
 
@@ -292,3 +298,70 @@ record no rule changes.
    It is not blended into pα and does not affect the primary contrast. If pBP fails for a record,
    that record lacks it; pBP − p0 is computed on the records that have it and the missing count is
    reported. Its offline counterpart is addendum B of `docs/PREREGISTRATION.md`.
+
+## Amendment A6 (2026-11-10, written before any gameweek-11 record or odds snapshot)
+
+Adds a market benchmark at matching times and keeps the results file current. **Bookmaker odds stay
+a benchmark only.** Nothing here changes p0, pE, pα, α's fitting rule, the record windows, what a
+record stores, or the primary contrast. Like A5, it must be on `main` before 2026-11-20 04:30 UTC.
+
+1. **Odds archive (benchmark only).** On every logging run, at most once an hour, the run downloads
+   football-data's `fixtures.csv` (`tabet/odds_archive.py`, same client name as the results
+   download). Every fetch is listed in `results/prospective/odds/fetch_log.csv`.
+   - If the file's SHA-256 differs from the last saved copy, the raw file is kept gzipped as
+     `results/prospective/odds/raw/<UTC time>_fixtures.csv.gz`.
+   - On a changed file, the Premier League (E0) rows for fixtures that have not kicked off are
+     appended to `odds_log.csv`. Each row holds the FPL fixture (matched by home team, away team and
+     a kickoff within 36 h), kickoff, retrieval time, hours before kickoff, the raw file's hash, and
+     one bookmaker column group's H/D/A, including the average and maximum.
+   - An unchanged file adds nothing, so a snapshot stands from its retrieval time until the next
+     changed file.
+   - Rows that match no FPL fixture are kept with an empty fixture id and listed in the run output.
+   - Everything is append-only. No existing record in `log.jsonl` or `raw/` is touched.
+2. **Isolation.** Only the archiver, `tabet/market_benchmark.py` and the CLI that runs them may refer
+   to the archive. A test (`tests/test_odds_archive.py`) fails if any other module under `tabet/`
+   refers to the archive path or modules, if any module outside the existing benchmark code names
+   bookmaker odds columns, or if any module names FPL crowd fields (ownership, transfers, price).
+3. **Snapshots compared, per scored fixture** (the record `select_records` chooses: primary, else
+   fallback):
+   - **matched:** the last archived snapshot retrieved at or before that record's cutoff. If there is
+     none, the first one after the cutoff and before kickoff, flagged `later`.
+   - **last pre-kickoff:** the last archived snapshot retrieved before kickoff.
+   - **football-data pre-closing and closing:** the `Avg*` and `AvgC*` columns of the results file,
+     published after the match, as in `prototypes/run_market_comparison.py`.
+
+   Archived snapshots use the market average ("Avg") group. Probabilities come from proportional
+   margin removal, p_k = (1/o_k) / Σ_j (1/o_j). The hours between each archived snapshot and the
+   record's cutoff are reported, along with the number flagged `later`.
+4. **Daily results refresh.** On the first run of each UTC day, `refresh_results()` runs whether or
+   not a fixture is due. The validate-or-restore rule is unchanged. A failed attempt is retried at
+   most hourly until one succeeds that day. Every attempt is listed in
+   `results/prospective/results_refresh.csv`, with football-data's and the local file's match counts.
+   This changes only how fresh the file is, not what a record may use: each record already refreshes
+   the file in its own run and stores `results_refreshed`.
+5. **Reporting.** `score-forecasts` prints a separate "market benchmark" section, saved to
+   `results/prospective/odds/benchmark.csv`. For p0, pE and pα against each snapshot, on identical
+   fixtures, it reports:
+   - n and coverage (scored fixtures with that snapshot)
+   - each side's log-loss and the paired TaBet − market delta, with paired and gameweek-clustered
+     SEs (t on gameweeks − 1)
+   - the agreement rate of the top picks, and among disagreements: TaBet only right, market only
+     right, both wrong
+
+   pα uses α as fitted at the time and is provisional until gameweek 19 is complete. The benchmark is
+   descriptive. It never feeds α, any model choice, or any later amendment's choice of candidate.
+6. **Monitoring.** The heartbeat adds:
+   - the results file's local and football-data match counts
+   - "results file behind" when both today and yesterday (UTC) had refresh attempts and none left the
+     local file current (a failed download counts)
+   - fixtures kicking off within 24 h with no average-odds snapshot
+   - odds coverage for the current gameweek
+
+   The first two conditions open or update the "Prospective logger alert" issue. A comment is added
+   only when the alert text changes.
+
+   When `fixtures.csv` first fills before a round is not yet known. Gameweek 10's copy was last
+   modified on Friday 6 November at 11:14 GMT, and football-data's notes say pre-closing odds are
+   collected on Friday afternoons for weekend games and Tuesday afternoons for midweek games. So a
+   Friday-evening or midweek fixture may raise "no odds snapshot" until the file fills. That is a
+   coverage note, not a logger failure, and the first gameweek-11 fetches will show the real timing.
