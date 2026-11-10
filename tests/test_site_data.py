@@ -28,3 +28,17 @@ def test_rebuild_when_old_or_when_the_log_grows(tmp_path, monkeypatch):
     assert S.stale(20, out=out)
     out.write_text(json.dumps({"built_utc": (now - pd.Timedelta(hours=21)).isoformat(), "n_log_records": 2, "matches": []}))
     assert S.stale(20, out=out)
+
+
+def test_a_logged_forecast_stays_after_the_match_reaches_the_results_file(tmp_path):
+    """Regression: once gameweek 10 was in the results file, the site dropped Leeds v Tottenham's logged
+    p0/pE, because logged records were attached only to fixtures not yet in that file."""
+    out = tmp_path / "matches.json"
+    S.build(preview=False, out=out)
+    d = json.loads(out.read_text())
+    m = [e for e in d["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham"]
+    assert len(m) == 1 and m[0]["status"] == "played"
+    assert [f["key"] for f in m[0]["forecasts"] if f["kind"] == "logged"] == ["p0", "pE"]
+    missed = [e for e in d["matches"] if e["season"] == "2026-27" and e.get("gameweek") == 10
+              and e["id"] != "2026-27-20261107-leeds-tottenham"]
+    assert missed and all(e.get("missing") and not e["forecasts"] for e in missed)

@@ -266,7 +266,8 @@ def test_daily_refresh_runs_once_per_utc_day(res_copy, monkeypatch):
     assert PR.daily_refresh(pd.Timestamp("2026-11-11 00:10", tz="UTC"))["ok"] is True
     assert len(calls) == 2
     log = pd.read_csv(PR.RESULTS_REFRESH_LOG)
-    assert log["local_rows"].tolist() == [90, 90] and log["remote_rows"].tolist() == [90, 90]
+    n = PR._n_rows(res_copy)  # however many matches the real file has today
+    assert log["local_rows"].tolist() == [n, n] and log["remote_rows"].tolist() == [n, n]
 
 
 def test_bad_download_restores_the_old_file_and_retries_hourly(res_copy, monkeypatch):
