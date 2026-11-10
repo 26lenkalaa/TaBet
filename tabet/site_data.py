@@ -5,8 +5,10 @@ Every match from 2022-23 onward gets the forecasts that exist for it, each label
             only information available before each match, but computed afterwards.
   logged    the prospective record made 24-32 h before kickoff (results/prospective/log.jsonl; primary
             record if it exists, else the fallback), with p0 (lineup-free) and pE (predicted lineups).
-  preview   for upcoming fixtures without a logged record yet: the lineup-free model run when this file
-            was built. Not a record; it changes as results come in.
+  preview   for upcoming fixtures without a logged record yet: the model run when this file was built,
+            without lineups and, where Fantasy Football Scout and RotoWire have published predicted XIs
+            (usually the coming gameweek), with them. Not a record; it changes as results and team
+            news come in. The logged record is still made 24-32 h before kickoff (the protocol).
 Market probabilities come from football-data average odds with the margin removed proportionally:
 pre-closing (collected Friday/Tuesday afternoon) and closing. For upcoming fixtures, football-data's
 fixtures.csv gives pre-closing odds once published. For a logged forecast, "Market at our forecast time" is
@@ -82,7 +84,7 @@ def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
     rec = pd.DataFrame([{k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")}])
     for source, label in ((API_SOURCE, "The Odds API"), ("football-data", "football-data")):
         s = select_snapshots(rec, odds_log, source=source, with_last=False)
-        if len(s) and not bool(s["later"].iloc[0]):
+        if len(s) and not bool(s["later"].iloc[0]) and abs(float(s["hours_after_cutoff"].iloc[0])) <= 1.0:
             x = s.iloc[0]
             row = odds_log[(odds_log["source"] == source) & (odds_log["book"] == "Avg")
                            & (odds_log["retrieved_utc"] == x["retrieved_utc"])
@@ -94,6 +96,24 @@ def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
             return {"key": "matched", "label": "Market at our forecast time", "note": note,
                     "p": [round(float(x[c]), 4) for c in ("p_home", "p_draw", "p_away")]}
     return None
+
+
+def _latest_market(fixture: int, odds_log: pd.DataFrame) -> dict | None:
+    """The newest The Odds API bookmaker average for an upcoming fixture (refreshed at least daily)."""
+    from .market_benchmark import _implied
+    from .odds_archive import API_SOURCE
+    if odds_log is None or odds_log.empty or "source" not in odds_log:
+        return None
+    o = odds_log[(odds_log["source"] == API_SOURCE) & (odds_log["book"] == "Avg")
+                 & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == fixture)]
+    if o.empty:
+        return None
+    x = o.sort_values("retrieved_utc").iloc[-1]
+    p = _implied(x[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
+    n = f" of {int(x['n_books'])} bookmakers" if pd.notna(x.get("n_books")) else ""
+    return {"key": "latest", "label": "Latest market odds",
+            "note": f"bookmaker average{n}, margin removed; The Odds API, retrieved {x['retrieved_utc']:%d %b %H:%M} UTC",
+            "p": [round(float(v), 4) for v in p]}
 
 
 def _odds_log() -> pd.DataFrame:
@@ -166,7 +186,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     if preview and len(pending[~pending["finished_provisional"].astype(bool)]):
         from .forecast import forecast
         try:
-            fcst = forecast(cutoff=pd.Timestamp.now(tz="UTC").floor("min"), gameweeks=2, refresh=True, lineups=False)
+            fcst = forecast(cutoff=pd.Timestamp.now(tz="UTC").floor("min"), gameweeks=2, refresh=True, lineups=True)
             previews = {f["fpl_fixture"]: f for f in fcst["fixtures"]}
             preview_time = fcst["cutoff_utc"]
         except Exception as ex:  # the explorer must still build if a live fetch fails
@@ -190,11 +210,22 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                 e["market"].append(mm)
         elif int(f.id) in previews and not played:
             pv = previews[int(f.id)]
+            built = f"built {preview_time[:16].replace('T', ' ')} UTC"
+            w = pv.get("with_lineups") or {}
+            if "source_average" in w:
+                src = " and ".join({"ffs": "Fantasy Football Scout", "rotowire": "RotoWire"}[s] for s in w.get("source_average_of", []))
+                e["forecasts"].append({"key": "preview_lineups", "label": "TaBet, predicted lineups (preview)", "kind": "preview",
+                                       "note": f"{built} with {src}'s predicted XIs as published then; the logged forecast comes 24-32 h before kickoff",
+                                       "p": _p(w["source_average"])})
             e["forecasts"].append({"key": "preview", "label": "TaBet, no lineups (preview)", "kind": "preview",
-                                   "note": f"built {preview_time[:16].replace('T', ' ')} UTC; the logged forecast comes 24-32 h before kickoff",
+                                   "note": f"{built}; the logged forecast comes 24-32 h before kickoff",
                                    "p": _p(pv)})
         elif played or started:
             e["missing"] = "No forecast was logged for this match (the logger missed its window)."
+        if not played and not started:
+            lm = _latest_market(int(f.id), odds_log)
+            if lm:
+                e["market"].append(lm)
         if (f.home_id, f.away_id) in up_odds:
             e["market"].append({"key": "pre", "label": "Earlier odds", "p": up_odds[(f.home_id, f.away_id)]})
         entries.append(e)
@@ -212,7 +243,8 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
 
 
 def stale(max_age_h: float = 20.0, out: Path = OUT) -> bool:
-    """Rebuild if the file is missing, older than max_age_h, or the log has records it has not seen."""
+    """Rebuild if the file is missing, older than max_age_h, the log has records it has not seen, or
+    The Odds API has a snapshot newer than the build (so new odds reach the site the same day)."""
     if not out.exists():
         return True
     try:
@@ -221,4 +253,14 @@ def stale(max_age_h: float = 20.0, out: Path = OUT) -> bool:
         return True
     age = (pd.Timestamp.now(tz="UTC") - pd.Timestamp(head["built_utc"])).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
-    return age >= max_age_h or n_log != head.get("n_log_records")
+    return age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(pd.Timestamp(head["built_utc"]))
+
+
+def _newer_odds(built: pd.Timestamp) -> bool:
+    from .odds_archive import API_FETCH_LOG, ODDS_DIR
+    p = ODDS_DIR / API_FETCH_LOG
+    if not p.exists():
+        return False
+    f = pd.read_csv(p, dtype=str, keep_default_na=False)
+    ok = f[f["status"] == "ok"]
+    return bool(len(ok)) and pd.Timestamp(ok["retrieved_utc"].iloc[-1]) > built

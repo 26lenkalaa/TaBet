@@ -72,8 +72,8 @@ jobs:
             odds-api)      python -m tabet archive-odds --api ;;
             *)             python -m tabet log-forecasts ;;
           esac
-      - name: Refresh the match explorer's data (daily, or when a forecast was logged)
-        if: env.MODE == 'log' || env.MODE == 'score'
+      - name: Refresh the match explorer's data (daily, when a forecast was logged, or when new odds arrive)
+        if: env.MODE == 'log' || env.MODE == 'score' || env.MODE == 'odds-api'
         continue-on-error: true   # the site data must never block the forecast log
         run: python -m tabet site-data --if-stale 20
       - name: Commit log

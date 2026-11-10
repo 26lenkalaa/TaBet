@@ -414,3 +414,11 @@ contrast. It must be on `main` before 2026-11-20 04:30 UTC.
    website and using it in analysis. They forbid redistributing it as a standalone data product, so
    the raw archive stays in the private repository and only probabilities are shown on the site
    (`docs/SOURCE_AUDIT.md`).
+8. **Daily snapshot for the site (operations).** The first run of each UTC day also makes one call,
+   costing 2 credits (about 60 a month), so upcoming matches on the site show current "Latest market
+   odds". A daily snapshot is used as **matched** only under item 4's rule. The site labels a snapshot
+   "Market at our forecast time" only if it was taken within 1 hour of the record's cutoff.
+9. **Site previews (display only).** Before a fixture's record exists, the site's preview also runs
+   V2x with the predicted XIs that Fantasy Football Scout and RotoWire have published, usually for
+   the coming gameweek. The preview is labelled as such and is not a record. The logging windows
+   (24–26 h primary, 26–32 h fallback) and everything scored are unchanged.

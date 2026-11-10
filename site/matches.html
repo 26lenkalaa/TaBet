@@ -182,8 +182,8 @@ function render() {
   var notes = [];
   if (m.missing) notes.push(m.missing);
   if (!m.forecasts.length && !m.missing && m.status === "upcoming")
-    notes.push("TaBet's forecast appears here closer to the match: a preview about two gameweeks ahead, then the logged forecast 24–32 hours before kickoff.");
-  if (!m.market.length) notes.push(played ? "No odds are available for this match yet." : "Betting odds appear once football-data publishes them, usually the Friday or Tuesday before.");
+    notes.push("TaBet's forecast appears here closer to the match: a preview about two gameweeks ahead (with predicted lineups once they're published, usually the coming gameweek), then the logged forecast 24–32 hours before kickoff.");
+  if (!m.market.length) notes.push(played ? "No odds are available for this match yet." : "Betting odds appear once bookmakers list the match, usually one to two weeks before.");
   var callout = notes.length ? '<div class="callout"><p>' + notes.map(esc).join("</p><p>") + "</p></div>" : "";
   card.innerHTML = '<div class="meta">' + status + "<span>" + esc(when(m.kickoff, "long")) + (m.gameweek ? ", gameweek " + m.gameweek : "") + ". Season " + esc(m.season) + ".</span></div>" +
     '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" +

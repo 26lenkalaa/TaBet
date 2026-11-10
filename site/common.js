@@ -23,7 +23,7 @@
   });
 
   var KIND = { backtest: ["Backtest", "t-gray"], logged: ["Logged", "t-green"], preview: ["Preview", "t-purple"], market: ["Market", "t-blue"] };
-  var PRIORITY = ["pE", "p0", "V2x", "V1x", "preview", "V0"];
+  var PRIORITY = ["pE", "p0", "V2x", "V1x", "preview_lineups", "preview", "V0"];
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function pct(x) { return Math.round(x * 100) + "%"; }
@@ -44,8 +44,12 @@
   }
   function market(m) {
     // the market at the same moment as our logged forecast is the fair comparison; then closing odds
-    return m.market.find(function (x) { return x.key === "matched"; }) ||
-      m.market.find(function (x) { return x.key === "close"; }) || m.market[0] || null;
+    var order = ["matched", "close", "latest"];
+    for (var i = 0; i < order.length; i++) {
+      var x = m.market.find(function (y) { return y.key === order[i]; });
+      if (x) return x;
+    }
+    return m.market[0] || null;
   }
   function bar(p) {
     return '<div class="pbar" aria-hidden="true"><span class="h" style="width:' + (p[0] * 100) + '%"></span><span class="d" style="width:' +
