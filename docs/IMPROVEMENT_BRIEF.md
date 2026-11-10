@@ -2,10 +2,11 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-08, international break after gameweek 10. Since the last version: four
-> alternative team-strength models were tested, including two of the promoted-team ideas (§5.22);
-> the logging protocol got amendment A4 after GitHub's scheduler missed 9 of 10 gameweek-10
-> fixtures (§5.10). Questions for you are in §8.
+> Last updated 2026-11-09, international break after gameweek 10. Since the last version: the
+> fifth review's two offline tests ran and were both null (bivariate Poisson on four other leagues,
+> table stakes; §5.23); clean 2018-21 is now closed to new ideas; amendment A5 adds a bivariate
+> Poisson candidate (pBP) to the live log and reports results by record type (§5.23); the external
+> 30-minute trigger from A4 has run on time since 8 November (§5.10). Questions for you are in §8.
 
 ## 1. What the project is
 
@@ -344,7 +345,8 @@ Written before gameweek 10; amended before any record (A2, A3) and before any ga
   - Every input is fetched in that run, so the record's cutoff is its logged time.
 - **Each record stores:**
   - every candidate's probabilities: p0 = V1x; V2x with the Scout XI, the RotoWire XI and their
-    average pE; V2x with our FPL projection with and without the availability filter
+    average pE; V2x with our FPL projection with and without the availability filter; from
+    gameweek 11, pBP (p0's expected goals on a bivariate Poisson grid, amendment A5)
   - lineups as player codes, unresolved and invalid lineups, and each source's "last updated" text
   - FPL availability flags
   - the exact inputs to rebuild every candidate (reconstruction difference 0)
@@ -373,6 +375,12 @@ Written before gameweek 10; amended before any record (A2, A3) and before any ga
   Retrospective p0 replays for the missed fixtures exist but are not records, and predicted-lineup
   candidates cannot be rebuilt for them, because the lineup pages from those hours were not saved.
   Live FPL xG is snapshotted daily to measure revisions.
+
+  Since A4, the external trigger has run every 30 minutes from 2026-11-08 18:30 UTC: 55 runs to
+  2026-11-09 21:30 UTC, all on the hour or half hour, none failed. GitHub's own schedule still fires
+  only about every 5–12 hours. The international break means no fixture is due yet. The first gameweek-11
+  primary window opens on 2026-11-20 at 10:30 UTC (Manchester City v Fulham, kickoff 2026-11-21
+  12:30 UTC). The protocol is frozen from that first record.
 
 ### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
 
@@ -779,12 +787,15 @@ gameweek 38 (amendment A2).
    principled way to tell a real regime difference from noise, beyond the pre-registered test?
 5. **Cross-league player priors.** They predict a signing's output well (§5.12) but do not change
    match forecasts (§5.17), so live coverage for 2026-27 arrivals is no longer a priority.
-8. **The market gap.** TaBet trails the market by 0.014–0.019 log-loss on 2022-26 (§5.19). The
+6. **The market gap.** TaBet trails the market by 0.014–0.019 log-loss on 2022-26 (§5.19). The
    largest disagreements come from the team ratings, not the lineup layer, and cluster around
    promoted and returning teams early in the season (§5.21).
-6. **Draw modelling.** Calibration found no reliable draw shift (δ interval includes 0). Is a
+7. **Draw modelling.** Calibration found no reliable draw shift (δ interval includes 0). Is a
    single diagonal-inflation parameter still worth testing, or should draws be left alone?
-7. **Model class.** Would a gradient-boosted model on the same point-in-time features, or a
+8. **Fresh test data is running out.** Clean 2018-21 is closed to new ideas (§5.23) and 2024-26 is
+   development data. A new idea's primary test now needs either the live log or other leagues,
+   which are not Premier League evidence (item 1).
+9. **Model class.** Would a gradient-boosted model on the same point-in-time features, or a
    hierarchical Bayesian version of Dixon-Coles, be a better second stage at this sample size?
 
 ## 7. Candidate factors not yet tested
@@ -822,25 +833,29 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 
 ## 8. What I want from you (the reviewer)
 
-Since the last version, two of the promoted-team ideas you might have ranked (R1 reset, R2 slower
-early reaction inside a Bayesian model) were run and were worse (§5.22). A bivariate Poisson goal
-model passed its pre-registered test on clean 2018-21 data but did not repeat on recent seasons. The
-logging protocol was amended (A4). Please give me:
+Since the last version, your two offline tests ran as pre-registered and both were null (§5.23):
+bivariate Poisson on four other leagues (−0.0006, interval includes 0) and table stakes (+0.0035).
+Your record-type split, α interval and clustered-SE primary are now amendment A5, and pBP is logged
+live. The protocol freezes at the first gameweek-11 record (2026-11-20, about 10:30 UTC), so any
+change to A5 must come before then. Please give me:
 
-1. **Promoted teams after §5.22.** Given that the reset, the shared offset, the Championship slopes
-   and the Bayesian prior all failed, is the remaining evidence (§5.19, §5.21) more consistent with
-   a fixable structural error or with noise in a small subgroup? Are R3 (pooled second tiers), R4
-   (squad-based prior) and R6 (Championship mapping on 2000+ data) still worth running, and in what
-   order? What result would make you stop?
-2. **The bivariate Poisson result.** It improved clean 2018-21 log-loss by 0.0028 (Bonferroni 99%
-   interval excludes 0), but recent seasons show no gain and its shared component is fitted near
-   zero there. Is that a plausible era difference, or a sign the clean result is a fluke? How would
-   you confirm it without reusing the same seasons?
-3. **A critique of amendment A4.** Is scoring "primary if present, else fallback" unbiased, given
-   that a fallback is used only when the trigger fails (which should be unrelated to the match)?
-   Should results be reported separately by record type, or is the hours-before breakdown enough?
-4. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
-   evaluate): at most two experiments, each with the simpler alternative it must beat.
+1. **Bivariate Poisson, final call.** Across three datasets the gain is small and inconsistent
+   (§5.22, §5.23), and where λ3 ≈ 0 the contrast also drops the Dixon-Coles ρ correction. Is a
+   bivariate Poisson that keeps ρ worth one more pre-registered test, or should pBP in the live log
+   be the only remaining test? If the latter, what pBP − p0 result at gameweek 38 would make you
+   adopt it, given an SE near 0.005 (§5.23)?
+2. **Promoted teams after §5.22.** Still open from last round. Given that the reset, the shared
+   offset, the Championship slopes and the Bayesian prior all failed, is the remaining evidence
+   (§5.19, §5.21) more consistent with a fixable structural error or with noise in a small
+   subgroup? Are R3 (pooled second tiers), R4 (squad-based prior) and R6 (Championship mapping on
+   2000+ data) still worth running, and in what order? What result would make you stop?
+3. **Where to test next (§6.8).** With clean 2018-21 closed and 2024-26 used for development, where
+   should a new idea's primary test be scored: other leagues, the live log only, or something else?
+4. **A last check of A5** before it freezes: anything in the record-type split, α interval or
+   clustered-SE primary you would change.
+5. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
+   evaluate): at most two experiments, each with the simpler alternative it must beat and the data
+   it would be scored on.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices
