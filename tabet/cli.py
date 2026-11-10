@@ -110,8 +110,50 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
                                               f"{role.get(r['horizon_h'], r['horizon_h'])})" for r in recs])
     else:
         print(f"logged {len(recs)} fixture(s)")
-        _archive_odds(now or pd.Timestamp.now(tz="UTC"))
+        t = now or pd.Timestamp.now(tz="UTC")
+        _archive_odds(t)
+        _archive_odds_api(t)
     return 0
+
+
+def _recent_records(hours: float = 8.0) -> list[dict]:
+    """Forecast records logged in the last `hours` (only the fields the odds archive needs)."""
+    from .prospective import LOG
+    if not LOG.exists():
+        return []
+    cut = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=hours)
+    out = []
+    for line in LOG.read_text().splitlines()[-200:]:
+        r = json.loads(line)
+        if pd.Timestamp(r["logged_utc"]) >= cut:
+            out.append({k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")})
+    return out
+
+
+def _archive_odds_api(now, out_dir: Path | None = None, force: bool = False) -> dict:
+    """Amendment A7: a The Odds API snapshot for every fixture just logged (benchmark only). Runs after
+    the forecasts are logged and can never stop or change them."""
+    from . import odds_archive
+    from .forecast import upcoming_fixtures
+    try:
+        fx = upcoming_fixtures(refresh=False)
+    except Exception:
+        fx = None
+    try:
+        r = odds_archive.archive_api(now, fx, _recent_records(), out_dir=out_dir or odds_archive.ODDS_DIR, force=force)
+    except Exception as e:
+        print(f"Odds API snapshot failed ({e})")
+        return {"status": "error", "error": str(e)}
+    if r["status"] == "ok":
+        print(f"Odds API: {r['n_events']} matches, {r['n_upcoming']} upcoming with odds; cost {r['last_cost']} credit(s), "
+              f"{r['credits_remaining']} left this month; saved {r['raw_file']}")
+        if r.get("missing"):
+            print(f"Odds API: no odds returned for logged fixture(s) {r['missing']}")
+        if r["unmatched"]:
+            print(f"Odds API: {len(r['unmatched'])} match(es) not matched to an FPL fixture (kept): {r['unmatched']}")
+    elif r["status"] not in ("not needed", "disabled"):
+        print(f"Odds API: {r['status']} ({r.get('reason') or r.get('error') or r.get('credits_remaining')})")
+    return r
 
 
 def _archive_odds(now, out_dir: Path | None = None, force: bool = False) -> dict:
@@ -141,7 +183,12 @@ def _archive_odds(now, out_dir: Path | None = None, force: bool = False) -> dict
 
 
 def cmd_archive_odds(args: argparse.Namespace) -> int:
-    r = _archive_odds(pd.Timestamp.now(tz="UTC"), out_dir=args.dir, force=True)
+    if args.api:
+        r = _archive_odds_api(pd.Timestamp.now(tz="UTC"), out_dir=args.dir, force=True)
+        if r["status"] == "disabled":
+            print("Odds API: no key (set ODDS_API_KEY or ~/.config/tabet/odds_api_key)")
+    else:
+        r = _archive_odds(pd.Timestamp.now(tz="UTC"), out_dir=args.dir, force=True)
     return 0 if r["status"] == "ok" else 1
 
 
@@ -241,6 +288,13 @@ def cmd_heartbeat(args: argparse.Namespace) -> int:
                          f"{cov['fixtures']} fixtures; last fetch {hb['odds_last_fetch_utc'] or 'never'}")
         if hb["odds_missing"]:
             extra.append(f"- **No odds snapshot yet for fixtures kicking off within 24 h: FPL {hb['odds_missing']}**")
+        hb.update(odds_archive.api_status())
+        last, cred = hb["odds_api_last"], hb["odds_api_credits"]
+        extra.append(f"- The Odds API: {'key set' if hb['odds_api_enabled'] else '**no key**'}; "
+                     f"last call {last['utc'] + ' (' + last['status'] + ')' if last else 'none yet'}; "
+                     f"credits left {cred['remaining'] if cred else 'unknown'}")
+        if hb["odds_api_low"]:
+            extra.append(f"- **The Odds API is below {odds_archive.CREDIT_FLOOR} credits this month; calls are paused**")
     except Exception as e:
         extra.append(f"- Odds archive check failed: {e}")
     print(md + "\n".join(extra) + ("\n" if extra else ""))
@@ -352,6 +406,7 @@ def main(argv: list[str] | None = None) -> int:
     ao = sub.add_parser("archive-odds", help="fetch football-data's fixtures.csv once now and archive it (benchmark "
                                              "only; log-forecasts already does this hourly)")
     ao.add_argument("--dir", type=Path, default=None, help="archive directory (default results/prospective/odds)")
+    ao.add_argument("--api", action="store_true", help="instead, make one The Odds API call now (costs 2 credits)")
     ao.set_defaults(func=cmd_archive_odds)
 
     sc = sub.add_parser("score-forecasts", help="score logged forecasts against confirmed XIs and results")

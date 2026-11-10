@@ -62,6 +62,31 @@ which we will not do.
     run from GitHub Actions at most once an hour for this file and once a day for the results file.
     The terms question (§2.0, top) was decided by the project owner.
 
+### 2.0b The Odds API (pre-match odds at our forecast time; benchmark only)
+- **Access [retrieved 2026-11-10]:** a documented REST API with a key (`api.the-odds-api.com/v4`).
+  We use the free Starter plan: 500 credits a month, reset on the 1st. Paid plans are $30 / $59 /
+  $119 / $249 a month for 20K / 100K / 5M / 15M credits; historical odds are on paid plans only and
+  not needed (football-data already gives pre-closing and closing odds for every played match).
+- **Cost:** `/odds` costs 1 credit per market per region. Our call (h2h, regions uk + eu) costs 2 and
+  returns every upcoming Premier League match (`soccer_epl`). Empty responses are free. Expected use:
+  about 10–20 calls per gameweek, roughly 50–100 credits a month. Calls stop below 50 credits.
+- **Bookmakers [bookmaker-apis page, 2026-11-10]:**
+  - **UK region:** 888sport, Betano, Betfair Exchange and Sportsbook, Betfred, BetVictor, Betway,
+    BoyleSports, Casumo, Coral, Grosvenor, Ladbrokes, LeoVegas, LiveScore Bet, Matchbook, Paddy
+    Power, Sky Bet, Smarkets, Unibet, Virgin Bet and William Hill. No Bet365.
+  - **EU region:** adds Pinnacle ("odds are from public website which may incur a delay"), Betsson,
+    Marathonbet, 1xBet, Tipico, Winamax and others. The free plan lists "most bookmakers";
+  which ones are excluded is not stated, so every snapshot records the bookmakers it averaged.
+- **Terms [retrieved, terms-and-conditions.html, last updated 31 August 2026]:** permitted uses include
+  "Storing our data and retaining it indefinitely", "Displaying our data in a UI, website, or mobile
+  app, including for commercial use", "Using our data in research papers and analytical dashboards"
+  and "Using our data to train statistical and machine learning models". Not permitted: "resell,
+  repackage, or redistribute our data as a standalone data product". Attribution is not required.
+  We keep the raw archive in the private repository and show only margin-removed probabilities on the
+  site. TaBet never uses odds as a model input in any case (§2.0, amendment A6).
+- **Key handling:** the key is a GitHub repository secret (`ODDS_API_KEY`), passed only to the logging
+  step; it is never written to the repository, the logs or the raw files (a test checks this).
+
 ### 2.1 WhoScored (via `soccerdata` 2026.43.0)
 - **[documented]** `soccerdata.WhoScored` exposes `read_leagues`, `read_seasons`,
   `read_season_stages`, `read_schedule`, `read_missing_players` and `read_events`.

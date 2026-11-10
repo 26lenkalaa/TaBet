@@ -187,6 +187,10 @@ amendment `results/prospective/log.jsonl` was empty.
   archive for the market benchmark. Both run inside the existing runs. Neither changes any forecast,
   record or rule of the primary contrast. On 2026-11-10 `fixtures.csv` still held gameweek 10's
   fixtures (Last-Modified Fri 6 Nov 11:14 GMT), all already played, so the archive starts empty.
+- **2026-11-10: amendment A7 written (The Odds API snapshot at each record's cutoff).** football-data's
+  file updates about once a round, so on its own it can't give a market snapshot at our forecast time.
+  The key was added as a repository secret the same day. The first A6 run (20:13 UTC) worked: the
+  results file reached 100 matches and the first fixtures.csv copy was saved.
 
 ## Amendment A3 (2026-11-05, before any record was logged)
 
@@ -365,3 +369,48 @@ record stores, or the primary contrast. Like A5, it must be on `main` before 202
    collected on Friday afternoons for weekend games and Tuesday afternoons for midweek games. So a
    Friday-evening or midweek fixture may raise "no odds snapshot" until the file fills. That is a
    coverage note, not a logger failure, and the first gameweek-11 fetches will show the real timing.
+
+## Amendment A7 (2026-11-10, written before any gameweek-11 record)
+
+Adds a time-matched market snapshot from The Odds API. **Odds stay a benchmark only.** Nothing here
+changes p0, pE, pα, α's fitting rule, the record windows, what a record stores, or the primary
+contrast. It must be on `main` before 2026-11-20 04:30 UTC.
+
+1. **Why.** football-data publishes pre-match odds about once a round (gameweek 10: Friday 11:14
+   GMT), often after our 24–26 h record for Friday-evening, midweek and early-Saturday matches. A
+   fair "TaBet vs the market at the same moment" comparison needs a snapshot taken at the record's
+   cutoff.
+2. **What is called.** After a run logs one or more records, it makes one call to The Odds API:
+   `GET /v4/sports/soccer_epl/odds`, with 1X2 (`h2h`) odds from UK and EU bookmakers, decimal
+   format. That costs 2 credits and returns every upcoming Premier League match. Rules:
+   - At most one call per run.
+   - If a record logged in the last 6 hours still has no snapshot (because a call failed), a later
+     run retries. Its snapshot is then "later", not matched.
+   - Calls stop for the rest of the calendar month when fewer than 50 credits remain.
+   - The key comes from the `ODDS_API_KEY` repository secret and is never written anywhere.
+3. **What is stored.**
+   - Every raw response, gzipped: `results/prospective/odds/raw/<UTC time>_oddsapi.json.gz`.
+   - In `oddsapi_log.csv`, a separate file from football-data's: one row per match and bookmaker,
+     with the bookmaker's own `last_update`, plus an **"Avg" row**. This is the mean decimal odds
+     over the bookmakers quoting all three outcomes, as football-data's `Avg` columns are built,
+     with `n_books`.
+   - Every call, with credits left and the call's cost, in `oddsapi_fetch_log.csv`.
+   - Matches that don't match an FPL fixture are kept and listed.
+4. **The matched snapshot (replaces A6 item 3's first bullet).** For each scored record, **matched**
+   is The Odds API "Avg" snapshot: the last one retrieved at or before the record's cutoff, where a
+   snapshot from the same run (up to 15 minutes after the cutoff) also counts. If there is none, the
+   first later one before kickoff is used, flagged `later`. A6's rule applied to football-data's
+   archive is kept and reported separately as **matched_fd**. The two sources are never pooled, and
+   last pre-kickoff and football-data pre-closing and closing are unchanged. Margin removal is
+   proportional, as before.
+5. **Website.** For a logged forecast, the match explorer shows "Market at our forecast time": the
+   matched snapshot, or a football-data snapshot taken by the cutoff if The Odds API has none. It
+   includes the source, retrieval time and number of bookmakers, and is the headline market for that
+   match. Snapshots flagged `later` are not shown as matched. `site_data.py` reads the archive for
+   display only, and the isolation test allows that file alone in addition to A6's.
+6. **Monitoring.** The heartbeat shows whether the key is set, the last call and the credits left.
+   The alert issue opens when fewer than 50 credits remain this month.
+7. **Terms.** The Odds API's terms (31 August 2026) allow storing the data, displaying it on a
+   website and using it in analysis. They forbid redistributing it as a standalone data product, so
+   the raw archive stays in the private repository and only probabilities are shown on the site
+   (`docs/SOURCE_AUDIT.md`).

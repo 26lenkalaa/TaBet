@@ -5,10 +5,12 @@ Compares the scored TaBet records with bookmaker odds on identical fixtures. Its
 feeds alpha, model choice or any forecast: nothing in tabet/ outside this module, the archiver and
 the CLI may import it (tests/test_odds_archive.py).
 
-Snapshots per fixture (amendment A6, item 2):
-  matched          the last archived snapshot retrieved at or before the scored record's cutoff
-                   (logged_utc); if none, the first one after it and before kickoff, flagged `later`
-  last_pre_kickoff the last archived snapshot retrieved before kickoff
+Snapshots per fixture (amendment A6, item 2; amendment A7):
+  matched          The Odds API: the last snapshot retrieved at or before the scored record's cutoff
+                   (logged_utc), counting one taken in the same run (up to 15 min after the cutoff);
+                   if none, the first one after that and before kickoff, flagged `later`
+  matched_fd       the same rule on football-data's archived fixtures.csv snapshots
+  last_pre_kickoff the last football-data archived snapshot retrieved before kickoff
   fd_pre_closing   football-data's Avg* columns in the results file (published after the match;
                    collected Friday or Tuesday afternoon), as in prototypes/run_market_comparison.py
   fd_closing       football-data's AvgC* columns in the results file
@@ -28,7 +30,8 @@ from .forecast import LIVE_SEASON
 from .ingest import implied_probabilities, load_all
 from .prospective import ROOT, fit_alpha, select_records
 
-SNAPSHOTS = ("matched", "last_pre_kickoff", "fd_pre_closing", "fd_closing")
+SNAPSHOTS = ("matched", "matched_fd", "last_pre_kickoff", "fd_pre_closing", "fd_closing")
+SAME_RUN = odds_archive.SAME_RUN
 COLS = ["p_home", "p_draw", "p_away"]
 OUT = {"H": 0, "D": 1, "A": 2}
 
@@ -38,10 +41,14 @@ def _implied(o: np.ndarray) -> np.ndarray:
     return inv / inv.sum(axis=1, keepdims=True)
 
 
-def select_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, book: str = "Avg") -> pd.DataFrame:
-    """One row per (fixture, archived snapshot type). `records`: one scored record per fixture with
-    fpl_fixture, logged_utc (the cutoff) and kickoff_utc. `odds_log`: odds_archive.load()."""
+def select_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, book: str = "Avg", source: str = "football-data",
+                     matched_name: str = "matched", with_last: bool = True,
+                     tolerance: pd.Timedelta = SAME_RUN) -> pd.DataFrame:
+    """One row per (fixture, archived snapshot type) from one source. `records`: one scored record per
+    fixture with fpl_fixture, logged_utc (the cutoff) and kickoff_utc. `odds_log`: odds_archive.load()."""
     o = odds_log[odds_log["book"] == book].copy()
+    if "source" in o:
+        o = o[o["source"] == source]
     o["fpl_fixture"] = pd.to_numeric(o["fpl_fixture"], errors="coerce")
     o = o.dropna(subset=["fpl_fixture"]).sort_values("retrieved_utc")
     out = []
@@ -50,9 +57,10 @@ def select_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, book: str = 
         s = o[(o["fpl_fixture"] == r.fpl_fixture) & (o["retrieved_utc"] < ko)]
         if s.empty:
             continue
-        before = s[s["retrieved_utc"] <= cut]
-        pick = {"matched": (before.iloc[-1], False) if len(before) else (s.iloc[0], True),
-                "last_pre_kickoff": (s.iloc[-1], False)}
+        before = s[s["retrieved_utc"] <= cut + tolerance]
+        pick = {matched_name: (before.iloc[-1], False) if len(before) else (s.iloc[0], True)}
+        if with_last:
+            pick["last_pre_kickoff"] = (s.iloc[-1], False)
         for name, (row, later) in pick.items():
             p = _implied(row[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
             out.append({"fpl_fixture": int(r.fpl_fixture), "snapshot": name, "retrieved_utc": row["retrieved_utc"],
@@ -121,7 +129,8 @@ def benchmark(scores: pd.DataFrame, odds_log: pd.DataFrame | None = None, market
     if {"home_id", "away_id"} <= set(hid.columns):
         recs = recs.assign(home_id=recs["fpl_fixture"].map(hid["home_id"]), away_id=recs["fpl_fixture"].map(hid["away_id"]))
     odds_log = odds_archive.load() if odds_log is None else odds_log
-    snaps = [select_snapshots(recs, odds_log)]
+    snaps = [select_snapshots(recs, odds_log, source=odds_archive.API_SOURCE, with_last=False),
+             select_snapshots(recs, odds_log, source="football-data", matched_name="matched_fd")]
     if market is not None:
         snaps.append(market)
     elif {"home_id", "away_id"} <= set(recs.columns):

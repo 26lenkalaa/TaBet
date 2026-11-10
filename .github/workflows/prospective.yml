@@ -20,9 +20,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "log | dry-run | check-sources | score | warm (full forecast, nothing committed)"
+        description: "log | dry-run | check-sources | score | warm (full forecast, nothing committed) | odds-api (one test call, 2 credits)"
         type: choice
-        options: [log, dry-run, check-sources, score, warm]
+        options: [log, dry-run, check-sources, score, warm, odds-api]
         default: log
 
 permissions:
@@ -61,12 +61,15 @@ jobs:
           key: tabet-data-${{ github.run_id }}
           restore-keys: tabet-data-
       - name: Run
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}   # amendment A7: benchmark odds at each record's cutoff
         run: |
           case "$MODE" in
             check-sources) python -m tabet check-sources ;;
             dry-run)       python -m tabet log-forecasts --dry-run ;;
             score)         python -m tabet score-forecasts ;;
             warm)          python -m tabet forecast --gameweeks 1 ;;
+            odds-api)      python -m tabet archive-odds --api ;;
             *)             python -m tabet log-forecasts ;;
           esac
       - name: Refresh the match explorer's data (daily, or when a forecast was logged)
@@ -74,7 +77,7 @@ jobs:
         continue-on-error: true   # the site data must never block the forecast log
         run: python -m tabet site-data --if-stale 20
       - name: Commit log
-        if: env.MODE == 'log' || env.MODE == 'score'
+        if: env.MODE == 'log' || env.MODE == 'score' || env.MODE == 'odds-api'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -112,6 +115,9 @@ jobs:
           odds_missing=$(jq -r '(.odds_missing // []) | join(", ")' heartbeat.json)
           if [ -n "$odds_missing" ]; then
             reason="$reason No odds snapshot yet for fixture(s) $odds_missing, kicking off within 24 h."
+          fi
+          if [ "$(jq -r '.odds_api_low // false' heartbeat.json)" = "true" ]; then
+            reason="$reason The Odds API has fewer than 50 credits left this month; snapshots are paused until the 1st."
           fi
           reason="${reason# }"
           if [ -z "$reason" ]; then echo "No alert."; exit 0; fi
