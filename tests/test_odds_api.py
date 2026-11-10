@@ -65,17 +65,29 @@ def test_disabled_without_a_key(tmp_path, monkeypatch):
     assert not any(tmp_path.iterdir())
 
 
-def test_calls_only_when_a_record_was_just_logged(tmp_path):
+def test_calls_once_a_day_and_whenever_a_record_is_logged(tmp_path):
     calls = []
-    assert OA.archive_api(NOW, _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch(calls))["status"] == "not needed"
+    morning = pd.Timestamp("2026-11-20 00:10", tz="UTC")
+    assert OA.archive_api(morning, _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch(calls))["status"] == "ok"  # daily
+    assert OA.archive_api(morning + pd.Timedelta(hours=1), _fx(), [], out_dir=tmp_path, key=KEY,
+                          fetch=_fetch(calls))["status"] == "not needed"
     r = OA.archive_api(NOW, _fx(), [_rec()], out_dir=tmp_path, key=KEY, fetch=_fetch(calls))
     assert r["status"] == "ok" and r["credits_remaining"] == "496" and r["missing"] == []
     # the next run finds the record covered and makes no call
     assert OA.archive_api(NOW + pd.Timedelta(minutes=30), _fx(), [_rec()], out_dir=tmp_path, key=KEY,
                           fetch=_fetch(calls))["status"] == "not needed"
-    assert len(calls) == 1
-    raw = list((tmp_path / "raw").glob("*_oddsapi.json.gz"))
-    assert len(raw) == 1 and gzip.decompress(raw[0].read_bytes()) == BODY
+    assert len(calls) == 2
+    raw = sorted((tmp_path / "raw").glob("*_oddsapi.json.gz"))
+    assert len(raw) == 2 and gzip.decompress(raw[0].read_bytes()) == BODY
+
+
+def test_latest_market_for_the_site_is_the_newest_snapshot(tmp_path):
+    import tabet.site_data as S
+    OA.archive_api(pd.Timestamp("2026-11-19 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
+    OA.archive_api(pd.Timestamp("2026-11-20 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
+    lm = S._latest_market(108, OA.load(tmp_path))
+    assert lm["key"] == "latest" and "20 Nov 08:00" in lm["note"] and "3 bookmakers" in lm["note"]
+    assert S._latest_market(999, OA.load(tmp_path)) is None
 
 
 def test_a_failed_call_is_retried_next_run_and_the_key_never_reaches_disk(tmp_path):

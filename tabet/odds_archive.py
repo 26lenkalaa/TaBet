@@ -337,16 +337,18 @@ def api_needed(now: pd.Timestamp, records: list[dict], out_dir: Path = ODDS_DIR)
 def archive_api(now: pd.Timestamp, fixtures: pd.DataFrame | None, records: list[dict], out_dir: Path = ODDS_DIR,
                 key: str | None = None, fetch=None, force: bool = False) -> dict:
     """Amendment A7: one Odds API call when a record was just logged (or one logged in the last 6 h still
-    lacks a snapshot), at most once per run, never below CREDIT_FLOOR credits. `force` makes one call
+    lacks a snapshot), plus the first run of each UTC day; at most once per run, never below CREDIT_FLOOR credits. `force` makes one call
     regardless (manual test). The raw response is always kept (each call costs credits)."""
     now = pd.Timestamp(now).tz_convert("UTC").floor("s")
     key = key if key is not None else api_key()
     if not key:
         return {"status": "disabled", "reason": "no ODDS_API_KEY"}
     needed = api_needed(now, records, out_dir)
-    if not needed and not force:
-        return {"status": "not needed"}
     log = _api_fetch_log(out_dir)
+    ok_today = log[(log["status"] == "ok") & log["retrieved_utc"].str.startswith(f"{now:%Y-%m-%d}")]
+    daily = ok_today.empty  # one snapshot a UTC day for the site's "latest odds" (A7, item 8)
+    if not needed and not daily and not force:
+        return {"status": "not needed"}
     tried = log[log["status"].isin(["ok", "error"])]
     if not force and len(tried) and now - pd.Timestamp(tried["retrieved_utc"].iloc[-1]) < API_MIN_GAP:
         return {"status": "skipped", "reason": "called less than 25 minutes ago"}

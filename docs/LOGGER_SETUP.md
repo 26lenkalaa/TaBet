@@ -92,7 +92,7 @@ The logger takes a market snapshot from The Odds API whenever it logs a forecast
    call (2 credits), commits the snapshot, and the run log shows the number of matches and credits left.
 
 Without the key, everything else runs as before and the heartbeat says "no key". The free plan has
-500 credits a month; normal use is about 50–100. Below 50 the calls pause until the 1st and the alert
+500 credits a month; normal use is about 110–160 (one call per logging run with records, plus one a day). Below 50 the calls pause until the 1st and the alert
 issue says so.
 
 ## 5. Things that will stop it

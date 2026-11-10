@@ -169,8 +169,9 @@ A GitHub Action (`.github/workflows/prospective.yml`) runs every 30 minutes. cro
 3. **Archives pre-match odds**, for the market comparison only (`results/prospective/odds/`):
    - From football-data's `fixtures.csv`, at most hourly, saving a copy only when the file changes.
    - From **The Odds API**, once whenever a forecast is logged. This gives the market's prices at
-     the same moment as TaBet's forecast, shown on the site as "Market at our forecast time". It
-     uses the free plan, about 2 credits per call.
+     the same moment as TaBet's forecast, shown on the site as "Market at our forecast time".
+   - Plus one call a day, for the site's "Latest market odds". Each call costs 2 credits; about 160
+     of the free plan's 500 a month are used.
 4. **Rebuilds the website's data** (`site/data/matches.json`) at least daily. Vercel redeploys the
    site from `main`.
 5. **Writes a heartbeat** to the run summary: the next fixture, when its logging window opens, the
@@ -189,7 +190,8 @@ The bot commits to `main`, so **pull before you start work**.
 |---|---|
 | **Backtest** (V0, V1x, V2x) | Forecasts for past seasons, made with only earlier data but computed afterwards |
 | **Logged** (p0, pE) | The forecast recorded before kickoff by the live logger: the real test |
-| **Preview** | A lineup-free forecast for an upcoming match before its logged forecast exists. It changes as results come in |
+| **Preview** | A forecast for an upcoming match before its logged forecast exists: one without lineups and, once Fantasy Football Scout and RotoWire publish predicted XIs (usually for the coming gameweek), one with them. It changes as results and team news come in |
+| **Latest market odds** | The newest bookmaker average from The Odds API, refreshed at least daily, for upcoming matches |
 | **Market at our forecast time** | The bookmaker average saved in the same run as TaBet's logged forecast, with the margin removed: the fair comparison |
 | **Earlier odds** | The market on the Friday or Tuesday before the match, with the margin removed |
 | **Closing odds** | The market at kickoff, with the margin removed |
