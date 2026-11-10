@@ -141,8 +141,8 @@ happened yet:
   - **pE**, using the lineups predicted by Fantasy Football Scout and RotoWire
   - a few other variants
 
-  The odds archive saves the market's prices as football-data publishes them, so each forecast can
-  be compared with the market at a similar time.
+  In the same run, a snapshot of the market's odds from The Odds API is saved, so each forecast is
+  compared with the market at the same moment.
 
   Records are append-only and never edited.
 - **Timeline:**
@@ -166,8 +166,11 @@ A GitHub Action (`.github/workflows/prospective.yml`) runs every 30 minutes. cro
    kept next to it.
 2. **Refreshes this season's results** from football-data.co.uk once a day, keeping the old file if
    the new one fails its checks.
-3. **Archives pre-match odds** from football-data's `fixtures.csv`, at most hourly, saving a copy only
-   when the file changes (`results/prospective/odds/`). This is for the market comparison only.
+3. **Archives pre-match odds**, for the market comparison only (`results/prospective/odds/`):
+   - From football-data's `fixtures.csv`, at most hourly, saving a copy only when the file changes.
+   - From **The Odds API**, once whenever a forecast is logged. This gives the market's prices at
+     the same moment as TaBet's forecast, shown on the site as "Market at our forecast time". It
+     uses the free plan, about 2 credits per call.
 4. **Rebuilds the website's data** (`site/data/matches.json`) at least daily. Vercel redeploys the
    site from `main`.
 5. **Writes a heartbeat** to the run summary: the next fixture, when its logging window opens, the
@@ -187,6 +190,7 @@ The bot commits to `main`, so **pull before you start work**.
 | **Backtest** (V0, V1x, V2x) | Forecasts for past seasons, made with only earlier data but computed afterwards |
 | **Logged** (p0, pE) | The forecast recorded before kickoff by the live logger: the real test |
 | **Preview** | A lineup-free forecast for an upcoming match before its logged forecast exists. It changes as results come in |
+| **Market at our forecast time** | The bookmaker average saved in the same run as TaBet's logged forecast, with the margin removed: the fair comparison |
 | **Earlier odds** | The market on the Friday or Tuesday before the match, with the margin removed |
 | **Closing odds** | The market at kickoff, with the margin removed |
 | **Log-loss** (played matches) | How each forecast scored on that match; lower is better |

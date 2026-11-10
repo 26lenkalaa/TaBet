@@ -21,9 +21,13 @@ HEADER_ONLY = (DATA / "fixtures_header_only.csv").read_bytes()
 
 # ---- the hard rule: odds are a benchmark only --------------------------------
 
-# Modules allowed to refer to the odds archive at all: the archiver, the benchmark, and the CLI
-# that wires them into the logging run and score-forecasts.
-ARCHIVE_ALLOWED = {"odds_archive.py", "market_benchmark.py", "cli.py"}
+# Modules allowed to refer to the odds archive at all: the archiver, the benchmark, the CLI that wires
+# them into the logging run and score-forecasts, and site_data, which reads it for display only
+# (amendment A7). Model, feature, tuning and forecast code may not.
+ARCHIVE_ALLOWED = {"odds_archive.py", "market_benchmark.py", "cli.py", "site_data.py"}
+MODEL_CODE = {"model.py", "features.py", "forecast.py", "experiments.py", "xg_strength.py", "lineup.py", "dynamic.py",
+              "elo.py", "calibration.py", "outcome_model.py", "multileague.py", "adaptation.py", "history.py",
+              "prospective.py", "store.py", "lineup_sources.py", "fpl.py"}
 # Modules allowed to name bookmaker odds columns: the above, plus the existing benchmark plumbing
 # for the results file (ingest splits odds into a separate table; validate checks it; backtest and
 # site_data attach it to finished predictions for display and comparison).
@@ -43,6 +47,12 @@ def test_no_model_code_refers_to_the_odds_archive():
     bad = [p.relative_to(ROOT).as_posix() for p in _modules()
            if p.name not in ARCHIVE_ALLOWED and ARCHIVE_TOKENS.search(p.read_text())]
     assert bad == [], f"only {sorted(ARCHIVE_ALLOWED)} may refer to the odds archive: {bad}"
+
+
+def test_model_code_never_imports_the_odds_or_site_modules():
+    pat = re.compile(r"\b(?:odds_archive|market_benchmark|site_data|ingest\s+import\s+[^\n]*implied_probabilities)\b")
+    bad = [p.name for p in _modules() if p.name in MODEL_CODE and pat.search(p.read_text())]
+    assert bad == []
 
 
 def test_no_model_code_reads_odds_columns():

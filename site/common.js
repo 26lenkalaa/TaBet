@@ -43,7 +43,9 @@
     return m.forecasts[0] || null;
   }
   function market(m) {
-    return m.market.find(function (x) { return x.key === "close"; }) || m.market[0] || null;
+    // the market at the same moment as our logged forecast is the fair comparison; then closing odds
+    return m.market.find(function (x) { return x.key === "matched"; }) ||
+      m.market.find(function (x) { return x.key === "close"; }) || m.market[0] || null;
   }
   function bar(p) {
     return '<div class="pbar" aria-hidden="true"><span class="h" style="width:' + (p[0] * 100) + '%"></span><span class="d" style="width:' +

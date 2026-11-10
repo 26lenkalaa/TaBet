@@ -80,6 +80,21 @@ curl -i -X POST \
 - **Minutes:** 48 runs a day is about 1,440 Actions minutes a month, plus at most 360 for the backup
   schedule, within the 2,000 free minutes. You can check usage under **Settings → Billing**.
 
+## 4b. The Odds API key (amendment A7)
+
+The logger takes a market snapshot from The Odds API whenever it logs a forecast.
+
+1. Sign up for the free plan at the-odds-api.com and copy the key from the email.
+2. In the repo, open **Settings → Secrets and variables → Actions → Secrets → New repository secret**.
+   Name it `ODDS_API_KEY` and paste the key. Use a repository secret, not a variable (variables are
+   shown in plain text) and not an environment secret (the workflow declares no environment).
+3. Test it once: **Actions → Prospective forecast log → Run workflow**, mode `odds-api`. This makes one
+   call (2 credits), commits the snapshot, and the run log shows the number of matches and credits left.
+
+Without the key, everything else runs as before and the heartbeat says "no key". The free plan has
+500 credits a month; normal use is about 50–100. Below 50 the calls pause until the 1st and the alert
+issue says so.
+
 ## 5. Things that will stop it
 
 - **The token expires.** Renew it before the date you set, and paste the new one into the cron

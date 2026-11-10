@@ -42,3 +42,20 @@ def test_a_logged_forecast_stays_after_the_match_reaches_the_results_file(tmp_pa
     missed = [e for e in d["matches"] if e["season"] == "2026-27" and e.get("gameweek") == 10
               and e["id"] != "2026-27-20261107-leeds-tottenham"]
     assert missed and all(e.get("missing") and not e["forecasts"] for e in missed)
+
+
+def test_market_at_our_forecast_time_comes_from_the_same_run_only(tmp_path, monkeypatch):
+    # Leeds v Tottenham was logged 2026-11-06 11:10 UTC (FPL fixture 97)
+    def log(t):
+        return pd.DataFrame([{"fpl_fixture": 97, "book": "Avg", "source": "the-odds-api", "n_books": 12,
+                              "retrieved_utc": pd.Timestamp(t, tz="UTC"), "odds_h": 2.7, "odds_d": 3.4, "odds_a": 2.6}])
+    out = tmp_path / "m.json"
+    monkeypatch.setattr(S, "_odds_log", lambda: log("2026-11-06 11:11"))
+    S.build(preview=False, out=out)
+    m = next(e for e in json.loads(out.read_text())["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham")
+    mk = m["market"][0]
+    assert mk["key"] == "matched" and "12 bookmakers" in mk["note"] and abs(sum(mk["p"]) - 1) < 1e-3
+    monkeypatch.setattr(S, "_odds_log", lambda: log("2026-11-06 13:00"))  # a later run: not time-matched
+    S.build(preview=False, out=out)
+    m = next(e for e in json.loads(out.read_text())["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham")
+    assert all(x["key"] != "matched" for x in m["market"])

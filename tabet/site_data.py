@@ -9,7 +9,10 @@ Every match from 2022-23 onward gets the forecasts that exist for it, each label
             was built. Not a record; it changes as results come in.
 Market probabilities come from football-data average odds with the margin removed proportionally:
 pre-closing (collected Friday/Tuesday afternoon) and closing. For upcoming fixtures, football-data's
-fixtures.csv gives pre-closing odds once published. Odds are a benchmark only, never a model input.
+fixtures.csv gives pre-closing odds once published. For a logged forecast, "Market at our forecast time" is
+the bookmaker average archived at that record's cutoff (amendments A6, A7): The Odds API snapshot from the
+same run, else a football-data snapshot taken by then. Odds are a benchmark only, never a model input:
+this module reads the odds archive for display and nothing here feeds a forecast.
 """
 
 from __future__ import annotations
@@ -70,6 +73,38 @@ def _logged() -> dict[int, dict]:
     return best
 
 
+def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
+    """The market at a logged record's cutoff, or None if no snapshot was taken by then."""
+    from .market_benchmark import select_snapshots
+    from .odds_archive import API_SOURCE
+    if odds_log is None or odds_log.empty:
+        return None
+    rec = pd.DataFrame([{k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")}])
+    for source, label in ((API_SOURCE, "The Odds API"), ("football-data", "football-data")):
+        s = select_snapshots(rec, odds_log, source=source, with_last=False)
+        if len(s) and not bool(s["later"].iloc[0]):
+            x = s.iloc[0]
+            row = odds_log[(odds_log["source"] == source) & (odds_log["book"] == "Avg")
+                           & (odds_log["retrieved_utc"] == x["retrieved_utc"])
+                           & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == r["fpl_fixture"])]
+            n = row["n_books"].iloc[0] if "n_books" in row and len(row) and pd.notna(row["n_books"].iloc[0]) else None
+            hrs = (pd.Timestamp(r["kickoff_utc"]) - x["retrieved_utc"]).total_seconds() / 3600
+            note = (f"bookmaker average{f' of {int(n)} bookmakers' if n else ''}, margin removed; {label}, "
+                    f"retrieved {x['retrieved_utc']:%d %b %H:%M} UTC, {hrs:.1f} h before kickoff")
+            return {"key": "matched", "label": "Market at our forecast time", "note": note,
+                    "p": [round(float(x[c]), 4) for c in ("p_home", "p_draw", "p_away")]}
+    return None
+
+
+def _odds_log() -> pd.DataFrame:
+    try:
+        from .odds_archive import load
+        return load()
+    except Exception as ex:  # the explorer must still build without the archive
+        print(f"odds archive not read ({ex})")
+        return pd.DataFrame()
+
+
 def _logged_forecasts(r: dict) -> list[dict]:
     role = "primary" if r["horizon_h"] == 24.0 else "fallback"
     note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
@@ -85,6 +120,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     led = pd.read_csv(LEDGER)
     led = {v: led[led["variant"] == v].drop_duplicates("match_id").set_index("match_id") for v in BACKTEST}
     logged = _logged()
+    odds_log = _odds_log()
 
     d = fetch_live_season(LIVE_SEASON, refresh=preview)
     boot = json.loads((d / "bootstrap.json").read_text())
@@ -115,6 +151,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
             r = logged.get(fpl_id.get((m.home_id, m.away_id), -1))
             if r:
                 e["forecasts"] = _logged_forecasts(r) + e["forecasts"]
+                mm = _matched_market(r, odds_log)
+                if mm:
+                    e["market"].insert(0, mm)
             elif not e["forecasts"]:
                 e["missing"] = "No forecast was logged for this match (the logger missed its window)."
         entries.append(e)
@@ -146,6 +185,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         r = logged.get(int(f.id))
         if r:
             e["forecasts"] += _logged_forecasts(r)
+            mm = _matched_market(r, odds_log)
+            if mm:
+                e["market"].append(mm)
         elif int(f.id) in previews and not played:
             pv = previews[int(f.id)]
             e["forecasts"].append({"key": "preview", "label": "TaBet, no lineups (preview)", "kind": "preview",
