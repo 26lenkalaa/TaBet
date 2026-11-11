@@ -46,6 +46,18 @@ a { color: inherit; }
 .gw span { font-size: 12px; min-width: 6.5em; text-align: center; }
 .navlink { font-family: var(--px); font-size: 10px; text-decoration: none; background: var(--gold); color: #1c1600; padding: 10px 12px; box-shadow: 3px 3px 0 #0b2c14; }
 .navlink:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #0b2c14; }
+/* one page menu, same place on every page; the current page is highlighted with a blinking cursor */
+.pages { display: flex; gap: 6px; }
+.pages a { font-family: var(--px); font-size: 10px; text-decoration: none; color: var(--ink); background: var(--panel-hi); border: 2px solid var(--chalk);
+  padding: 9px 10px 9px 24px; position: relative; box-shadow: 3px 3px 0 #0b2c14; white-space: nowrap; }
+.pages a::before { content: "\25B6"; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 8px; opacity: 0; }
+.pages a:hover { color: var(--gold); } .pages a:hover::before { opacity: .7; }
+.pages a[aria-current="page"] { background: var(--gold); color: #1c1600; border-color: var(--gold); }
+.pages a[aria-current="page"]::before { opacity: 1; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (max-width: 960px) { .pages { order: 4; flex-basis: 100%; } .pages a { flex: 1; text-align: center; padding-left: 18px; } }
+@media (prefers-reduced-motion: reduce) { .pages a[aria-current="page"]::before { animation: none; } }
+
 
 /* ---- the pitch ---- */
 .pitch { position: relative; max-width: 1440px; margin: 6px auto 0; padding: 0 20px; }
@@ -161,7 +173,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 <header class="hud">
   <a class="ballbtn" href="notebook" aria-label="Open the model notebook" title="Model notebook">
     <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
-    <span class="tip px">MODEL NOTEBOOK</span>
+    <span class="tip px">NOTEBOOK</span>
   </a>
   <div class="title">
     <h1>TABET</h1>
@@ -172,7 +184,9 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     <span id="gwlab" class="px" aria-live="polite">GW --</span>
     <button id="next" type="button" aria-label="Next gameweek">&#9654;</button>
   </div>
-  <a class="navlink" href="matches">ALL MATCHES</a>
+  <nav class="pages" aria-label="Pages">
+    <a href="./" aria-current="page">PITCH</a><a href="matches">MATCHES</a><a href="notebook">NOTEBOOK</a>
+  </nav>
 </header>
 
 <main class="pitch">
