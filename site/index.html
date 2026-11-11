@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaBet</title>
 <meta name="description" content="TaBet's Premier League forecasts for this gameweek, next to the betting market. Pick a match to see every forecast.">
-<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-tamid.png">
-<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-tamid.png?v=2">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=2">
 <link rel="preload" href="fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -15,8 +16,7 @@
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
 </style>
 <script type="speculationrules">
-{"prerender": [{"where": {"href_matches": ["/matches", "/notebook"]}, "eagerness": "moderate"}],
- "prefetch": [{"where": {"href_matches": "/"}, "eagerness": "moderate"}]}
+{"prerender": [{"where": {"href_matches": ["/", "/matches", "/notebook"]}, "eagerness": "moderate"}]}
 </script>
 <style>
 :root {
@@ -343,9 +343,11 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   }
   intro.addEventListener("click", finish);
   document.getElementById("replay").addEventListener("click", function () { play(); });
-  var seen = false;
+  var seen = false, internal = false;
   try { seen = sessionStorage.getItem("tabet-intro") === "1"; } catch (e) {}
-  if (!seen && !reduce) {
+  /* the intro greets visitors arriving from outside; coming back from the notebook or the explorer goes straight to the pitch */
+  try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+  if (!seen && !reduce && !internal) {
     if (document.fonts && document.fonts.load) document.fonts.load('16px "Press Start 2P"').then(play, play); else play();
   }
 
