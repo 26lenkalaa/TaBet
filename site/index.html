@@ -56,6 +56,8 @@ a { color: inherit; }
 .lines .net { stroke: rgba(255,255,255,.35); stroke-width: 1; }
 .halves { position: absolute; inset: 4% 3.5%; display: grid; grid-template-columns: 1fr minmax(250px, 25%) 1fr; gap: 2.5%; align-items: center; }
 .half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: center; }
+/* an odd last card sits centred in its own row, so each half stays symmetrical (2 + 2 + 1) */
+.half > .chip:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
 .centre { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
 /* match cards */
@@ -115,6 +117,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 }
 @media (max-width: 560px) {
   .half { grid-template-columns: 1fr; }
+  .half > .chip:last-child:nth-child(odd) { width: 100%; }
   .pitch { padding: 0 10px; }
   .gw span { min-width: 5em; }
   .ballbtn .tip { display: none; }

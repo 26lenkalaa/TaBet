@@ -5,108 +5,156 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaBet match explorer</title>
 <meta name="description" content="Pick a season and a match to see TaBet's forecasts, the betting market's, and the result.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2317406D'/><circle cx='16' cy='16' r='7' fill='none' stroke='%237DD1FF' stroke-width='3'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='white' stroke='%2312233a' stroke-width='1.5'/><path d='M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z' fill='%2312233a'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-.page-head { background: var(--hero-bg); color: var(--hero-ink); }
-.page-head .wrap { padding-top: 44px; padding-bottom: 48px; }
-.page-head h1 { color: var(--hero-ink); font-size: clamp(32px, 4.4vw, 46px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 800; margin: 0 0 12px; }
-.page-head p { color: var(--hero-muted); font-size: 17px; max-width: 40em; margin: 0; }
+:root {
+  --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
+  --chalk: rgba(255, 255, 255, .86); --chalk-dim: rgba(255, 255, 255, .28);
+  --panel: rgba(9, 38, 18, .84); --panel-hi: rgba(7, 30, 14, .94); --deep: #0b2c14;
+  --ink: #ffffff; --muted: #cfe6d3; --faint: #9cc4a4;
+  --gold: #ffd23f; --red: #ff5a4f; --green: #7dff9c; --sky: #7dd1ff; --purple: #c9b3ff;
+  --c-h: #7dd1ff; --c-d: #dfe7ee; --c-a: #ffb347;
+  --px: "Press Start 2P", ui-monospace, monospace;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--sans); color: var(--ink); min-height: 100vh; font-size: 15px; line-height: 1.5;
+  background: var(--grass-edge) repeating-linear-gradient(90deg, var(--grass-a) 0 80px, var(--grass-b) 80px 160px); -webkit-font-smoothing: antialiased; }
+a { color: var(--gold); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.px { font-family: var(--px); letter-spacing: .02em; }
+.marks { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.marks * { fill: none; stroke: var(--chalk-dim); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
-.toolbar { display: grid; grid-template-columns: 160px 220px minmax(0, 1fr); gap: 12px; margin-top: -26px; position: relative;
-  background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; box-shadow: 0 18px 40px -28px rgba(3, 14, 30, .5); }
-.toolbar label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px 2px; }
-select { font: inherit; font-size: 15px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm);
-  padding: 9px 10px; width: 100%; max-width: 100%; cursor: pointer; }
-select:hover { border-color: var(--faint); }
-@media (max-width: 760px) { .toolbar { grid-template-columns: 1fr 1fr; } .toolbar .f-match { grid-column: 1 / -1; } }
-#built { margin: 10px 2px 0; }
+/* top bar, as on the pitch */
+.hud { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
+.ballbtn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
+.ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
+.ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; }
+.title { flex: 1; min-width: 0; }
+.title h1 { margin: 0; font-family: var(--px); font-size: 20px; text-shadow: 3px 3px 0 var(--deep); }
+.title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.navlink { font-family: var(--px); font-size: 10px; text-decoration: none; background: var(--gold); color: #1c1600; padding: 10px 12px; box-shadow: 3px 3px 0 var(--deep); white-space: nowrap; }
+.navlink.alt { background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; }
+.navlink:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--deep); }
 
-.match { margin-top: 28px; border: 1px solid var(--line); border-radius: var(--r); padding: 26px; }
-@media (max-width: 600px) { .match { padding: 18px 14px; } }
+/* panels */
+.chalk { background: var(--panel); border: 2px solid var(--chalk); box-shadow: 5px 5px 0 rgba(0,0,0,.28); }
+.toolbar { display: grid; grid-template-columns: 160px 220px minmax(0, 1fr); gap: 12px; padding: 14px; margin-top: 8px; }
+.toolbar label { display: block; font-family: var(--px); font-size: 9px; color: var(--gold); margin: 0 0 8px 2px; }
+select { font: inherit; font-size: 15px; color: var(--ink); background: var(--deep); border: 2px solid var(--chalk-dim); padding: 9px 10px; width: 100%; max-width: 100%; cursor: pointer; border-radius: 0; }
+select:hover { border-color: var(--chalk); }
+select option { background: #0b2c14; color: #fff; }
+#built { margin: 10px 2px 0; font-size: 13px; color: var(--muted); text-shadow: 1px 1px 0 var(--deep); }
+
+/* the scoreboard */
+.match { margin-top: 22px; padding: 22px; }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
-.teams { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin: 16px 0 22px; }
-.teams .side { font-size: 26px; font-weight: 750; line-height: 1.2; letter-spacing: -0.02em; }
+.teams { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin: 18px 0 22px; padding: 16px; background: #050f08; border: 3px solid #1a1a1a; box-shadow: inset 0 0 0 2px #2b2b2b; }
+.teams .side { font-family: var(--px); font-size: 16px; line-height: 1.5; color: #fff; text-shadow: 0 0 6px rgba(255,255,255,.35); }
 .teams .side.away { text-align: right; }
-.teams .score { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: center; min-width: 104px; letter-spacing: -0.02em;
-  background: var(--navy); color: #fff; border-radius: var(--r-sm); padding: 2px 14px; }
-.teams .score.pending { font-size: 15px; font-weight: 600; background: var(--surface); color: var(--muted); padding: 8px 14px; }
-@media (max-width: 600px) { .teams .side { font-size: 18px; } .teams .score { font-size: 28px; min-width: 72px; } }
+.teams .score { font-family: var(--px); font-size: 34px; text-align: center; min-width: 120px; color: var(--gold); text-shadow: 0 0 10px rgba(255,210,63,.6); }
+.teams .score.pending { font-size: 13px; color: var(--muted); text-shadow: none; }
+@media (max-width: 600px) { .teams .side { font-size: 10px; } .teams .score { font-size: 22px; min-width: 70px; } .match { padding: 14px 12px; } }
 
 .sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.sum .cell { background: var(--surface); border-radius: var(--r-sm); padding: 14px 16px; border: 1.5px solid transparent; position: relative; }
-.sum .cell.hit { border-color: var(--accent); background: var(--hit); }
+.sum .cell { background: var(--deep); padding: 14px 16px; border: 2px solid transparent; position: relative; }
+.sum .cell.hit { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,210,63,.25); }
 .sum .k { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.sum .k i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-.sum .v { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 4px; }
-.sum .m { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.sum .won { position: absolute; top: 12px; right: 12px; }
-@media (max-width: 600px) { .sum .v { font-size: 24px; } .sum .cell { padding: 10px; } .sum .won { display: none; } }
-.sum-src { font-size: 13px; color: var(--muted); margin: 8px 2px 0; }
+.sum .k i, .legend i { width: 10px; height: 10px; display: inline-block; }
+.k-h { background: var(--c-h); } .k-d { background: var(--c-d); } .k-a { background: var(--c-a); }
+.sum .v { font-family: var(--px); font-size: 24px; line-height: 1.3; margin-top: 10px; }
+.sum .cell:nth-child(1) .v { color: var(--c-h); } .sum .cell:nth-child(2) .v { color: var(--c-d); } .sum .cell:nth-child(3) .v { color: var(--c-a); }
+.sum .m { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.sum .won { position: absolute; top: 10px; right: 10px; }
+@media (max-width: 600px) { .sum .v { font-size: 15px; } .sum .cell { padding: 10px; } .sum .won { display: none; } }
+.sum-src { font-size: 13px; color: var(--muted); margin: 10px 2px 0; }
 
-.match h3 { font-size: 16px; margin: 26px 0 10px; }
-td.hit, th.hit { background: var(--hit) !important; }
+.match h3 { font-family: var(--px); font-size: 11px; color: var(--gold); margin: 26px 0 12px; font-weight: 400; }
+.panel { border: 2px solid var(--chalk-dim); background: rgba(5, 22, 10, .6); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.12); vertical-align: top; }
+th { font-family: var(--px); font-size: 9px; font-weight: 400; color: var(--muted); background: var(--deep); }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.hit, th.hit { background: rgba(255, 210, 63, .14) !important; color: var(--gold); }
 td.name { min-width: 190px; }
-tr.group td { background: var(--surface); color: var(--muted); font-size: 12.5px; font-weight: 600; padding: 6px 14px; }
+tr.group td { background: var(--deep); color: var(--gold); font-family: var(--px); font-size: 9px; padding: 8px 14px; }
 td.name .pbar { margin-top: 8px; }
-@media (max-width: 600px) { td.name { min-width: 130px; } }
+.note { display: block; font-size: 12px; color: var(--faint); margin-top: 3px; }
+.pbar { display: flex; height: 8px; background: var(--deep); max-width: 260px; }
+.pbar span { display: block; height: 100%; } .pbar .h { background: var(--c-h); } .pbar .d { background: var(--c-d); } .pbar .a { background: var(--c-a); }
+.sum .won { color: var(--gold); }
+@media (max-width: 600px) { td.name { min-width: 130px; } .wide { display: none; } th, td { padding: 8px 9px; } }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
+.legend i { margin-right: 5px; vertical-align: -1px; }
+.callout { margin-top: 18px; background: var(--deep); border-left: 4px solid var(--gold); padding: 10px 14px; font-size: 14px; color: var(--muted); }
+.callout p { margin: 4px 0; }
 .empty { color: var(--muted); font-size: 15px; margin: 0; }
-.labels .tag { margin-right: 6px; }
+
+.tag { display: inline-block; font-family: var(--px); font-size: 8px; padding: 4px 5px; vertical-align: 2px; margin-left: 4px; background: var(--deep); border: 1px solid currentColor; }
+.t-gray { color: #c7d3cb; } .t-green { color: var(--green); } .t-purple { color: var(--purple); } .t-blue { color: var(--sky); } .t-yellow { color: var(--gold); }
+
+details.acc { margin: 22px 0 0; }
+details.acc summary { cursor: pointer; list-style: none; padding: 14px 16px; font-family: var(--px); font-size: 10px; color: var(--gold); display: flex; justify-content: space-between; }
+details.acc summary::-webkit-details-marker { display: none; }
+details.acc summary::after { content: "+"; } details.acc[open] summary::after { content: "–"; }
+.acc-body { padding: 0 16px 14px; font-size: 14px; color: var(--muted); }
+.acc-body .tag { margin: 0 6px 0 0; }
+footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 22px 20px 30px; font-size: 13px; color: var(--muted); text-shadow: 1px 1px 0 var(--deep); }
+
+@media (max-width: 760px) {
+  .toolbar { grid-template-columns: 1fr 1fr; } .toolbar .f-match { grid-column: 1 / -1; }
+  .hud { flex-wrap: wrap; } .title { order: 3; flex-basis: 100%; } .title h1 { font-size: 15px; }
+  .ballbtn .tip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ballbtn svg { transition: none; } }
 </style>
 </head>
 <body>
+<svg class="marks" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+  <rect x="20" y="20" width="960" height="960"/><line x1="20" y1="500" x2="980" y2="500"/>
+</svg>
 
-<header class="nav">
-  <div class="nav-in">
-    <a class="brand" href="./" aria-label="Back to the pitch" title="Back to the pitch"><svg class="ballmark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="currentColor"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>TaBet</a>
-    <nav class="links" aria-label="Pages">
-      <a href="./">Pitch</a>
-      <a href="notebook">Model notebook</a>
-      <a href="matches" aria-current="page">Match explorer</a>
-    </nav>
-    <div class="nav-end">
-      <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button>
-    </div>
+<header class="hud">
+  <a class="ballbtn" href="./" aria-label="Back to the pitch" title="Back to the pitch"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg><span class="tip px">PITCH</span></a>
+  <div class="title">
+    <h1>MATCH EXPLORER</h1>
+    <p>Pick a season and a match: what TaBet predicted, what the market predicted, and what happened.</p>
   </div>
+  <a class="navlink alt" href="notebook">NOTEBOOK</a>
 </header>
 
-<section class="page-head">
-  <div class="wrap">
-    <h1>Match explorer</h1>
-    <p>Pick a season and a match to see what TaBet predicted, what the betting market predicted, and what happened. Upcoming matches show our latest forecast.</p>
-  </div>
-</section>
-
 <main class="wrap">
-  <div class="toolbar">
-    <div><label for="season">Season</label><select id="season"></select></div>
-    <div><label for="team">Team</label><select id="team"></select></div>
-    <div class="f-match"><label for="match">Match</label><select id="match"></select></div>
+  <div class="toolbar chalk">
+    <div><label for="season">SEASON</label><select id="season"></select></div>
+    <div><label for="team">TEAM</label><select id="team"></select></div>
+    <div class="f-match"><label for="match">MATCH</label><select id="match"></select></div>
   </div>
-  <p class="small muted" id="built"></p>
+  <p id="built"></p>
 
-  <section class="match" id="card" aria-live="polite"><p class="empty">Loading matches…</p></section>
+  <section class="match chalk" id="card" aria-live="polite"><p class="empty">Loading matches…</p></section>
 
-  <details class="acc labels">
-    <summary><span class="lab">What the labels mean</span><span class="chev" aria-hidden="true"></span></summary>
-    <div class="acc-body small">
+  <details class="acc chalk labels">
+    <summary>WHAT THE LABELS MEAN</summary>
+    <div class="acc-body">
       <p><span class="tag t-gray">Backtest</span> Rebuilt afterwards, but using only information available before that match: results, xG and, for V2x, the confirmed lineups. This is how every past season was scored.</p>
       <p><span class="tag t-green">Logged</span> A real prediction, saved 24–32 hours before kickoff and never changed. p0 uses no lineups; pE uses the lineups predicted by Fantasy Football Scout and RotoWire.</p>
-      <p><span class="tag t-purple">Preview</span> Today's lineup-free forecast for an upcoming match. It updates as results come in, until the logged forecast replaces it.</p>
-      <p><span class="tag t-blue">Market</span> Bookmakers' average odds turned into probabilities, with their margin removed. Earlier odds are from Friday or Tuesday afternoon; closing odds are from kickoff. Odds are only ever a yardstick, never a model input.</p>
+      <p><span class="tag t-purple">Preview</span> Today's forecast for an upcoming match, without lineups and, once predicted XIs are published, with them. It updates until the logged forecast replaces it.</p>
+      <p><span class="tag t-blue">Market</span> Bookmakers' average odds turned into probabilities, with their margin removed. "Market at our forecast time" was saved in the same run as TaBet's logged forecast; earlier odds are from Friday or Tuesday afternoon; closing odds are from kickoff; latest odds are the newest snapshot. Odds are only ever a yardstick, never a model input.</p>
       <p><strong>Log-loss</strong> scores the probability given to what happened: lower is better. A confident miss costs the most.</p>
     </div>
   </details>
 </main>
 
-<footer class="foot">
-  <div class="wrap foot-in">
-    <a class="brand brand-inv" href="./"><span class="mark" aria-hidden="true"></span>TaBet</a>
-    <p><a href="./">Back to the model notebook</a>. Nothing here is betting advice.</p>
-  </div>
+<footer>
+  <a href="./">Back to the pitch</a> · <a href="notebook">Model notebook</a>. Nothing here is betting advice.
 </footer>
 
 <script src="common.js"></script>
