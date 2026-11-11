@@ -133,6 +133,8 @@ td.name .pbar { margin-top: 8px; }
 .lu-lines * { fill: none; stroke: rgba(255,255,255,.65); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .pl { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 92px; }
 .pl-s { width: 30px; height: 41px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,.35)); }
+.pl-h { width: 32px; height: 32px; image-rendering: pixelated; image-rendering: crisp-edges; border: 2px solid; background: #0b2c14; display: block; }
+.pl-b { width: 24px; height: 24px; margin-top: -2px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,.35)); }
 .pl-n { font-family: var(--px); font-size: 7px; line-height: 1.4; margin-top: 4px; padding: 2px 4px; background: rgba(5,20,9,.8); color: #fff;
   max-width: 92px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl i { position: absolute; top: -4px; right: 22px; font-style: normal; font-size: 10px; line-height: 14px; width: 14px; height: 14px; text-align: center;
@@ -140,7 +142,7 @@ td.name .pbar { margin-top: 8px; }
 .pl i.ok { background: #7dff9c; color: #053014; } .pl i.no { background: #ff7a70; color: #3a0905; }
 .pl.miss .pl-s { opacity: .45; } .pl.miss .pl-n { text-decoration: line-through; color: #ffc7c2; }
 .lu-note { font-size: 13px; color: var(--muted); margin: 10px auto 0; max-width: 620px; }
-@media (max-width: 520px) { .pl { width: 52px; } .pl-s { width: 22px; height: 30px; } .pl-n { font-size: 6px; max-width: 50px; padding: 2px; } .pl i { right: 6px; }
+@media (max-width: 520px) { .pl { width: 52px; } .pl-s { width: 22px; height: 30px; } .pl-h { width: 22px; height: 22px; } .pl-b { width: 18px; height: 18px; } .pl-n { font-size: 6px; max-width: 50px; padding: 2px; } .pl i { right: 6px; }
   .lu-pick select { min-width: 0; } .lu-team b { font-size: 8px; } }
 
 .tag { display: inline-block; font-family: var(--px); font-size: 8px; padding: 4px 5px; vertical-align: 2px; margin-left: 4px; background: var(--deep); border: 1px solid currentColor; }
@@ -210,7 +212,7 @@ footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padd
   <a href="./">Back to the pitch</a> · <a href="notebook">Model notebook</a>. Nothing here is betting advice.
 </footer>
 
-<script src="common.js"></script>
+<script src="common.js?v=20261111"></script>
 <script>
 var T = window.TaBet, esc = T.esc, pct = T.pct, when = T.when;
 var IX = null, SEASON = null, seasonEl = document.getElementById("season"), teamEl = document.getElementById("team"),
@@ -315,14 +317,15 @@ var KITS = {
   "Wolverhampton Wanderers": ["#FDB913", "#111111", "#111111"]
 };
 var GK = { home: ["#FF8C1A", "#111111", "#111111"], away: ["#B07CFF", "#111111", "#111111"] };
-var SKIN = ["#F1C27D", "#E0AC69", "#C68642", "#8D5524"], HAIR = ["#3B2414", "#111111", "#A0522D", "#E6C200"];
+/* every player gets the same neutral, non-skin grey head and hands and the same dark hair: the site
+   never guesses anyone's skin tone or appearance; only the kit colours differ */
+var HEAD = "#C9CED6", HAIR = "#4A5160";
 var SPRITE = ["..hhhh..", "..ffff..", "..ffff..", ".ssssss.", "tsssssst", "fssssssf", ".ssssss.", ".pppppp.", ".kk..kk.", ".kk..kk.", ".bb..bb."];
 var LU_VIEW = null;   // "actual", "ffs" or "rotowire"; kept while browsing matches
 var SRC_NAME = { ffs: "Fantasy Football Scout", rotowire: "RotoWire" };
 
-function hash(t) { var h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h; }
 function sprite(name, k) {
-  var hh = hash(name), skin = SKIN[hh % 4], hair = HAIR[(hh >> 3) % 4], rects = "";
+  var skin = HEAD, hair = HAIR, rects = "";
   for (var y = 0; y < SPRITE.length; y++) for (var x = 0; x < 8; x++) {
     var ch = SPRITE[y][x], c = null;
     if (ch === "h") c = hair; else if (ch === "f") c = skin; else if (ch === "p") c = k[2]; else if (ch === "b") c = "#111111";
@@ -331,6 +334,47 @@ function sprite(name, k) {
     if (c) rects += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>';
   }
   return '<svg class="pl-s" viewBox="0 0 8 11" shape-rendering="crispEdges" aria-hidden="true">' + rects + "</svg>";
+}
+/* headshots: the Premier League's official 40x40 player photos, loaded from their servers (nothing is
+   copied into this site), cropped to the face and drawn at 16x16 so they look 8-bit. Until a photo loads, or if a player has
+   none, the neutral grey head stays. */
+var PHOTO = "https://resources.premierleague.com/premierleague/photos/players/40x40/p", photos = {};
+function body(k) {   // the kit-coloured sprite without its head
+  var rects = "";
+  for (var y = 3; y < SPRITE.length; y++) for (var x = 0; x < 8; x++) {
+    var ch = SPRITE[y][x], c = null;
+    if (ch === "f") c = HEAD; else if (ch === "p") c = k[2]; else if (ch === "b") c = "#111111";
+    else if (ch === "k" || ch === "t") c = k[1];
+    else if (ch === "s") c = k[3] && x % 2 === 1 ? k[1] : k[0];
+    if (c) rects += '<rect x="' + x + '" y="' + (y - 3) + '" width="1" height="1" fill="' + c + '"/>';
+  }
+  return '<svg class="pl-b" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">' + rects + "</svg>";
+}
+function neutralHead(ctx) {
+  ctx.clearRect(0, 0, 16, 16);
+  ctx.fillStyle = HAIR; ctx.fillRect(4, 2, 8, 3);
+  ctx.fillStyle = HEAD; ctx.fillRect(4, 5, 8, 7); ctx.fillRect(6, 12, 4, 3);
+}
+function paintHeads(root) {
+  root.querySelectorAll("canvas.pl-h").forEach(function (cv) {
+    var ctx = cv.getContext("2d"), code = cv.dataset.code;
+    neutralHead(ctx);
+    if (!code) return;
+    var img = photos[code];
+    if (!img) {
+      img = photos[code] = new Image();
+      img.referrerPolicy = "no-referrer";
+      img.src = PHOTO + code + ".png";
+    }
+    // crop to the face (the 40x40 photo includes the shoulders and shirt), then shrink to 16x16 pixels
+    function draw() {
+      var w = img.naturalWidth, h = img.naturalHeight;
+      if (!w) return;
+      ctx.clearRect(0, 0, 16, 16); ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(img, w * 0.24, h * 0.01, w * 0.52, h * 0.52, 0, 0, 16, 16);   // the head is in the top-middle of the photo
+    }
+    if (img.complete) draw(); else img.addEventListener("load", draw);
+  });
 }
 // vertical pitch like a TV graphic: home team at the top, away at the bottom
 var LINES = ["GK", "DEF", "MID", "FWD"], DEPTH = { GK: 7, DEF: 19, MID: 31, FWD: 43 };
@@ -363,7 +407,8 @@ function lineupHTML(m, rec) {
         var y = side === "home" ? DEPTH[ln] : 100 - DEPTH[ln], x = 8 + (i + 0.5) * (84 / n);
         var mark = compare ? (started[p[0]] ? '<i class="ok" title="Started">✓</i>' : '<i class="no" title="Did not start">✗</i>') : "";
         players += '<div class="pl' + (compare && !started[p[0]] ? " miss" : "") + '" style="left:' + x.toFixed(1) + "%;top:" + y.toFixed(1) + '%" title="' +
-          esc(p[1] + " · " + team + " · " + ln) + '">' + sprite(p[1], ln === "GK" ? GK[side] : kit) + mark + '<span class="pl-n">' + esc(p[1]) + "</span></div>";
+          esc(p[1] + " · " + team + " · " + ln) + '">' + '<canvas class="pl-h" width="16" height="16" data-code="' + (+p[0] || "") +
+          '" style="border-color:' + (ln === "GK" ? GK[side] : kit)[1] + '"></canvas>' + body(ln === "GK" ? GK[side] : kit) + mark + '<span class="pl-n">' + esc(p[1]) + "</span></div>";
       });
     });
   });
@@ -386,12 +431,26 @@ function lineupHTML(m, rec) {
     '<rect x="13.85" y="87.5" width="40.3" height="16.5"/><rect x="24.85" y="98.5" width="18.3" height="5.5"/></svg>' +
     players + "</div>" + bar("away") + "</div>" + '<p class="lu-note">' + note + "</p>";
 }
+var lineupCache = {};
+function getLineups(season) {   // works even with an older cached common.js
+  if (T.lineups) return T.lineups(season);
+  if (!lineupCache[season]) lineupCache[season] = fetch("data/lineups-" + season + ".json")
+    .then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) { return d.lineups || {}; })
+    .catch(function () { return {}; });
+  return lineupCache[season];
+}
 function showLineups(m) {
   var el = document.getElementById("lineups");
   if (!el) return;
-  T.lineups(m.season).then(function (L) {
+  el.innerHTML = '<h3>Starting lineups</h3><p class="lu-note">Loading lineups…</p>';
+  getLineups(m.season).then(function (L) {
     if (matchEl.value !== m.id) return;   // the user has moved on
-    el.innerHTML = lineupHTML(m, L[m.id]);
+    var html = lineupHTML(m, L[m.id]);
+    el.innerHTML = html || '<h3>Starting lineups</h3><p class="lu-note">' +
+      (m.status === "played" ? "No lineup data for this match yet." : "Predicted lineups appear here once Fantasy Football Scout and RotoWire publish them, usually in the week of the match.") + "</p>";
+    paintHeads(el);
+  }, function () {
+    el.innerHTML = '<h3>Starting lineups</h3><p class="lu-note">The lineups didn\'t load. Refresh the page to try again.</p>';
   });
 }
 card.addEventListener("change", function (e) {
