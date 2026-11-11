@@ -91,13 +91,16 @@ a { color: inherit; }
 .chip .when { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
 .chip .tm { font-family: var(--px); font-size: 13px; margin: 8px 0 2px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
 .chip .tm .sc { color: var(--gold); }
-.chip .full { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip .full { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
 .bar i { display: block; height: 100%; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
 .nums { display: flex; justify-content: space-between; font-family: var(--px); font-size: 10px; }
 .nums b { font-weight: 400; }
-.mk { font-size: 12px; color: var(--faint); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk { display: block; font-size: 12px; color: var(--faint); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* a match with no forecast yet: an empty bar and a short pixel label instead of a sentence */
+.bar.tbd { background: repeating-linear-gradient(90deg, #0b2c14 0 6px, rgba(255,255,255,.12) 6px 12px); }
+.soon { display: block; font-family: var(--px); font-size: 8px; color: var(--faint); margin-top: 6px; }
 .mk .n { font-family: var(--px); font-size: 8px; color: var(--muted); }
 .badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
 .badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
@@ -365,7 +368,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       '<span class="full">' + T.esc(m.home + " v " + m.away) + "</span>" +
       (p ? '<span class="bar" aria-hidden="true"><i class="h" style="width:' + p[0] * 100 + '%"></i><i class="d" style="width:' + p[1] * 100 + '%"></i><i class="a" style="width:' + p[2] * 100 + '%"></i></span>' +
            '<span class="nums"><b style="color:var(--c-h)">' + T.pct(p[0]) + '</b><b style="color:var(--c-d)">' + T.pct(p[1]) + '</b><b style="color:var(--c-a)">' + T.pct(p[2]) + "</b></span>"
-         : '<span class="mk">' + (m.status === "upcoming" ? "TaBet\'s forecast comes about two gameweeks ahead." : "No TaBet forecast was logged for this match.") + "</span>") +
+         : '<span class="bar tbd" aria-hidden="true"></span><span class="soon">' + (m.status === "upcoming" ? "FORECAST SOON" : "NO FORECAST LOGGED") + "</span>") +
       (mk ? '<span class="mk">Market <span class="n">' + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ") + "</span></span>" : "") +
       "</a>";
   }
