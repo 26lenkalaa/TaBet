@@ -77,7 +77,9 @@ a { color: inherit; }
 .half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: center; }
 /* an odd last card sits centred in its own row, so each half stays symmetrical (2 + 2 + 1) */
 .half > .chip:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
-.centre { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.centre { display: flex; flex-direction: column; align-items: center; gap: 14px; position: relative; }
+/* the next-match panel sits exactly on the centre spot; the KICK! ball hangs below it without shifting it */
+.centre .kick { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); }
 
 /* match cards */
 .chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 10px 11px 11px;
@@ -136,6 +138,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   .half { display: contents; }
   .half > .chip:last-child:nth-child(odd) { grid-column: auto; width: auto; justify-self: stretch; }
   .centre { order: -1; grid-column: 1 / -1; width: 100%; }
+  .centre .kick { position: static; transform: none; }
   .field::before { content: ""; position: absolute; left: 50%; top: 26px; width: 150px; height: 150px; margin-left: -75px; border: 3px solid var(--chalk); border-radius: 50%; pointer-events: none; }
 }
 @media (max-width: 560px) {
