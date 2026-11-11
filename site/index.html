@@ -37,7 +37,7 @@ a { color: inherit; }
 .ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
 .ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
 .ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; max-width: 9em; }
-.title { flex: 1; min-width: 0; }
+.title { flex: 1 1 300px; min-width: 0; }
 .title h1 { margin: 0; font-family: var(--px); font-size: 22px; text-shadow: 3px 3px 0 #0b2c14; }
 .title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .gw { display: flex; align-items: center; gap: 6px; background: var(--panel-hi); border: 2px solid var(--chalk); padding: 6px; }
@@ -55,7 +55,7 @@ a { color: inherit; }
 .pages a[aria-current="page"] { background: var(--gold); color: #1c1600; border-color: var(--gold); }
 .pages a[aria-current="page"]::before { opacity: 1; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-@media (max-width: 960px) { .pages { order: 4; flex-basis: 100%; } .pages a { flex: 1; text-align: center; padding-left: 18px; } }
+@media (max-width: 1200px) { .pages { order: 4; flex-basis: 100%; } .pages a { flex: 1; text-align: center; padding-left: 18px; } }
 @media (prefers-reduced-motion: reduce) { .pages a[aria-current="page"]::before { animation: none; } }
 
 
@@ -66,8 +66,8 @@ a { color: inherit; }
 .lines * { fill: none; stroke: var(--chalk); stroke-width: 3; vector-effect: non-scaling-stroke; }
 .lines .spot { fill: var(--chalk); stroke: none; }
 .lines .net { stroke: rgba(255,255,255,.35); stroke-width: 1; }
-.halves { position: absolute; inset: 4% 3.5%; display: grid; grid-template-columns: 1fr minmax(250px, 25%) 1fr; gap: 2.5%; align-items: center; }
-.half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: center; }
+.halves { position: absolute; inset: 4% 3.5%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 25%) minmax(0, 1fr); gap: 2.5%; align-items: center; }
+.half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: center; }
 /* an odd last card sits centred in its own row, so each half stays symmetrical (2 + 2 + 1) */
 .half > .chip:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
 .centre { display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -88,7 +88,7 @@ a { color: inherit; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
 .nums { display: flex; justify-content: space-between; font-family: var(--px); font-size: 10px; }
 .nums b { font-weight: 400; }
-.mk { font-size: 12px; color: var(--faint); margin-top: 5px; }
+.mk { font-size: 12px; color: var(--faint); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mk .n { font-family: var(--px); font-size: 8px; color: var(--muted); }
 .badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
 .badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
@@ -98,7 +98,7 @@ a { color: inherit; }
 .next .lab { font-size: 9px; color: var(--gold); }
 .next h2 { font-size: 17px; margin: 10px 0 2px; line-height: 1.25; }
 .next .k { font-size: 13px; color: var(--muted); }
-.next .count { font-family: var(--px); font-size: 11px; margin: 12px 0; color: var(--gold); }
+.next .count { font-family: var(--px); font-size: 10px; line-height: 1.8; margin: 12px 0; color: var(--gold); }
 .next .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0 6px; }
 .next .three div { background: #0b2c14; padding: 8px 2px; }
 .next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
@@ -119,20 +119,20 @@ footer { max-width: 1440px; margin: 0 auto; padding: 8px 20px 28px; display: fle
 footer button { font-family: var(--px); font-size: 9px; background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; cursor: pointer; }
 
 /* phones and narrow windows: one column, portrait markings */
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
   .hud { flex-wrap: wrap; }
   .title { order: 3; flex-basis: 100%; }
   .title h1 { font-size: 16px; }
   .field { aspect-ratio: auto; min-height: 0; padding: 26px 16px; border: 3px solid var(--chalk); }
   .lines { display: none; }
-  .halves { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; }
-  .half { grid-template-columns: 1fr 1fr; width: 100%; }
-  .centre { order: -1; width: 100%; }
+  .halves { position: relative; z-index: 1; inset: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .half { display: contents; }
+  .half > .chip:last-child:nth-child(odd) { grid-column: auto; width: auto; justify-self: stretch; }
+  .centre { order: -1; grid-column: 1 / -1; width: 100%; }
   .field::before { content: ""; position: absolute; left: 50%; top: 26px; width: 150px; height: 150px; margin-left: -75px; border: 3px solid var(--chalk); border-radius: 50%; pointer-events: none; }
 }
 @media (max-width: 560px) {
-  .half { grid-template-columns: 1fr; }
-  .half > .chip:last-child:nth-child(odd) { width: 100%; }
+  .halves { grid-template-columns: minmax(0, 1fr); }
   .pitch { padding: 0 10px; }
   .gw span { min-width: 5em; }
   .ballbtn .tip { display: none; }
@@ -432,7 +432,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
     a.classList.add("sel"); a.setAttribute("aria-current", "true");
     feature(m, "SELECTED");
-    if (window.matchMedia && matchMedia("(max-width: 960px)").matches) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    if (window.matchMedia && matchMedia("(max-width: 1200px)").matches) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
   });
   prev.addEventListener("click", function () { if (gi > 0) { gi--; render(); } });
   next.addEventListener("click", function () { if (gi < gws.length - 1) { gi++; render(); } });

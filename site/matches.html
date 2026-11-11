@@ -30,12 +30,13 @@ a { color: var(--gold); }
 .wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
 /* top bar, as on the pitch */
-.hud { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
+.hud { position: relative; z-index: 2; display: flex; flex-wrap: wrap; row-gap: 12px; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
 .ballbtn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
 .ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
 .ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
 .ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; }
-.title { flex: 1; min-width: 0; }
+.title { flex: 1 1 340px; min-width: 0; }
+.hud .pages { margin-left: auto; }
 .title h1 { margin: 0; font-family: var(--px); font-size: 20px; text-shadow: 3px 3px 0 var(--deep); }
 .title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .navlink { font-family: var(--px); font-size: 10px; text-decoration: none; background: var(--gold); color: #1c1600; padding: 10px 12px; box-shadow: 3px 3px 0 var(--deep); white-space: nowrap; }
