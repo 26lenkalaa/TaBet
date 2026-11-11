@@ -65,6 +65,7 @@ a { color: inherit; }
   box-shadow: 4px 4px 0 rgba(0,0,0,.28); transition: transform .15s, box-shadow .15s, background .15s; position: relative; }
 .chip:hover, .chip:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,.3); background: var(--panel-hi); }
 .chip.spot-on { animation: spot 1.2s steps(2) 3; border-color: var(--gold); }
+.chip.sel { border-color: var(--gold); background: var(--panel-hi); }
 @keyframes spot { 50% { box-shadow: 0 0 0 6px var(--gold); } }
 .chip .when { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
 .chip .tm { font-family: var(--px); font-size: 13px; margin: 8px 0 2px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
@@ -73,9 +74,10 @@ a { color: inherit; }
 .bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
 .bar i { display: block; height: 100%; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
-.nums { display: flex; justify-content: space-between; font-size: 12px; font-variant-numeric: tabular-nums; }
-.nums b { font-weight: 700; }
-.mk { font-size: 11px; color: var(--faint); margin-top: 3px; }
+.nums { display: flex; justify-content: space-between; font-family: var(--px); font-size: 10px; }
+.nums b { font-weight: 400; }
+.mk { font-size: 12px; color: var(--faint); margin-top: 5px; }
+.mk .n { font-family: var(--px); font-size: 8px; color: var(--muted); }
 .badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
 .badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
 
@@ -89,7 +91,8 @@ a { color: inherit; }
 .next .three div { background: #0b2c14; padding: 8px 2px; }
 .next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
 .next .three .h b { color: var(--c-h); } .next .three .d b { color: var(--c-d); } .next .three .a b { color: var(--c-a); }
-.next .three small { font-size: 11px; color: var(--muted); }
+.next .three small { font-size: 12px; color: var(--muted); }
+.next .three small.n { font-family: var(--px); font-size: 8px; margin-top: 6px; display: block; }
 .next .src { font-size: 11px; color: var(--faint); margin: 6px 0 10px; }
 .next a.go { display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
 .kick { font-family: var(--px); font-size: 9px; color: var(--ink); background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; }
@@ -199,7 +202,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <div class="half" id="right"></div>
     </div>
   </div>
-  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Big numbers: TaBet. Small line: the betting market.</span></div>
+  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Big numbers: TaBet. Small line: the betting market. Click a match to see it in the centre.</span></div>
 </main>
 
 <footer>
@@ -251,9 +254,9 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     else if (f === 1) { px(x + 1, y + 11, 2, 2, PAL.sock); px(x + 5, y + 11, 2, 3, PAL.sock); px(x, y + 13, 3, 1, PAL.boot); px(x + 5, y + 13, 3, 1, PAL.boot); }
     else { px(x + 2, y + 11, 2, 3, PAL.sock); px(x + 4, y + 11, 2, 2, PAL.sock); px(x + 2, y + 13, 3, 1, PAL.boot); px(x + 5, y + 12, 3, 1, PAL.boot); }
   }
-  function ball(x, y, spin) {
-    px(x + 1, y, 2, 1, PAL.ball); px(x, y + 1, 4, 2, PAL.ball); px(x + 1, y + 3, 2, 1, PAL.ball);
-    px(x + (spin % 2 ? 1 : 2), y + 1 + (spin % 2), 1, 1, PAL.ball2);
+  function ball(x, y) {   /* a fixed 5x5 pixel ball: white with a dark centre patch, no flicker */
+    px(x + 1, y, 3, 1, PAL.ball); px(x, y + 1, 5, 3, PAL.ball); px(x + 1, y + 4, 3, 1, PAL.ball);
+    px(x + 2, y + 2, 1, 1, PAL.ball2);
   }
   function shadow(x, y) { px(x, y, 4, 1, "rgba(0,0,0,.35)"); }
   var ORDER = (function () {   /* a fixed shuffle of the 24 x 12 blocks, so the dissolve looks random */
@@ -285,7 +288,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       var fl = Math.min(Math.max((t - 1.7) / 0.85, 0), 1);
       var bx = bx0 + fl * (182 - bx0), by = by0 - Math.sin(fl * Math.PI) * 30 - fl * 22;
       if (fl > 0) shadow(bx, by0 + 3 - fl * 10);
-      ball(bx, by, Math.floor(t * 12));
+      ball(bx, by);
       if (t >= 2.55) { big.textContent = "GOAL!"; big.className = "big goal"; sc1.textContent = "TABET 1"; msg.textContent = "TABET 1 - 0 MARKET"; }
       if (t > 3.6) wipe(Math.min((t - 3.6) / 0.6, 1));
     }
@@ -334,7 +337,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       (p ? '<span class="bar" aria-hidden="true"><i class="h" style="width:' + p[0] * 100 + '%"></i><i class="d" style="width:' + p[1] * 100 + '%"></i><i class="a" style="width:' + p[2] * 100 + '%"></i></span>' +
            '<span class="nums"><b style="color:var(--c-h)">' + T.pct(p[0]) + '</b><b style="color:var(--c-d)">' + T.pct(p[1]) + '</b><b style="color:var(--c-a)">' + T.pct(p[2]) + "</b></span>"
          : '<span class="mk">' + (m.status === "upcoming" ? "TaBet\'s forecast comes about two gameweeks ahead." : "No TaBet forecast was logged for this match.") + "</span>") +
-      (mk ? '<span class="mk">Market ' + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ") + "</span>" : "") +
+      (mk ? '<span class="mk">Market <span class="n">' + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ") + "</span></span>" : "") +
       "</a>";
   }
 
@@ -345,7 +348,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     feat.dataset.kick = m.status === "upcoming" ? kick : "";
     var three = p ? '<div class="three">' + [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
       return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b>" +
-        (mk ? "<small>mkt " + T.pct(mk.p[r[2]]) + "</small>" : "") + "</div>";
+        (mk ? '<small class="n">MKT ' + T.pct(mk.p[r[2]]) + "</small>" : "") + "</div>";
     }).join("") + "</div>" : "";
     feat.innerHTML = '<span class="lab px">' + label + "</span>" +
       "<h2>" + T.esc(m.home) + " v " + T.esc(m.away) + "</h2>" +
@@ -386,7 +389,8 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     var m = cards.filter(function (x) { return x.id === target.dataset.id; })[0];
     function land() {
       document.querySelectorAll(".chip.spot-on").forEach(function (c) { c.classList.remove("spot-on"); });
-      void target.offsetWidth; target.classList.add("spot-on");
+      document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
+      void target.offsetWidth; target.classList.add("spot-on", "sel"); target.setAttribute("aria-current", "true");
       if (m) feature(m, "YOU PICKED");
     }
     if (reduce) return land();
@@ -405,6 +409,17 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     requestAnimationFrame(step);
   }
   document.getElementById("kick").addEventListener("click", kick);
+  document.querySelector(".halves").addEventListener("click", function (e) {
+    var a = e.target.closest(".chip");
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    var m = cards.filter(function (x) { return x.id === a.dataset.id; })[0];
+    if (!m) return;
+    document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
+    a.classList.add("sel"); a.setAttribute("aria-current", "true");
+    feature(m, "SELECTED");
+    if (window.matchMedia && matchMedia("(max-width: 960px)").matches) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  });
   prev.addEventListener("click", function () { if (gi > 0) { gi--; render(); } });
   next.addEventListener("click", function () { if (gi < gws.length - 1) { gi++; render(); } });
   document.addEventListener("keydown", function (e) {
