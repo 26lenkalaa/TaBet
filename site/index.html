@@ -21,7 +21,7 @@
 <style>
 :root {
   --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
-  --chalk: rgba(255, 255, 255, .86);
+  --chalk: rgba(255, 255, 255, .86); --line: rgba(255, 255, 255, .45);
   --panel: rgba(9, 38, 18, .80); --panel-hi: rgba(9, 38, 18, .92);
   --ink: #ffffff; --muted: #cfe6d3; --faint: #9cc4a4;
   --gold: #ffd23f; --red: #ff5a4f;
@@ -70,11 +70,11 @@ a { color: inherit; }
 .pitch { position: relative; max-width: 1440px; margin: 6px auto 0; padding: 0 20px; }
 .field { position: relative; aspect-ratio: 105 / 68; min-height: 560px; }
 .lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.lines * { fill: none; stroke: var(--chalk); stroke-width: 3; vector-effect: non-scaling-stroke; }
-.lines .spot { fill: var(--chalk); stroke: none; }
+.lines * { fill: none; stroke: var(--line); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.lines .spot { fill: var(--line); stroke: none; }
 .lines .net { stroke: rgba(255,255,255,.35); stroke-width: 1; }
-.halves { position: absolute; inset: 4% 3.5%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 25%) minmax(0, 1fr); gap: 2.5%; align-items: center; }
-.half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: center; }
+.halves { position: absolute; inset: 6% 5%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 23%) minmax(0, 1fr); gap: 5%; align-items: center; }
+.half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px 20px; align-content: center; }
 /* an odd last card sits centred in its own row, so each half stays symmetrical (2 + 2 + 1) */
 .half > .chip:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
 .centre { display: flex; flex-direction: column; align-items: center; gap: 14px; position: relative; }
@@ -82,26 +82,27 @@ a { color: inherit; }
 .centre .kick { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); }
 
 /* match cards */
-.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 10px 11px 11px;
+.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 12px 14px 13px;
   box-shadow: 4px 4px 0 rgba(0,0,0,.28); transition: transform .15s, box-shadow .15s, background .15s; position: relative; }
 .chip:hover, .chip:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,.3); background: var(--panel-hi); }
 .chip.spot-on { animation: spot 1.2s steps(2) 3; border-color: var(--gold); }
 .chip.sel { border-color: var(--gold); background: var(--panel-hi); }
 @keyframes spot { 50% { box-shadow: 0 0 0 6px var(--gold); } }
-.chip .when { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
-.chip .tm { font-family: var(--px); font-size: 13px; margin: 8px 0 2px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.chip .when { font-family: var(--px); font-size: 8px; color: var(--faint); display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.chip .tm { font-family: var(--px); font-size: 15px; margin: 12px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.chip .vs { font-size: 9px; color: var(--faint); }
+.chip .fav { display: block; font-family: var(--px); font-size: 8px; color: var(--muted); margin-top: 9px; }
+.bar.mkt { height: 4px; margin: 3px 0 0; opacity: .6; }
+.next .k { font-size: 9px; color: var(--muted); margin-top: 10px; }
+.soon2 { font-size: 10px; color: var(--faint); margin: 16px 0 12px; }
+.next .bar { margin: 4px 0 0; } .next .bar.mkt { margin: 3px 0 16px; }
 .chip .tm .sc { color: var(--gold); }
-.chip .full { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
 .bar i { display: block; height: 100%; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
-.nums { display: flex; justify-content: space-between; font-family: var(--px); font-size: 10px; }
-.nums b { font-weight: 400; }
-.mk { display: block; font-size: 12px; color: var(--faint); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a match with no forecast yet: an empty bar and a short pixel label instead of a sentence */
 .bar.tbd { background: repeating-linear-gradient(90deg, #0b2c14 0 6px, rgba(255,255,255,.12) 6px 12px); }
 .soon { display: block; font-family: var(--px); font-size: 8px; color: var(--faint); margin-top: 6px; }
-.mk .n { font-family: var(--px); font-size: 8px; color: var(--muted); }
 .badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
 .badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
 
@@ -116,8 +117,6 @@ a { color: inherit; }
 .next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
 .next .three .h b { color: var(--c-h); } .next .three .d b { color: var(--c-d); } .next .three .a b { color: var(--c-a); }
 .next .three small { font-size: 12px; color: var(--muted); }
-.next .three small.n { font-family: var(--px); font-size: 8px; margin-top: 6px; display: block; }
-.next .src { font-size: 11px; color: var(--faint); margin: 6px 0 10px; }
 .next a.go { display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
 .kick { font-family: var(--px); font-size: 9px; color: var(--ink); background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; }
 .kick svg { width: 34px; height: 34px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
@@ -125,7 +124,7 @@ a { color: inherit; }
 @keyframes bounce { to { transform: translateY(-6px); } }
 .flyer { position: fixed; width: 30px; height: 30px; z-index: 50; pointer-events: none; }
 .empty { grid-column: 1 / -1; text-align: center; background: var(--panel); border: 2px dashed var(--chalk); padding: 18px; font-size: 14px; }
-.key { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); padding: 14px 20px 4px; }
+.key { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 8px; color: var(--muted); padding: 18px 20px 4px; }
 .key i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
 footer { max-width: 1440px; margin: 0 auto; padding: 8px 20px 28px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
 footer button { font-family: var(--px); font-size: 9px; background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; cursor: pointer; }
@@ -195,7 +194,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   <a class="logo" href="notebook" aria-label="Open the model notebook" title="Model notebook"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
   <div class="title">
     <h1>TABET</h1>
-    <p>Premier League forecasts, scored against the betting market. Pick a match.</p>
+    <p>Our forecasts against the betting market. Pick a match.</p>
   </div>
   <div class="gw" role="group" aria-label="Gameweek">
     <button id="prev" type="button" aria-label="Previous gameweek">&#9664;</button>
@@ -213,14 +212,6 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <rect x="20" y="20" width="1010" height="640"/>
       <line x1="525" y1="20" x2="525" y2="660"/>
       <circle cx="525" cy="340" r="91.5"/><circle class="spot" cx="525" cy="340" r="4"/>
-      <rect x="20" y="138.5" width="165" height="403"/><rect x="865" y="138.5" width="165" height="403"/>
-      <rect x="20" y="248.5" width="55" height="183"/><rect x="975" y="248.5" width="55" height="183"/>
-      <circle class="spot" cx="130" cy="340" r="4"/><circle class="spot" cx="920" cy="340" r="4"/>
-      <path d="M185 266.9 A91.5 91.5 0 0 1 185 413.1"/><path d="M865 266.9 A91.5 91.5 0 0 0 865 413.1"/>
-      <path d="M20 30 A10 10 0 0 0 30 20"/><path d="M1020 20 A10 10 0 0 0 1030 30"/>
-      <path d="M30 660 A10 10 0 0 0 20 650"/><path d="M1030 650 A10 10 0 0 0 1020 660"/>
-      <rect x="6" y="303.4" width="14" height="73.2"/><rect x="1030" y="303.4" width="14" height="73.2"/>
-      <path class="net" d="M6 315H20M6 328H20M6 340H20M6 352H20M6 365H20M1030 315H1044M1030 328H1044M1030 340H1044M1030 352H1044M1030 365H1044"/>
     </svg>
     <div class="halves">
       <div class="half" id="left"></div>
@@ -234,7 +225,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <div class="half" id="right"></div>
     </div>
   </div>
-  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Big numbers: TaBet. Small line: the betting market. Click a match to see it in the centre.</span></div>
+  <div class="key px"><span><i style="background:var(--c-h)"></i>HOME</span><span><i style="background:var(--c-d)"></i>DRAW</span><span><i style="background:var(--c-a)"></i>AWAY</span><span>THICK BAR: TABET</span><span>THIN BAR: MARKET</span></div>
 </main>
 
 <footer>
@@ -356,23 +347,31 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   var left = document.getElementById("left"), right = document.getElementById("right"), feat = document.getElementById("feature");
   var gwlab = document.getElementById("gwlab"), prev = document.getElementById("prev"), next = document.getElementById("next");
 
+  function slot(iso) {   /* "SAT 12:30" */
+    var d = new Date(iso);
+    return (d.toLocaleString("en-GB", { weekday: "short", timeZone: "Europe/London" }) + " " +
+      d.toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })).toUpperCase();
+  }
+  function bars(p, mk) {
+    function b(q, cls) {
+      return '<span class="bar' + cls + '" aria-hidden="true"><i class="h" style="width:' + q[0] * 100 + '%"></i><i class="d" style="width:' +
+        q[1] * 100 + '%"></i><i class="a" style="width:' + q[2] * 100 + '%"></i></span>';
+    }
+    return (p ? b(p, "") : '<span class="bar tbd" aria-hidden="true"></span>') + (mk ? b(mk.p, " mkt") : "");
+  }
   function chip(m) {
     var f = T.primary(m), mk = T.market(m), p = f ? f.p : null, played = m.status === "played";
-    var y = played ? OUT[m.result] : -1, badge = "";
-    if (played && p) {
-      var pick = p.indexOf(Math.max.apply(null, p));
-      badge = pick === y ? '<span class="badge ok" title="TaBet\'s favourite happened">HIT</span>' : '<span class="badge no" title="TaBet\'s favourite did not happen">MISS</span>';
-    } else if (m.status === "awaiting") badge = '<span class="badge tbc">LIVE</span>';
-    var tm = '<span>' + code(m.home) + (played ? ' <span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span> " : " v ") + code(m.away) + "</span>";
-    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' + T.esc(m.home + " v " + m.away) + '">' +
-      '<span class="when"><span>' + T.esc(T.when(m.kickoff, "card")) + "</span>" + badge + "</span>" +
-      '<span class="tm">' + tm + "</span>" +
-      '<span class="full">' + T.esc(m.home + " v " + m.away) + "</span>" +
-      (p ? '<span class="bar" aria-hidden="true"><i class="h" style="width:' + p[0] * 100 + '%"></i><i class="d" style="width:' + p[1] * 100 + '%"></i><i class="a" style="width:' + p[2] * 100 + '%"></i></span>' +
-           '<span class="nums"><b style="color:var(--c-h)">' + T.pct(p[0]) + '</b><b style="color:var(--c-d)">' + T.pct(p[1]) + '</b><b style="color:var(--c-a)">' + T.pct(p[2]) + "</b></span>"
-         : '<span class="bar tbd" aria-hidden="true"></span><span class="soon">' + (m.status === "upcoming" ? "FORECAST SOON" : "NO FORECAST LOGGED") + "</span>") +
-      (mk ? '<span class="mk">Market <span class="n">' + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ") + "</span></span>" : "") +
-      "</a>";
+    var y = played ? OUT[m.result] : -1, tag = "";
+    if (played && p) tag = p.indexOf(Math.max.apply(null, p)) === y ? '<span class="badge ok">HIT</span>' : '<span class="badge no">MISS</span>';
+    else if (m.status === "awaiting") tag = '<span class="badge tbc">LIVE</span>';
+    var mid = played ? '<span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span>" : '<span class="vs">v</span>';
+    var fav = p ? [code(m.home), "DRAW", code(m.away)][p.indexOf(Math.max.apply(null, p))] + " " + T.pct(Math.max.apply(null, p))
+                : (m.status === "upcoming" ? "SOON" : "—");
+    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
+      T.esc(m.home + " v " + m.away + (p ? " · TaBet " + p.map(T.pct).join(" / ") : "") + (mk ? " · market " + mk.p.map(T.pct).join(" / ") : "")) + '">' +
+      '<span class="when">' + slot(m.kickoff) + tag + "</span>" +
+      '<span class="tm">' + code(m.home) + mid + code(m.away) + "</span>" +
+      bars(p, mk) + '<span class="fav">' + fav + "</span></a>";
   }
 
   function feature(m, label) {
@@ -381,14 +380,12 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     var kick = new Date(m.kickoff).getTime();
     feat.dataset.kick = m.status === "upcoming" ? kick : "";
     var three = p ? '<div class="three">' + [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
-      return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b>" +
-        (mk ? '<small class="n">MKT ' + T.pct(mk.p[r[2]]) + "</small>" : "") + "</div>";
-    }).join("") + "</div>" : "";
+      return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b></div>";
+    }).join("") + "</div>" + bars(p, mk) : '<div class="soon2 px">FORECAST SOON</div>' + bars(null, mk);
     feat.innerHTML = '<span class="lab px">' + label + "</span>" +
       "<h2>" + T.esc(m.home) + " v " + T.esc(m.away) + "</h2>" +
-      '<div class="k">' + T.esc(T.when(m.kickoff, "long")) + (m.status === "played" ? " · " + T.esc(m.score.replace("-", "–")) : "") + "</div>" +
+      '<div class="k px">' + slot(m.kickoff) + (m.status === "played" ? " · " + T.esc(m.score.replace("-", "–")) : "") + "</div>" +
       '<div class="count" id="count"></div>' + three +
-      (f ? '<div class="src">' + T.esc(f.label) + (mk ? " · market: " + T.esc(mk.label.toLowerCase()) : "") + "</div>" : '<div class="src">TaBet\'s forecast is not out yet.</div>') +
       '<a class="go" href="matches#' + encodeURIComponent(m.id) + '">OPEN MATCH ▶</a>';
     tick();
   }
