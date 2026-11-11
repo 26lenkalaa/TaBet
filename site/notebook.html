@@ -26,7 +26,6 @@
       <nav class="pages" aria-label="Pages">
     <a href="/">PITCH</a><a href="/matches">MATCHES</a><a href="/notebook" aria-current="page">NOTEBOOK</a>
   </nav>
-      <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button>
     </div>
   </div>
 </header>
@@ -47,21 +46,9 @@
         <div><dt>Last updated</dt><dd>5 November 2026</dd></div>
       </dl>
     </div>
-    <div class="hero-card" id="featured" aria-live="polite">
-      <div class="fx fx-lg fx-skel"><p class="muted small">Loading the next match…</p></div>
-    </div>
   </div>
 </section>
 
-<section class="wrap fixtures" aria-labelledby="fx-title">
-  <div class="fixtures-head">
-    <h2 id="fx-title">Upcoming forecasts</h2>
-    <a class="textlink" href="/matches">All matches</a>
-  </div>
-  <p class="muted small" id="fx-note">Previews update as results come in. The logged forecast is saved 24–32 hours before kickoff and never changed.</p>
-  <div class="fx-grid" id="fixtures"></div>
-  <div class="legend" aria-hidden="true"><span><i class="k-h"></i>Home win</span><span><i class="k-d"></i>Draw</span><span><i class="k-a"></i>Away win</span></div>
-</section>
 
 <main class="wrap">
 
@@ -386,43 +373,5 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
   </div>
 </footer>
 
-<script src="common.js"></script>
-<script>
-(function () {
-  var T = window.TaBet, feat = document.getElementById("featured"), grid = document.getElementById("fixtures");
-  function card(m, big) {
-    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null;
-    var rows = [[m.home, 0, "h"], ["Draw", 1, "d"], [m.away, 2, "a"]].map(function (r) {
-      var v = p ? p[r[1]] : null;
-      return '<li class="o o-' + r[2] + '"' + (v != null ? ' style="--w:' + (v * 100).toFixed(1) + '%"' : "") + '><span class="o-name">' + T.esc(r[0]) +
-        '</span><span class="o-p">' + (v != null ? T.pct(v) : "–") + "</span></li>";
-    }).join("");
-    var tag = f ? '<span class="tag ' + T.KIND[f.kind][1] + '">' + T.KIND[f.kind][0] + "</span>" : '<span class="tag t-gray">Forecast pending</span>';
-    var foot = mk ? T.esc(mk.label) + ": " + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ")
-                  : (f ? "Market odds not out yet" : "Our forecast appears about two gameweeks ahead");
-    return '<a class="fx' + (big ? " fx-lg" : "") + '" href="/matches#' + encodeURIComponent(m.id) + '">' +
-      (big ? '<div class="fx-kicker">Next match</div>' : "") +
-      '<div class="fx-top"><span>' + T.esc(T.when(m.kickoff, "card")) + (m.gameweek ? ", GW" + m.gameweek : "") + "</span>" + tag + "</div>" +
-      '<ul class="outs" aria-label="TaBet probabilities">' + rows + "</ul>" +
-      (p ? T.bar(p) : "") + '<div class="fx-foot">' + foot + "</div></a>";
-  }
-  T.load().then(function (d) {
-    var now = Date.now() - 3 * 3600e3;
-    var up = d.matches.filter(function (m) { return m.status !== "played" && new Date(m.kickoff).getTime() > now; })
-      .sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; });
-    if (!up.length) { feat.innerHTML = '<div class="fx fx-lg"><p>No upcoming matches in the data yet.</p></div>'; grid.innerHTML = ""; return; }
-    var withF = up.filter(function (m) { return T.primary(m); });
-    var first = withF[0] || up[0];
-    feat.innerHTML = card(first, true);
-    var gw = first.gameweek;
-    var list = up.filter(function (m) { return m.id !== first.id && (!gw || m.gameweek === gw); }).slice(0, 9);
-    document.getElementById("fx-title").textContent = gw ? "Gameweek " + gw + " forecasts" : "Upcoming forecasts";
-    grid.innerHTML = list.map(function (m) { return card(m, false); }).join("");
-  }).catch(function () {
-    feat.innerHTML = '<div class="fx fx-lg"><p>Match data didn’t load. Refresh the page to try again.</p></div>';
-    grid.innerHTML = "";
-  });
-})();
-</script>
 </body>
 </html>
