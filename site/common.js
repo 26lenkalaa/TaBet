@@ -57,8 +57,8 @@
   var luBySeason = {};
   function lineups(s) {
     if (!luBySeason[s]) luBySeason[s] = index().then(function (ix) {
-      if (!ix.lineup_files || !ix.lineup_files[s]) return {};
-      return getJSON("data/" + ix.lineup_files[s]).then(function (d) { return d.lineups || {}; });
+      var f = ix.lineup_files && ix.lineup_files[s] ? ix.lineup_files[s] : "lineups-" + s + ".json";
+      return getJSON("data/" + f).then(function (d) { return d.lineups || {}; });
     }).catch(function () { return {}; });
     return luBySeason[s];
   }
