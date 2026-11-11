@@ -261,3 +261,14 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 3px solid var
 @media (max-width: 620px) { .foot-in { grid-template-columns: 1fr; } }
 
 @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+
+/* page menu shared with the pitch and the explorer: PITCH / MATCHES / NOTEBOOK */
+.pages { display: flex; gap: 6px; }
+.pages a { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9px; text-decoration: none; color: var(--ink); background: var(--surface);
+  border: 2px solid var(--line); padding: 8px 9px 8px 21px; position: relative; white-space: nowrap; }
+.pages a::before { content: "\25B6"; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 7px; opacity: 0; }
+.pages a:hover { border-color: var(--accent); } .pages a:hover::before { opacity: .7; }
+.pages a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.pages a[aria-current="page"]::before { opacity: 1; }
+@media (max-width: 520px) { .pages a { padding: 7px 6px 7px 16px; font-size: 8px; } .pages a::before { left: 5px; } }
+@media (max-width: 560px) { .nav-in { flex-wrap: wrap; row-gap: 10px; height: auto; padding-top: 10px; padding-bottom: 10px; } .nav-end { flex-basis: 100%; justify-content: space-between; } }

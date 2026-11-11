@@ -43,6 +43,18 @@ a { color: var(--gold); }
 .navlink { font-family: var(--px); font-size: 10px; text-decoration: none; background: var(--gold); color: #1c1600; padding: 10px 12px; box-shadow: 3px 3px 0 var(--deep); white-space: nowrap; }
 .navlink.alt { background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; }
 .navlink:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--deep); }
+/* one page menu, same place on every page; the current page is highlighted with a blinking cursor */
+.pages { display: flex; gap: 6px; }
+.pages a { font-family: var(--px); font-size: 10px; text-decoration: none; color: var(--ink); background: var(--panel-hi); border: 2px solid var(--chalk);
+  padding: 9px 10px 9px 24px; position: relative; box-shadow: 3px 3px 0 #0b2c14; white-space: nowrap; }
+.pages a::before { content: "\25B6"; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 8px; opacity: 0; }
+.pages a:hover { color: var(--gold); } .pages a:hover::before { opacity: .7; }
+.pages a[aria-current="page"] { background: var(--gold); color: #1c1600; border-color: var(--gold); }
+.pages a[aria-current="page"]::before { opacity: 1; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (max-width: 960px) { .pages { order: 4; flex-basis: 100%; } .pages a { flex: 1; text-align: center; padding-left: 18px; } }
+@media (prefers-reduced-motion: reduce) { .pages a[aria-current="page"]::before { animation: none; } }
+
 
 /* panels */
 .chalk { background: var(--panel); border: 2px solid var(--chalk); box-shadow: 5px 5px 0 rgba(0,0,0,.28); }
@@ -128,7 +140,9 @@ footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padd
     <h1>MATCH EXPLORER</h1>
     <p>Pick a season and a match: what TaBet predicted, what the market predicted, and what happened.</p>
   </div>
-  <a class="navlink alt" href="notebook">NOTEBOOK</a>
+  <nav class="pages" aria-label="Pages">
+    <a href="./">PITCH</a><a href="matches" aria-current="page">MATCHES</a><a href="notebook">NOTEBOOK</a>
+  </nav>
 </header>
 
 <main class="wrap">
