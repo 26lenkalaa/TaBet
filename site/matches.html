@@ -315,14 +315,15 @@ var KITS = {
   "Wolverhampton Wanderers": ["#FDB913", "#111111", "#111111"]
 };
 var GK = { home: ["#FF8C1A", "#111111", "#111111"], away: ["#B07CFF", "#111111", "#111111"] };
-var SKIN = ["#F1C27D", "#E0AC69", "#C68642", "#8D5524"], HAIR = ["#3B2414", "#111111", "#A0522D", "#E6C200"];
+/* every player gets the same neutral, non-skin grey head and hands and the same dark hair: the site
+   never guesses anyone's skin tone or appearance; only the kit colours differ */
+var HEAD = "#C9CED6", HAIR = "#4A5160";
 var SPRITE = ["..hhhh..", "..ffff..", "..ffff..", ".ssssss.", "tsssssst", "fssssssf", ".ssssss.", ".pppppp.", ".kk..kk.", ".kk..kk.", ".bb..bb."];
 var LU_VIEW = null;   // "actual", "ffs" or "rotowire"; kept while browsing matches
 var SRC_NAME = { ffs: "Fantasy Football Scout", rotowire: "RotoWire" };
 
-function hash(t) { var h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h; }
 function sprite(name, k) {
-  var hh = hash(name), skin = SKIN[hh % 4], hair = HAIR[(hh >> 3) % 4], rects = "";
+  var skin = HEAD, hair = HAIR, rects = "";
   for (var y = 0; y < SPRITE.length; y++) for (var x = 0; x < 8; x++) {
     var ch = SPRITE[y][x], c = null;
     if (ch === "h") c = hair; else if (ch === "f") c = skin; else if (ch === "p") c = k[2]; else if (ch === "b") c = "#111111";
