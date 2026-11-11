@@ -2,11 +2,15 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-09, international break after gameweek 10. Since the last version: the
-> fifth review's two offline tests ran and were both null (bivariate Poisson on four other leagues,
-> table stakes; §5.23); clean 2018-21 is now closed to new ideas; amendment A5 adds a bivariate
-> Poisson candidate (pBP) to the live log and reports results by record type (§5.23); the external
-> 30-minute trigger from A4 has run on time since 8 November (§5.10). Questions for you are in §8.
+> Last updated 2026-11-10, international break after gameweek 10. Since the last version:
+> - Amendments A6 and A7 add a market benchmark taken at the same moment as each logged forecast,
+>   and a daily results refresh (§5.24). Odds stay a benchmark only; nothing about the forecasts
+>   or the scored contrasts changed.
+> - The results file now runs through gameweek 10 (100 matches).
+> - The fifth review's two offline tests were both null, clean 2018-21 is closed to new ideas, and
+>   A5 adds pBP to the live log (§5.23, from the previous version).
+>
+> Questions for you are in §8.
 
 ## 1. What the project is
 
@@ -379,8 +383,12 @@ Written before gameweek 10; amended before any record (A2, A3) and before any ga
   Since A4, the external trigger has run every 30 minutes from 2026-11-08 18:30 UTC: 55 runs to
   2026-11-09 21:30 UTC, all on the hour or half hour, none failed. GitHub's own schedule still fires
   only about every 5–12 hours. The international break means no fixture is due yet. The first gameweek-11
-  primary window opens on 2026-11-20 at 10:30 UTC (Manchester City v Fulham, kickoff 2026-11-21
-  12:30 UTC). The protocol is frozen from that first record.
+  window (fallback) opens on 2026-11-20 at 04:30 UTC and the primary at 10:30 UTC (Manchester City v
+  Fulham, kickoff 2026-11-21 12:30 UTC). The protocol is frozen from that first record.
+
+  From A6 and A7 (§5.24), each run also refreshes the results file once a day and saves
+  bookmaker odds. Whenever a record is logged, the same run takes a market snapshot, so every
+  record can be compared with the market at its own cutoff.
 
 ### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
 
@@ -762,6 +770,45 @@ The reviewer's power estimate (paired SD 0.02–0.03) was optimistic: the measur
 so a 100-fixture read has an SE near 0.005. This is why the confirmatory read already runs to
 gameweek 38 (amendment A2).
 
+### 5.24 A market benchmark at matching times (amendments A6, A7)
+
+Benchmark only: no model, feature or tuning code may read the odds archive, and a test enforces it.
+
+- **Why.** §5.19 compares TaBet with football-data's pre-closing odds (collected Friday or Tuesday
+  afternoon) and closing odds. Neither matches the time of a logged 24–26 h record: one is usually
+  later and the other is at kickoff. During the break the results file also went stale, because it
+  was refreshed only when a forecast was due. It stopped at 90 matches while football-data had 100.
+- **A6 (football-data archive and daily refresh).**
+  - Each run checks football-data's `fixtures.csv` at most hourly and keeps a copy whenever it
+    changes.
+  - The first run of each UTC day refreshes the results file. The first refresh took it to 100
+    matches.
+  - `fixtures.csv` updates about once a round: gameweek 10's copy was last modified on Friday 6
+    November at 11:14 GMT. So it comes after our record for Friday-evening and midweek matches, and
+    possibly for early-Saturday ones.
+- **A7 (The Odds API at the cutoff).**
+  - Whenever a run logs records, it makes one call: Premier League 1X2 odds from UK and EU
+    bookmakers, which costs 2 credits on a free plan of 500 a month. One more call a day keeps the
+    site's odds current.
+  - Each snapshot keeps every bookmaker's odds plus an average. The average is the mean decimal odds
+    over the bookmakers quoting all three outcomes, as football-data's `Avg` is built.
+  - A test call on 10 November returned all 20 matches of gameweeks 11–12, averaged over 13–38
+    bookmakers including Pinnacle and the Betfair and Smarkets exchanges. Every team name matched.
+- **What is compared.** The "matched" market for a record is The Odds API snapshot at its cutoff;
+  one from the same run, up to 15 minutes later, counts. Also reported, never pooled:
+  - the same rule applied to football-data's archive (`matched_fd`)
+  - the last football-data snapshot before kickoff
+  - football-data's pre-closing and closing odds
+
+  For p0, pE and pα against each one, `score-forecasts` reports the paired log-loss delta with
+  paired and gameweek-clustered SEs, coverage, agreement, and who was right when the picks differ.
+- **First data.** Only one record exists so far: Leeds v Tottenham, gameweek 10, logged before A7,
+  so it has no matched snapshot. Its log-loss was p0 0.821 against football-data's pre-closing 1.053
+  and closing 1.074. With n = 1 this says nothing beyond the pipeline working.
+- **Website.** Each logged match shows "Market at our forecast time", but only if the snapshot is
+  within 1 hour of the cutoff. Upcoming matches show the latest odds. Before a record exists, the
+  site also shows a preview using predicted lineups, labelled as such and never scored.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -836,8 +883,9 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 Since the last version, your two offline tests ran as pre-registered and both were null (§5.23):
 bivariate Poisson on four other leagues (−0.0006, interval includes 0) and table stakes (+0.0035).
 Your record-type split, α interval and clustered-SE primary are now amendment A5, and pBP is logged
-live. The protocol freezes at the first gameweek-11 record (2026-11-20, about 10:30 UTC), so any
-change to A5 must come before then. Please give me:
+live. Amendments A6 and A7 add a market benchmark taken at each record's cutoff (§5.24). The protocol
+freezes at the first gameweek-11 record (2026-11-20 from 04:30 UTC), so any change to A5–A7 must come
+before then. Please give me:
 
 1. **Bivariate Poisson, final call.** Across three datasets the gain is small and inconsistent
    (§5.22, §5.23), and where λ3 ≈ 0 the contrast also drops the Dixon-Coles ρ correction. Is a
@@ -851,9 +899,14 @@ change to A5 must come before then. Please give me:
    2000+ data) still worth running, and in what order? What result would make you stop?
 3. **Where to test next (§6.8).** With clean 2018-21 closed and 2024-26 used for development, where
    should a new idea's primary test be scored: other leagues, the live log only, or something else?
-4. **A last check of A5** before it freezes: anything in the record-type split, α interval or
+4. **A last check of A5–A7** before they freeze: anything in the record-type split, α interval or
    clustered-SE primary you would change.
-5. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
+5. **The market benchmark (§5.24).** Is a mean of 13–38 bookmakers' decimal odds, including
+   exchanges, the right headline market, or should it be Pinnacle alone, or the median? Is
+   counting a snapshot from the same run, up to 15 minutes after the cutoff, as "matched" sound?
+   And what should the benchmark be expected to show at about 190 fixtures, given §5.19's gap of
+   0.004–0.008 in 2024-26?
+6. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
    evaluate): at most two experiments, each with the simpler alternative it must beat and the data
    it would be scored on.
 
