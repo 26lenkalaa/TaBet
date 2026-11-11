@@ -36,6 +36,8 @@ code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; 
 .ballmark { width: 40px; height: 40px; flex: none; color: #12233a; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
 .brand:hover .ballmark, .brand:focus-visible .ballmark { transform: rotate(-360deg); }
 .mark { display: none; }
+.tamid { width: 40px; height: 40px; flex: none; display: block; box-shadow: 3px 3px 0 rgba(0,0,0,.3); margin-left: -6px; }
+.brand-name { margin-left: -8px; }
 .links { display: flex; gap: 4px; flex-wrap: wrap; }
 .links a { font-family: var(--px); font-size: 8px; color: var(--muted); text-decoration: none; padding: 8px; background: var(--panel); border: 1px solid var(--chalk-dim); }
 .links a:hover { color: var(--gold); border-color: var(--gold); }

@@ -5,10 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaBet</title>
 <meta name="description" content="TaBet's Premier League forecasts for this gameweek, next to the betting market. Pick a match to see every forecast.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='white' stroke='%2312233a' stroke-width='1.5'/><path d='M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z' fill='%2312233a'/></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="img/favicon-tamid.png">
+<link rel="preload" href="fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* fonts served from this site (no Google round trips); licences in fonts/OFL-*.txt */
+@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); }
+@font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
+</style>
+<script type="speculationrules">
+{"prerender": [{"where": {"href_matches": ["/matches", "/notebook"]}, "eagerness": "moderate"}],
+ "prefetch": [{"where": {"href_matches": "/"}, "eagerness": "moderate"}]}
+</script>
 <style>
 :root {
   --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
@@ -38,6 +46,8 @@ a { color: inherit; }
 .ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
 .ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; max-width: 9em; }
 .title { flex: 1 1 300px; min-width: 0; }
+.tamid { width: 44px; height: 44px; flex: none; display: block; box-shadow: 3px 3px 0 rgba(0,0,0,.3); image-rendering: auto; }
+.hud { column-gap: 18px; }
 .title h1 { margin: 0; font-family: var(--px); font-size: 22px; text-shadow: 3px 3px 0 #0b2c14; }
 .title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .gw { display: flex; align-items: center; gap: 6px; background: var(--panel-hi); border: 2px solid var(--chalk); padding: 6px; }
@@ -173,8 +183,8 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 <header class="hud">
   <a class="ballbtn" href="notebook" aria-label="Open the model notebook" title="Model notebook">
     <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
-    <span class="tip px">NOTEBOOK</span>
   </a>
+  <img class="tamid" src="img/tamid-mark.png" width="44" height="44" alt="TAMID Group at Northeastern" title="TAMID Group at Northeastern">
   <div class="title">
     <h1>TABET</h1>
     <p>Premier League forecasts, scored against the betting market. Pick a match.</p>
