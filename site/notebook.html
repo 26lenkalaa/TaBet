@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaBet model notebook</title>
+<meta name="description" content="How TaBet's Premier League forecasting models work, and how they compare on held-out matches.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2317406D'/><circle cx='16' cy='16' r='7' fill='none' stroke='%237DD1FF' stroke-width='3'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/" aria-label="Back to the pitch" title="Back to the pitch"><svg class="ballmark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="currentColor"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>TaBet</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#scoreboard">Scoreboard</a>
+      <a href="#models">Models</a>
+      <a href="#tested">What we tested</a>
+      <a href="#method">Method</a>
+    </nav>
+    <div class="nav-end">
+      <a class="btn btn-sm" href="/">Pitch</a>
+      <a class="btn btn-primary btn-sm" href="/matches">Match explorer</a>
+      <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <span class="status"><span class="dot" aria-hidden="true"></span>Live testing from gameweek 10</span>
+      <h1>Premier League probabilities, scored against the betting market.</h1>
+      <p class="hero-lead">TaBet gives a probability for each Premier League match ending in a home win, a draw or an away win. Three models are in use. Each one builds on the last, and each step makes the probabilities a little more accurate.</p>
+      <div class="hero-cta">
+        <a class="btn btn-sky" href="/matches">Browse matches</a>
+        <a class="btn btn-ghost" href="#scoreboard">See the scoreboard</a>
+      </div>
+      <dl class="facts">
+        <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
+        <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
+        <div><dt>Last updated</dt><dd>5 November 2026</dd></div>
+      </dl>
+    </div>
+    <div class="hero-card" id="featured" aria-live="polite">
+      <div class="fx fx-lg fx-skel"><p class="muted small">Loading the next match…</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap fixtures" aria-labelledby="fx-title">
+  <div class="fixtures-head">
+    <h2 id="fx-title">Upcoming forecasts</h2>
+    <a class="textlink" href="/matches">All matches</a>
+  </div>
+  <p class="muted small" id="fx-note">Previews update as results come in. The logged forecast is saved 24–32 hours before kickoff and never changed.</p>
+  <div class="fx-grid" id="fixtures"></div>
+  <div class="legend" aria-hidden="true"><span><i class="k-h"></i>Home win</span><span><i class="k-d"></i>Draw</span><span><i class="k-a"></i>Away win</span></div>
+</section>
+
+<main class="wrap">
+
+  <section class="sec" id="scoreboard">
+    <div class="sec-head">
+      <h2>Scoreboard</h2>
+      <p>All models are scored on the same matches, using only information available before kickoff. The bar is how far each one is from the closing betting odds, so a shorter bar is better.</p>
+      <div class="note-card">
+        <p>None of them beats the betting market yet. The best one, which also knows the starting lineups, closes about half the gap between our simplest model and the market.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Model</th><th class="num">Log-loss</th><th>Gap to closing odds</th><th class="num wide">Right result</th><th class="role">Role</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="name">Closing betting odds<span class="note">Everything, up to kickoff</span></td><td class="num">0.9893</td>
+                <td><div class="gapbar"><div class="track"></div><span class="val">0</span></div></td><td class="num wide">n/a</td><td class="role"><span class="tag t-gray">Benchmark</span></td></tr>
+              <tr><td class="name">Earlier betting odds<span class="note">Prices a day or two before</span></td><td class="num">0.9929</td>
+                <td><div class="gapbar"><div class="track"><div class="fill" style="width:24%"></div></div><span class="val">+0.0036</span></div></td><td class="num wide">n/a</td><td class="role"><span class="tag t-gray">Benchmark</span></td></tr>
+              <tr><td class="name">V2x: lineups<span class="note">Results, xG, starting XIs</span></td><td class="num">0.9973</td>
+                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:53%"></div></div><span class="val">+0.0080</span></div></td><td class="num wide">50.4%</td><td class="role"><span class="tag t-green">Used with lineups</span></td></tr>
+              <tr><td class="name">V1x: chances created<span class="note">Results, xG</span></td><td class="num">1.0011</td>
+                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:79%"></div></div><span class="val">+0.0118</span></div></td><td class="num wide">49.9%</td><td class="role"><span class="tag t-blue">Used before team news</span></td></tr>
+              <tr><td class="name">V0: results only<span class="note">Results</span></td><td class="num">1.0042</td>
+                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:100%"></div></div><span class="val">+0.0150</span></div></td><td class="num wide">49.2%</td><td class="role"><span class="tag t-gray">Baseline</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note wide">“Right result” is how often the most likely outcome happened. Every model gets about half right, because draws are almost never the favourite, so it can’t separate them. Log-loss can.</p>
+
+      <details class="acc">
+        <summary><span class="lab">Other seasons <span class="sub">The ranking holds, the gaps move</span></span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="acc-body">
+          <div class="panel">
+            <div class="scroll">
+              <table>
+                <thead><tr><th>Model</th><th class="num">2022-24 (760)</th><th class="num">2024-26 (760)</th><th class="num">2026-27 so far (90)</th></tr></thead>
+                <tbody>
+                  <tr><td class="name">Closing betting odds</td><td class="num">0.9314</td><td class="num">0.9893</td><td class="num">n/a</td></tr>
+                  <tr><td class="name">V2x: lineups</td><td class="num">0.9610</td><td class="num">0.9973</td><td class="num">1.0315</td></tr>
+                  <tr><td class="name">V1x: chances created</td><td class="num">0.9607</td><td class="num">1.0011</td><td class="num">1.0358</td></tr>
+                  <tr><td class="name">V0: results only</td><td class="num">0.9624</td><td class="num">1.0042</td><td class="num">1.0362</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p>In 2022-24 the lineup model was no better than V1x. Lineup information only switched on for part of that period, and the gain was smaller there. That's why we reran the test on older seasons (see the lineup model below).</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="market">
+    <div class="sec-head">
+      <h2>When we disagree with the betting market</h2>
+      <p>Most of the time TaBet and the bookmakers pick the same result. These are the matches where they didn't: TaBet's lineup model (V2x) against the market's favourite, 2022-23 to 2025-26.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>When picks differed</th><th class="num">vs earlier odds</th><th class="num">vs closing odds</th></tr></thead>
+            <tbody>
+              <tr><td class="name">Matches compared<span class="note">2022-23 to 2025-26</span></td><td class="num">1,520</td><td class="num">1,520</td></tr>
+              <tr><td class="name">Same pick<span class="note">Both backed the same result</span></td><td class="num">88.5%</td><td class="num">87.4%</td></tr>
+              <tr><td class="name">Different picks</td><td class="num">174</td><td class="num">191</td></tr>
+              <tr><td class="name">TaBet right, market wrong</td><td class="num"><span class="tag t-green">50 (29%)</span></td><td class="num"><span class="tag t-green">52 (27%)</span></td></tr>
+              <tr><td class="name">Market right, TaBet wrong</td><td class="num"><span class="tag t-red">76 (44%)</span></td><td class="num"><span class="tag t-red">86 (45%)</span></td></tr>
+              <tr><td class="name">Both wrong<span class="note">Usually a draw neither picked</span></td><td class="num">48 (28%)</td><td class="num">53 (28%)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">Earlier odds are set on Friday or Tuesday afternoon, before lineups are known, so TaBet has more information than they do. Closing odds are set at kickoff, so they know more than TaBet. Odds are only ever a yardstick here, never a model input.</p>
+
+      <div class="callout">
+        <p><strong>The market wins these more often.</strong> When the picks differ, the bookmakers are right alone about 45% of the time and TaBet about 28%. That gap is too big to be luck (p = 0.005 against closing odds).</p>
+        <p>On probabilities across all 1,520 matches, the market is also better. Its log-loss is lower by 0.014 for the earlier odds and 0.019 for the closing odds. In 2024-26 alone the gap to the earlier odds shrinks to 0.004, too small to tell apart from zero.</p>
+      </div>
+
+      <details class="acc" open>
+        <summary><span class="lab">Our best calls and worst misses <span class="sub">Biggest disagreements with the closing odds</span></span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="acc-body">
+          <p class="muted small">Probabilities are home win, draw, away win.</p>
+          <div class="panel">
+            <div class="scroll">
+              <table>
+                <thead><tr><th>Match</th><th class="num">Score</th><th class="num">TaBet</th><th class="num">Market</th><th class="role">Who was right</th></tr></thead>
+                <tbody>
+                  <tr><td class="name">Brentford v Man Utd<span class="note">13 Aug 2022</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-0</td><td class="num probs">43 / 25 / 33</td><td class="num probs">22 / 25 / 53</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+                  <tr><td class="name">Newcastle v Chelsea<span class="note">25 Nov 2023</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-1</td><td class="num probs">57 / 21 / 22</td><td class="num probs">36 / 27 / 37</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+                  <tr><td class="name">Coventry v Hull<span class="note">29 Aug 2026</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">0-1</td><td class="num probs">15 / 25 / 59</td><td class="num probs">55 / 25 / 20</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
+                  <tr><td class="name">Burnley v Sunderland<span class="note">23 Aug 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">10 / 16 / 74</td><td class="num probs">40 / 31 / 30</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+                  <tr><td class="name">Man Utd v Sunderland<span class="note">4 Oct 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">27 / 30 / 42</td><td class="num probs">59 / 22 / 19</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+                  <tr><td class="name">Brighton v Liverpool<span class="note">19 May 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">3-2</td><td class="num probs">23 / 21 / 57</td><td class="num probs">43 / 25 / 32</td><td class="role"><span class="tag t-red">Market</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p>Almost every big disagreement comes from the team ratings, not the lineups. Several involve promoted sides early in the season, such as Sunderland and Hull. With only a few Premier League games behind them, the model reacts strongly to each result. Sometimes that's right (Hull at Coventry), and often it isn't (Sunderland at Burnley). Fixing this is the next piece of work.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="models">
+    <div class="sec-head">
+      <h2>How each model works</h2>
+      <p>Open a model to see what it does, what it uses, and when it's the one we trust.</p>
+    </div>
+    <div class="sec-body">
+      <div class="acc-group">
+        <details class="acc">
+          <summary><span class="lab">V0: results only <span class="sub">Dixon-Coles</span></span><span class="chev" aria-hidden="true"></span></summary>
+          <div class="acc-body">
+            <p>Every team gets an attack rating and a defence rating, learned from past scores. The model predicts how many goals each side should score, then turns those two numbers into home, draw and away probabilities.</p>
+<pre>home goals ~ Poisson( exp(base + home edge + attack[home] − defence[away]) )
+away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
+            <ul>
+              <li><strong>Recent matches count more.</strong> A match from six months ago counts half as much as one from last weekend.</li>
+              <li><strong>Low scores get a correction.</strong> Real games end 0-0 and 1-1 more often than two independent goal counts suggest, so the model nudges those scorelines.</li>
+              <li><strong>Ratings are pulled toward average,</strong> so a team with a few lucky results doesn't get an extreme rating.</li>
+            </ul>
+            <dl class="kv">
+              <dt>Uses</dt><dd>Final scores only</dd>
+              <dt>Refitted</dt><dd>Before every matchday, on results known by then</dd>
+              <dt>Weakness</dt><dd>A lucky 3-0 counts the same as a deserved one</dd>
+            </dl>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary><span class="lab">V1x: chances created <span class="sub">V0 + opponent-adjusted xG</span></span><span class="chev" aria-hidden="true"></span></summary>
+          <div class="acc-body">
+            <p>Goals are noisy. Expected goals (xG) measure the quality of the chances a team created, which says more about how good it really is. V1x adds two numbers to V0's prediction: how much xG a team creates, and how much its opponent usually allows.</p>
+            <p>Both are <strong>opponent-adjusted</strong>. Two expected goals against the league's best defence count for more than two against the worst. The adjustment is fitted like V0, but on xG instead of goals, with a shorter memory of about three months.</p>
+<pre>log(rate) = log(V0 rate) + b0 + b1·(team's xG attack) + b2·(opponent's xG allowed)</pre>
+            <dl class="kv">
+              <dt>Uses</dt><dd>Scores and team xG from Fantasy Premier League</dd>
+              <dt>Gain over V0</dt><dd>−0.0031 log-loss on 2024-26, and the same direction in every season</dd>
+              <dt>When used</dt><dd>Any time before team news. This is the default early forecast.</dd>
+            </dl>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary><span class="lab">V2x: lineups <span class="sub">V1x + starting-XI strength</span></span><span class="chev" aria-hidden="true"></span></summary>
+          <div class="acc-body">
+            <p>Team ratings assume a team's usual players. V2x checks who is actually starting. Each outfield player has a rating: their recent xG plus assists-xG per 90 minutes, pulled toward the average for their position until they've played enough to trust.</p>
+            <p>The model compares tonight's XI with the team's usual XI. If the starters are weaker than usual, it expects fewer goals. It also checks whether the opponent's defence is its regular back line.</p>
+<pre>XI strength = log( tonight's starters' rating / usual starters' rating )</pre>
+            <dl class="kv">
+              <dt>Uses</dt><dd>Everything V1x uses, plus the confirmed starting XIs (about an hour before kickoff)</dd>
+              <dt>Gain over V1x</dt><dd>−0.0038 on 2024-26, but none on 2022-24</dd>
+              <dt>Where it helps</dt><dd>Matches where a team's lineup is far from normal, such as heavy rotation or several injuries. Elsewhere it changes almost nothing.</dd>
+            </dl>
+            <div class="callout">
+              <p><strong>Rechecked on older seasons.</strong> We rebuilt the same lineup feature for 2018-21, a period never used for any decision, with player ratings based on FPL threat and creativity because xG didn't exist yet. Across all matches the gain was small (−0.0009) and not significant. In the third of matches with the most unusual lineups it was −0.0042, the same pattern as recently.</p>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary><span class="lab">Predicted lineups <span class="sub">V2x a day before kickoff</span></span><span class="chev" aria-hidden="true"></span></summary>
+          <div class="acc-body">
+            <p>Confirmed lineups arrive an hour before kickoff. To forecast a day earlier, we feed V2x the lineups that two fantasy-football sites predict, Fantasy Football Scout and RotoWire, plus our own guess from recent team selections and FPL injury news.</p>
+            <ul>
+              <li><strong>Several versions are logged for every match,</strong> 24 hours before kickoff: V1x alone, each site's lineup, their average, and our own guess.</li>
+              <li><strong>A blend is learned, not assumed.</strong> After gameweek 19 we fit how much weight the predicted lineups deserve compared with V1x alone, then freeze that weight.</li>
+              <li><strong>The rules were fixed before the first forecast,</strong> so the result can't be tuned after the fact. A first read comes after gameweek 29, and the real verdict at the end of the season.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary><span class="lab">Betting odds <span class="sub">The benchmark, never an input</span></span><span class="chev" aria-hidden="true"></span></summary>
+          <div class="acc-body">
+            <p>Bookmakers' prices, with their margin removed, are the strongest public forecast. They include everything the market knows: injuries, team news, money from well-informed bettors. We use them only to measure how far we are from the best available forecast. No model ever sees them, so a model can't simply copy the market.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="method">
+    <div class="sec-head">
+      <h2>How a forecast is made</h2>
+      <p>The same five steps run before every matchday.</p>
+    </div>
+    <div class="sec-body">
+      <ol class="steps">
+        <li>Take every result known at least two and a half hours before the first kickoff of the day.</li>
+        <li>Refit the team ratings (V0) on those results.</li>
+        <li>Add the xG adjustment (V1x), and the lineup adjustment if lineups are known (V2x).</li>
+        <li>Turn the two expected goal counts into a grid of scorelines, then add up the home-win, draw and away-win cells.</li>
+        <li>Log the probabilities before kickoff, and score them once the result is in.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="tested">
+    <div class="sec-head">
+      <h2>Ideas we tested and dropped</h2>
+      <p>Each idea was compared with the simpler model it was meant to beat, on the same matches. Negative numbers mean it helped. None of them earned a place.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Idea</th><th class="num">Change</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr><td class="name">Calibration layer<span class="note">Sharpen or soften all probabilities, nudge draws</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Similar-player ratings<span class="note">Rate new players from statistically similar players</span></td><td class="num">+0.0002</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Team playing style<span class="note">Shot volume, shot quality, corners and fouls</span></td><td class="num">+0.0023</td><td><span class="tag t-red">Slightly worse</span></td></tr>
+              <tr><td class="name">Lineup changes by role<span class="note">Which positions were missing, not just how many players</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Faster-moving league trends<span class="note">Recent league scoring and home advantage</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Predict outcomes directly<span class="note">Model win/draw/loss instead of goals</span></td><td class="num">+0.0011</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Lineups guessed from history<span class="note">V2x with our own projected XI, no team news</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Four more leagues<span class="note">Learn shared settings from La Liga, Serie A, Bundesliga, Ligue 1</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Match stats<span class="note">Recent dribbles, duels, passing, tackles, key passes</span></td><td class="num">−0.0028</td><td><span class="tag t-yellow">Promising, not proven</span></td></tr>
+              <tr><td class="name">Promoted-team ratings<span class="note">Start promoted sides from their Championship stats</span></td><td class="num">−0.0008</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">New-signing ratings<span class="note">Rate arrivals from their previous league's output</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Ratings that move every week<span class="note">Score-driven ratings with a summer reset</span></td><td class="num">+0.0009</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Shorter memory<span class="note">Team ratings with a 116-day half-life instead of 173</span></td><td class="num">+0.0056</td><td><span class="tag t-red">Worse</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21.</p>
+
+      <details class="acc">
+        <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="acc-body">
+          <ul>
+            <li><strong>Team strength changes slowly.</strong> Every faster-adapting version lost. Ratings that react quickly mostly chase noise.</li>
+            <li><strong>A star signing shows up in the results anyway.</strong> The new-signing ratings did pick out the big names, such as Wirtz, Cherki and Ekitiké. But a regular starter is part of the team's usual lineup, so the lineup comparison barely moves. The team's own xG catches the improvement within a few matches.</li>
+            <li><strong>Stats from the same match describe the game, not the teams.</strong> Teams that are winning stop passing and start defending, so possession looks bad and tackles look good. Only stats from earlier matches can predict anything.</li>
+            <li><strong>Three promoted teams a year is too few</strong> to learn how Championship form carries over.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="alternatives">
+    <div class="sec-head">
+      <h2>Other models compared with ours</h2>
+      <p>Four approaches (six versions), each tested against our current team ratings (Dixon-Coles) on the same matches. The main test uses 1,140 matches from 2018-19 to 2020-21, seasons never used for any earlier decision. Negative numbers mean the new model was better.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Model</th><th class="num">2018-21</th><th class="num wide">2024-26</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr><td class="name">Bivariate Poisson goals<span class="note">Same ratings; lets the two teams' goal counts move together</span></td><td class="num">−0.0028</td><td class="num wide">+0.0009</td><td><span class="tag t-yellow">Passed, not repeated</span></td></tr>
+              <tr><td class="name">Negative binomial goals<span class="note">Same ratings; allows more lopsided scorelines</span></td><td class="num">−0.0001</td><td class="num wide">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Elo blend<span class="note">Mix in a simple Elo rating</span></td><td class="num">−0.0009</td><td class="num wide">+0.0020</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Returning-team reset<span class="note">Clubs back after a season away start fresh</span></td><td class="num">+0.0008</td><td class="num wide">+0.0011</td><td><span class="tag t-red">Slightly worse</span></td></tr>
+              <tr><td class="name">Reset + promoted-team start<span class="note">Fresh start below average for promoted sides</span></td><td class="num">+0.0035</td><td class="num wide">−0.0018</td><td><span class="tag t-red">Worse</span></td></tr>
+              <tr><td class="name">Bayesian Dixon-Coles<span class="note">Tracks how sure we are of each rating</span></td><td class="num">+0.0063</td><td class="num wide">−0.0020</td><td><span class="tag t-red">Worse</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
+
+      <div class="callout">
+        <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
+      </div>
+
+      <details class="acc">
+        <summary><span class="lab">How each alternative works</span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="acc-body">
+          <ul>
+            <li><strong>Bivariate Poisson goals.</strong> Our model treats the two teams' goal counts as independent, apart from a small fix for low scores. This version adds a shared part, so in games that open up both sides tend to score more. The team ratings are unchanged.</li>
+            <li><strong>Negative binomial goals.</strong> Allows more spread in goals than a Poisson count. The data pushed it straight back to Poisson, so it changed nothing.</li>
+            <li><strong>Returning-team reset.</strong> A club that comes back after a season or more away (Burnley, Leeds, Ipswich) gets a fresh rating instead of its old one from a different squad.</li>
+            <li><strong>Reset + promoted-team start.</strong> As above, but every promoted side starts from how promoted teams have usually done, rather than league average.</li>
+            <li><strong>Bayesian Dixon-Coles.</strong> Keeps track of how uncertain each rating is, pulls promoted teams' early ratings harder toward a promoted-team average so a few results can't swing them, and averages forecasts over that uncertainty.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="reading">
+    <div class="sec-head">
+      <h2>Reading the numbers</h2>
+    </div>
+    <div class="sec-body">
+      <p><strong>Log-loss</strong> scores the probability a model gave to what actually happened. If the model said 50% and the home team won, the score is −log(0.5) ≈ 0.69. If it said 20% and the home team won, the score is −log(0.2) ≈ 1.61. Confident wrong answers cost the most. Lower is better.</p>
+      <p>Differences look tiny because football is mostly luck. Giving each outcome a one-in-three chance scores 1.10. The whole gap between our simplest model and the betting market is 0.015, so a change of 0.003 is a fifth of that gap.</p>
+      <blockquote>We judge models on probabilities, not on picking winners. A model that says 60% should be right about six times in ten, no more and no less.</blockquote>
+    </div>
+  </section>
+
+  <section class="sec" id="rules">
+    <div class="sec-head">
+      <h2>Rules every model follows</h2>
+    </div>
+    <div class="sec-body">
+      <ul class="rules">
+        <li><strong>No peeking.</strong> A forecast only uses information that existed before kickoff. A result counts as known two and a half hours after its own kickoff.</li>
+        <li><strong>No odds as inputs.</strong> Betting prices and fantasy-football ownership are benchmarks only.</li>
+        <li><strong>Past predicts future, never the reverse.</strong> Models are trained on earlier matches and scored on later ones, never on a random shuffle.</li>
+        <li><strong>Tests are written down first.</strong> The main comparisons were committed to the project's history before they were run.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="brand brand-inv" href="/"><span class="mark" aria-hidden="true"></span>TaBet</a>
+    <p>TaBet is a student software-engineering project. Data comes from football-data.co.uk, the Fantasy Premier League API and its public archive, Fantasy Football Scout and RotoWire. Nothing here is betting advice.</p>
+  </div>
+</footer>
+
+<script src="common.js"></script>
+<script>
+(function () {
+  var T = window.TaBet, feat = document.getElementById("featured"), grid = document.getElementById("fixtures");
+  function card(m, big) {
+    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null;
+    var rows = [[m.home, 0, "h"], ["Draw", 1, "d"], [m.away, 2, "a"]].map(function (r) {
+      var v = p ? p[r[1]] : null;
+      return '<li class="o o-' + r[2] + '"' + (v != null ? ' style="--w:' + (v * 100).toFixed(1) + '%"' : "") + '><span class="o-name">' + T.esc(r[0]) +
+        '</span><span class="o-p">' + (v != null ? T.pct(v) : "–") + "</span></li>";
+    }).join("");
+    var tag = f ? '<span class="tag ' + T.KIND[f.kind][1] + '">' + T.KIND[f.kind][0] + "</span>" : '<span class="tag t-gray">Forecast pending</span>';
+    var foot = mk ? T.esc(mk.label) + ": " + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ")
+                  : (f ? "Market odds not out yet" : "Our forecast appears about two gameweeks ahead");
+    return '<a class="fx' + (big ? " fx-lg" : "") + '" href="/matches#' + encodeURIComponent(m.id) + '">' +
+      (big ? '<div class="fx-kicker">Next match</div>' : "") +
+      '<div class="fx-top"><span>' + T.esc(T.when(m.kickoff, "card")) + (m.gameweek ? ", GW" + m.gameweek : "") + "</span>" + tag + "</div>" +
+      '<ul class="outs" aria-label="TaBet probabilities">' + rows + "</ul>" +
+      (p ? T.bar(p) : "") + '<div class="fx-foot">' + foot + "</div></a>";
+  }
+  T.load().then(function (d) {
+    var now = Date.now() - 3 * 3600e3;
+    var up = d.matches.filter(function (m) { return m.status !== "played" && new Date(m.kickoff).getTime() > now; })
+      .sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; });
+    if (!up.length) { feat.innerHTML = '<div class="fx fx-lg"><p>No upcoming matches in the data yet.</p></div>'; grid.innerHTML = ""; return; }
+    var withF = up.filter(function (m) { return T.primary(m); });
+    var first = withF[0] || up[0];
+    feat.innerHTML = card(first, true);
+    var gw = first.gameweek;
+    var list = up.filter(function (m) { return m.id !== first.id && (!gw || m.gameweek === gw); }).slice(0, 9);
+    document.getElementById("fx-title").textContent = gw ? "Gameweek " + gw + " forecasts" : "Upcoming forecasts";
+    grid.innerHTML = list.map(function (m) { return card(m, false); }).join("");
+  }).catch(function () {
+    feat.innerHTML = '<div class="fx fx-lg"><p>Match data didn’t load. Refresh the page to try again.</p></div>';
+    grid.innerHTML = "";
+  });
+})();
+</script>
+</body>
+</html>

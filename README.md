@@ -6,8 +6,12 @@ draw / away win**, records them before kickoff, and scores them against what hap
 betting market.
 
 **Live site:** https://ta-bet-ml-model-edition.vercel.app
-- **Home page:** the model notebook. It explains every model and result in plain language and shows
-  cards for the next gameweek's fixtures.
+- **Home page, the pitch:** after a short arcade-style intro (skip it with any key), the gameweek's
+  matches sit on a football pitch, with the next match and a kick-off countdown in the centre circle.
+  - ◀ ▶ (or the arrow keys) change gameweek.
+  - Kick the ball on the centre spot to land on a random match.
+  - Click the ball in the top left for the model notebook.
+- **Model notebook** (`/notebook`): explains every model and result in plain language.
 - **Match explorer** (`/matches`): pick any match since 2022-23 to see every TaBet forecast for it,
   the market's odds and the result.
 

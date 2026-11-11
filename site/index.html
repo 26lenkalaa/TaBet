@@ -3,422 +3,426 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TaBet model notebook</title>
-<meta name="description" content="How TaBet's Premier League forecasting models work, and how they compare on held-out matches.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2317406D'/><circle cx='16' cy='16' r='7' fill='none' stroke='%237DD1FF' stroke-width='3'/></svg>">
+<title>TaBet</title>
+<meta name="description" content="TaBet's Premier League forecasts for this gameweek, next to the betting market. Pick a match to see every forecast.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14.5' fill='white' stroke='%2312233a' stroke-width='1.5'/><path d='M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z' fill='%2312233a'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
+  --chalk: rgba(255, 255, 255, .86);
+  --panel: rgba(9, 38, 18, .80); --panel-hi: rgba(9, 38, 18, .92);
+  --ink: #ffffff; --muted: #cfe6d3; --faint: #9cc4a4;
+  --gold: #ffd23f; --red: #ff5a4f;
+  --c-h: #7dd1ff; --c-d: #dfe7ee; --c-a: #ffb347;   /* home / draw / away, readable on dark green */
+  --px: "Press Start 2P", ui-monospace, monospace;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--sans); color: var(--ink); min-height: 100vh;
+  background: var(--grass-edge) repeating-linear-gradient(90deg, var(--grass-a) 0 80px, var(--grass-b) 80px 160px);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.px { font-family: var(--px); letter-spacing: .02em; }
+
+/* ---- top bar ---- */
+.hud { display: flex; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
+.ballbtn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
+.ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
+.ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; max-width: 9em; }
+.title { flex: 1; min-width: 0; }
+.title h1 { margin: 0; font-family: var(--px); font-size: 22px; text-shadow: 3px 3px 0 #0b2c14; }
+.title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.gw { display: flex; align-items: center; gap: 6px; background: var(--panel-hi); border: 2px solid var(--chalk); padding: 6px; }
+.gw button { font-family: var(--px); font-size: 12px; background: none; color: var(--gold); border: 0; padding: 8px 10px; cursor: pointer; }
+.gw button:disabled { color: #4d6b55; cursor: default; }
+.gw span { font-size: 12px; min-width: 6.5em; text-align: center; }
+.navlink { font-family: var(--px); font-size: 10px; text-decoration: none; background: var(--gold); color: #1c1600; padding: 10px 12px; box-shadow: 3px 3px 0 #0b2c14; }
+.navlink:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #0b2c14; }
+
+/* ---- the pitch ---- */
+.pitch { position: relative; max-width: 1440px; margin: 6px auto 0; padding: 0 20px; }
+.field { position: relative; aspect-ratio: 105 / 68; min-height: 560px; }
+.lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.lines * { fill: none; stroke: var(--chalk); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.lines .spot { fill: var(--chalk); stroke: none; }
+.lines .net { stroke: rgba(255,255,255,.35); stroke-width: 1; }
+.halves { position: absolute; inset: 4% 3.5%; display: grid; grid-template-columns: 1fr minmax(250px, 25%) 1fr; gap: 2.5%; align-items: center; }
+.half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: center; }
+.centre { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+/* match cards */
+.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 10px 11px 11px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.28); transition: transform .15s, box-shadow .15s, background .15s; position: relative; }
+.chip:hover, .chip:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,.3); background: var(--panel-hi); }
+.chip.spot-on { animation: spot 1.2s steps(2) 3; border-color: var(--gold); }
+@keyframes spot { 50% { box-shadow: 0 0 0 6px var(--gold); } }
+.chip .when { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.chip .tm { font-family: var(--px); font-size: 13px; margin: 8px 0 2px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.chip .tm .sc { color: var(--gold); }
+.chip .full { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
+.bar i { display: block; height: 100%; }
+.bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
+.nums { display: flex; justify-content: space-between; font-size: 12px; font-variant-numeric: tabular-nums; }
+.nums b { font-weight: 700; }
+.mk { font-size: 11px; color: var(--faint); margin-top: 3px; }
+.badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
+.badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
+
+/* centre circle: next match */
+.next { width: 100%; background: var(--panel-hi); border: 3px solid var(--chalk); padding: 14px; text-align: center; box-shadow: 6px 6px 0 rgba(0,0,0,.3); }
+.next .lab { font-size: 9px; color: var(--gold); }
+.next h2 { font-size: 17px; margin: 10px 0 2px; line-height: 1.25; }
+.next .k { font-size: 13px; color: var(--muted); }
+.next .count { font-family: var(--px); font-size: 11px; margin: 12px 0; color: var(--gold); }
+.next .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0 6px; }
+.next .three div { background: #0b2c14; padding: 8px 2px; }
+.next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
+.next .three .h b { color: var(--c-h); } .next .three .d b { color: var(--c-d); } .next .three .a b { color: var(--c-a); }
+.next .three small { font-size: 11px; color: var(--muted); }
+.next .src { font-size: 11px; color: var(--faint); margin: 6px 0 10px; }
+.next a.go { display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
+.kick { font-family: var(--px); font-size: 9px; color: var(--ink); background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; }
+.kick svg { width: 34px; height: 34px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
+.kick:hover svg { animation: bounce .5s steps(4) infinite alternate; }
+@keyframes bounce { to { transform: translateY(-6px); } }
+.flyer { position: fixed; width: 30px; height: 30px; z-index: 50; pointer-events: none; }
+.empty { grid-column: 1 / -1; text-align: center; background: var(--panel); border: 2px dashed var(--chalk); padding: 18px; font-size: 14px; }
+.key { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); padding: 14px 20px 4px; }
+.key i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+footer { max-width: 1440px; margin: 0 auto; padding: 8px 20px 28px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+footer button { font-family: var(--px); font-size: 9px; background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; cursor: pointer; }
+
+/* phones and narrow windows: one column, portrait markings */
+@media (max-width: 960px) {
+  .hud { flex-wrap: wrap; }
+  .title { order: 3; flex-basis: 100%; }
+  .title h1 { font-size: 16px; }
+  .field { aspect-ratio: auto; min-height: 0; padding: 26px 16px; border: 3px solid var(--chalk); }
+  .lines { display: none; }
+  .halves { position: static; display: flex; flex-direction: column; gap: 14px; }
+  .half { grid-template-columns: 1fr 1fr; width: 100%; }
+  .centre { order: -1; width: 100%; }
+  .field::before { content: ""; position: absolute; left: 50%; top: 26px; width: 150px; height: 150px; margin-left: -75px; border: 3px solid var(--chalk); border-radius: 50%; pointer-events: none; }
+}
+@media (max-width: 560px) {
+  .half { grid-template-columns: 1fr; }
+  .pitch { padding: 0 10px; }
+  .gw span { min-width: 5em; }
+  .ballbtn .tip { display: none; }
+}
+
+/* ---- arcade intro ---- */
+.intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; cursor: pointer; overflow: hidden; }
+.intro[hidden] { display: none; }
+.intro canvas { width: min(100vw, 177.78vh); height: auto; aspect-ratio: 16 / 9; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+.intro .crt { position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 4px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.65) 100%); }
+.intro .ovl { position: absolute; inset: 0; pointer-events: none; font-family: var(--px); color: #fff; text-shadow: 3px 3px 0 #000; }
+.intro .top { position: absolute; top: 4%; left: 0; right: 0; display: flex; justify-content: space-around; font-size: clamp(9px, 1.6vw, 18px); }
+.intro .top .r { color: var(--red); }
+.intro .big { position: absolute; top: 34%; left: 0; right: 0; text-align: center; font-size: clamp(28px, 9vw, 96px); }
+.intro .msg { position: absolute; bottom: 9%; left: 0; right: 0; text-align: center; font-size: clamp(9px, 1.5vw, 16px); }
+.blink { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.goal { animation: goalc .24s steps(1) infinite; }
+@keyframes goalc { 0% { color: var(--gold); } 33% { color: var(--red); } 66% { color: #7dd1ff; } }
+@media (prefers-reduced-motion: reduce) {
+  .ballbtn svg, .chip, .kick svg { transition: none; animation: none; }
+}
+</style>
 </head>
 <body>
 
-<header class="nav">
-  <div class="nav-in">
-    <a class="brand" href="/" aria-label="TaBet home"><span class="mark" aria-hidden="true"></span>TaBet</a>
-    <nav class="links" aria-label="Sections">
-      <a href="#scoreboard">Scoreboard</a>
-      <a href="#models">Models</a>
-      <a href="#tested">What we tested</a>
-      <a href="#method">Method</a>
-    </nav>
-    <div class="nav-end">
-      <a class="btn btn-primary btn-sm" href="/matches">Match explorer</a>
-      <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Dark mode</button>
-    </div>
+<div class="intro" id="intro" hidden aria-hidden="true">
+  <canvas id="arcade" width="192" height="108"></canvas>
+  <div class="crt"></div>
+  <div class="ovl">
+    <div class="top"><span><span class="r">1UP</span> <span id="sc1">TABET 0</span></span><span>HI-SCORE <span class="r">MARKET</span></span><span><span class="r">2UP</span> <span id="sc2">0</span></span></div>
+    <div class="big" id="big"></div>
+    <div class="msg"><span id="msg" class="blink">INSERT COIN</span><br><br><span style="opacity:.7">PRESS ANY KEY TO SKIP</span></div>
   </div>
+</div>
+
+<header class="hud">
+  <a class="ballbtn" href="notebook" aria-label="Open the model notebook" title="Model notebook">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
+    <span class="tip px">MODEL NOTEBOOK</span>
+  </a>
+  <div class="title">
+    <h1>TABET</h1>
+    <p>Premier League forecasts, scored against the betting market. Pick a match.</p>
+  </div>
+  <div class="gw" role="group" aria-label="Gameweek">
+    <button id="prev" type="button" aria-label="Previous gameweek">&#9664;</button>
+    <span id="gwlab" class="px" aria-live="polite">GW --</span>
+    <button id="next" type="button" aria-label="Next gameweek">&#9654;</button>
+  </div>
+  <a class="navlink" href="matches">ALL MATCHES</a>
 </header>
 
-<section class="hero">
-  <div class="wrap hero-in">
-    <div class="hero-copy">
-      <span class="status"><span class="dot" aria-hidden="true"></span>Live testing from gameweek 10</span>
-      <h1>Premier League probabilities, scored against the betting market.</h1>
-      <p class="hero-lead">TaBet gives a probability for each Premier League match ending in a home win, a draw or an away win. Three models are in use. Each one builds on the last, and each step makes the probabilities a little more accurate.</p>
-      <div class="hero-cta">
-        <a class="btn btn-sky" href="/matches">Browse matches</a>
-        <a class="btn btn-ghost" href="#scoreboard">See the scoreboard</a>
+<main class="pitch">
+  <div class="field">
+    <svg class="lines" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <rect x="20" y="20" width="1010" height="640"/>
+      <line x1="525" y1="20" x2="525" y2="660"/>
+      <circle cx="525" cy="340" r="91.5"/><circle class="spot" cx="525" cy="340" r="4"/>
+      <rect x="20" y="138.5" width="165" height="403"/><rect x="865" y="138.5" width="165" height="403"/>
+      <rect x="20" y="248.5" width="55" height="183"/><rect x="975" y="248.5" width="55" height="183"/>
+      <circle class="spot" cx="130" cy="340" r="4"/><circle class="spot" cx="920" cy="340" r="4"/>
+      <path d="M185 266.9 A91.5 91.5 0 0 1 185 413.1"/><path d="M865 266.9 A91.5 91.5 0 0 0 865 413.1"/>
+      <path d="M20 30 A10 10 0 0 0 30 20"/><path d="M1020 20 A10 10 0 0 0 1030 30"/>
+      <path d="M30 660 A10 10 0 0 0 20 650"/><path d="M1030 650 A10 10 0 0 0 1020 660"/>
+      <rect x="6" y="303.4" width="14" height="73.2"/><rect x="1030" y="303.4" width="14" height="73.2"/>
+      <path class="net" d="M6 315H20M6 328H20M6 340H20M6 352H20M6 365H20M1030 315H1044M1030 328H1044M1030 340H1044M1030 352H1044M1030 365H1044"/>
+    </svg>
+    <div class="halves">
+      <div class="half" id="left"></div>
+      <div class="centre">
+        <div class="next" id="feature"><span class="lab px">LOADING…</span></div>
+        <button class="kick" id="kick" type="button" aria-label="Kick the ball to a random match">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
+          <span>KICK!</span>
+        </button>
       </div>
-      <dl class="facts">
-        <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
-        <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
-        <div><dt>Last updated</dt><dd>5 November 2026</dd></div>
-      </dl>
-    </div>
-    <div class="hero-card" id="featured" aria-live="polite">
-      <div class="fx fx-lg fx-skel"><p class="muted small">Loading the next match…</p></div>
+      <div class="half" id="right"></div>
     </div>
   </div>
-</section>
-
-<section class="wrap fixtures" aria-labelledby="fx-title">
-  <div class="fixtures-head">
-    <h2 id="fx-title">Upcoming forecasts</h2>
-    <a class="textlink" href="/matches">All matches</a>
-  </div>
-  <p class="muted small" id="fx-note">Previews update as results come in. The logged forecast is saved 24–32 hours before kickoff and never changed.</p>
-  <div class="fx-grid" id="fixtures"></div>
-  <div class="legend" aria-hidden="true"><span><i class="k-h"></i>Home win</span><span><i class="k-d"></i>Draw</span><span><i class="k-a"></i>Away win</span></div>
-</section>
-
-<main class="wrap">
-
-  <section class="sec" id="scoreboard">
-    <div class="sec-head">
-      <h2>Scoreboard</h2>
-      <p>All models are scored on the same matches, using only information available before kickoff. The bar is how far each one is from the closing betting odds, so a shorter bar is better.</p>
-      <div class="note-card">
-        <p>None of them beats the betting market yet. The best one, which also knows the starting lineups, closes about half the gap between our simplest model and the market.</p>
-      </div>
-    </div>
-    <div class="sec-body">
-      <div class="panel">
-        <div class="scroll">
-          <table>
-            <thead>
-              <tr><th>Model</th><th class="num">Log-loss</th><th>Gap to closing odds</th><th class="num wide">Right result</th><th class="role">Role</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="name">Closing betting odds<span class="note">Everything, up to kickoff</span></td><td class="num">0.9893</td>
-                <td><div class="gapbar"><div class="track"></div><span class="val">0</span></div></td><td class="num wide">n/a</td><td class="role"><span class="tag t-gray">Benchmark</span></td></tr>
-              <tr><td class="name">Earlier betting odds<span class="note">Prices a day or two before</span></td><td class="num">0.9929</td>
-                <td><div class="gapbar"><div class="track"><div class="fill" style="width:24%"></div></div><span class="val">+0.0036</span></div></td><td class="num wide">n/a</td><td class="role"><span class="tag t-gray">Benchmark</span></td></tr>
-              <tr><td class="name">V2x: lineups<span class="note">Results, xG, starting XIs</span></td><td class="num">0.9973</td>
-                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:53%"></div></div><span class="val">+0.0080</span></div></td><td class="num wide">50.4%</td><td class="role"><span class="tag t-green">Used with lineups</span></td></tr>
-              <tr><td class="name">V1x: chances created<span class="note">Results, xG</span></td><td class="num">1.0011</td>
-                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:79%"></div></div><span class="val">+0.0118</span></div></td><td class="num wide">49.9%</td><td class="role"><span class="tag t-blue">Used before team news</span></td></tr>
-              <tr><td class="name">V0: results only<span class="note">Results</span></td><td class="num">1.0042</td>
-                <td><div class="gapbar"><div class="track"><div class="fill ours" style="width:100%"></div></div><span class="val">+0.0150</span></div></td><td class="num wide">49.2%</td><td class="role"><span class="tag t-gray">Baseline</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <p class="table-note wide">“Right result” is how often the most likely outcome happened. Every model gets about half right, because draws are almost never the favourite, so it can’t separate them. Log-loss can.</p>
-
-      <details class="acc">
-        <summary><span class="lab">Other seasons <span class="sub">The ranking holds, the gaps move</span></span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="acc-body">
-          <div class="panel">
-            <div class="scroll">
-              <table>
-                <thead><tr><th>Model</th><th class="num">2022-24 (760)</th><th class="num">2024-26 (760)</th><th class="num">2026-27 so far (90)</th></tr></thead>
-                <tbody>
-                  <tr><td class="name">Closing betting odds</td><td class="num">0.9314</td><td class="num">0.9893</td><td class="num">n/a</td></tr>
-                  <tr><td class="name">V2x: lineups</td><td class="num">0.9610</td><td class="num">0.9973</td><td class="num">1.0315</td></tr>
-                  <tr><td class="name">V1x: chances created</td><td class="num">0.9607</td><td class="num">1.0011</td><td class="num">1.0358</td></tr>
-                  <tr><td class="name">V0: results only</td><td class="num">0.9624</td><td class="num">1.0042</td><td class="num">1.0362</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <p>In 2022-24 the lineup model was no better than V1x. Lineup information only switched on for part of that period, and the gain was smaller there. That's why we reran the test on older seasons (see the lineup model below).</p>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section class="sec" id="market">
-    <div class="sec-head">
-      <h2>When we disagree with the betting market</h2>
-      <p>Most of the time TaBet and the bookmakers pick the same result. These are the matches where they didn't: TaBet's lineup model (V2x) against the market's favourite, 2022-23 to 2025-26.</p>
-    </div>
-    <div class="sec-body">
-      <div class="panel">
-        <div class="scroll">
-          <table>
-            <thead><tr><th>When picks differed</th><th class="num">vs earlier odds</th><th class="num">vs closing odds</th></tr></thead>
-            <tbody>
-              <tr><td class="name">Matches compared<span class="note">2022-23 to 2025-26</span></td><td class="num">1,520</td><td class="num">1,520</td></tr>
-              <tr><td class="name">Same pick<span class="note">Both backed the same result</span></td><td class="num">88.5%</td><td class="num">87.4%</td></tr>
-              <tr><td class="name">Different picks</td><td class="num">174</td><td class="num">191</td></tr>
-              <tr><td class="name">TaBet right, market wrong</td><td class="num"><span class="tag t-green">50 (29%)</span></td><td class="num"><span class="tag t-green">52 (27%)</span></td></tr>
-              <tr><td class="name">Market right, TaBet wrong</td><td class="num"><span class="tag t-red">76 (44%)</span></td><td class="num"><span class="tag t-red">86 (45%)</span></td></tr>
-              <tr><td class="name">Both wrong<span class="note">Usually a draw neither picked</span></td><td class="num">48 (28%)</td><td class="num">53 (28%)</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <p class="table-note">Earlier odds are set on Friday or Tuesday afternoon, before lineups are known, so TaBet has more information than they do. Closing odds are set at kickoff, so they know more than TaBet. Odds are only ever a yardstick here, never a model input.</p>
-
-      <div class="callout">
-        <p><strong>The market wins these more often.</strong> When the picks differ, the bookmakers are right alone about 45% of the time and TaBet about 28%. That gap is too big to be luck (p = 0.005 against closing odds).</p>
-        <p>On probabilities across all 1,520 matches, the market is also better. Its log-loss is lower by 0.014 for the earlier odds and 0.019 for the closing odds. In 2024-26 alone the gap to the earlier odds shrinks to 0.004, too small to tell apart from zero.</p>
-      </div>
-
-      <details class="acc" open>
-        <summary><span class="lab">Our best calls and worst misses <span class="sub">Biggest disagreements with the closing odds</span></span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="acc-body">
-          <p class="muted small">Probabilities are home win, draw, away win.</p>
-          <div class="panel">
-            <div class="scroll">
-              <table>
-                <thead><tr><th>Match</th><th class="num">Score</th><th class="num">TaBet</th><th class="num">Market</th><th class="role">Who was right</th></tr></thead>
-                <tbody>
-                  <tr><td class="name">Brentford v Man Utd<span class="note">13 Aug 2022</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-0</td><td class="num probs">43 / 25 / 33</td><td class="num probs">22 / 25 / 53</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
-                  <tr><td class="name">Newcastle v Chelsea<span class="note">25 Nov 2023</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">4-1</td><td class="num probs">57 / 21 / 22</td><td class="num probs">36 / 27 / 37</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
-                  <tr><td class="name">Coventry v Hull<span class="note">29 Aug 2026</span><span class="tag t-green mobile-only">TaBet right</span></td><td class="num">0-1</td><td class="num probs">15 / 25 / 59</td><td class="num probs">55 / 25 / 20</td><td class="role"><span class="tag t-green">TaBet</span></td></tr>
-                  <tr><td class="name">Burnley v Sunderland<span class="note">23 Aug 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">10 / 16 / 74</td><td class="num probs">40 / 31 / 30</td><td class="role"><span class="tag t-red">Market</span></td></tr>
-                  <tr><td class="name">Man Utd v Sunderland<span class="note">4 Oct 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">2-0</td><td class="num probs">27 / 30 / 42</td><td class="num probs">59 / 22 / 19</td><td class="role"><span class="tag t-red">Market</span></td></tr>
-                  <tr><td class="name">Brighton v Liverpool<span class="note">19 May 2025</span><span class="tag t-red mobile-only">Market right</span></td><td class="num">3-2</td><td class="num probs">23 / 21 / 57</td><td class="num probs">43 / 25 / 32</td><td class="role"><span class="tag t-red">Market</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <p>Almost every big disagreement comes from the team ratings, not the lineups. Several involve promoted sides early in the season, such as Sunderland and Hull. With only a few Premier League games behind them, the model reacts strongly to each result. Sometimes that's right (Hull at Coventry), and often it isn't (Sunderland at Burnley). Fixing this is the next piece of work.</p>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section class="sec" id="models">
-    <div class="sec-head">
-      <h2>How each model works</h2>
-      <p>Open a model to see what it does, what it uses, and when it's the one we trust.</p>
-    </div>
-    <div class="sec-body">
-      <div class="acc-group">
-        <details class="acc">
-          <summary><span class="lab">V0: results only <span class="sub">Dixon-Coles</span></span><span class="chev" aria-hidden="true"></span></summary>
-          <div class="acc-body">
-            <p>Every team gets an attack rating and a defence rating, learned from past scores. The model predicts how many goals each side should score, then turns those two numbers into home, draw and away probabilities.</p>
-<pre>home goals ~ Poisson( exp(base + home edge + attack[home] − defence[away]) )
-away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
-            <ul>
-              <li><strong>Recent matches count more.</strong> A match from six months ago counts half as much as one from last weekend.</li>
-              <li><strong>Low scores get a correction.</strong> Real games end 0-0 and 1-1 more often than two independent goal counts suggest, so the model nudges those scorelines.</li>
-              <li><strong>Ratings are pulled toward average,</strong> so a team with a few lucky results doesn't get an extreme rating.</li>
-            </ul>
-            <dl class="kv">
-              <dt>Uses</dt><dd>Final scores only</dd>
-              <dt>Refitted</dt><dd>Before every matchday, on results known by then</dd>
-              <dt>Weakness</dt><dd>A lucky 3-0 counts the same as a deserved one</dd>
-            </dl>
-          </div>
-        </details>
-
-        <details class="acc">
-          <summary><span class="lab">V1x: chances created <span class="sub">V0 + opponent-adjusted xG</span></span><span class="chev" aria-hidden="true"></span></summary>
-          <div class="acc-body">
-            <p>Goals are noisy. Expected goals (xG) measure the quality of the chances a team created, which says more about how good it really is. V1x adds two numbers to V0's prediction: how much xG a team creates, and how much its opponent usually allows.</p>
-            <p>Both are <strong>opponent-adjusted</strong>. Two expected goals against the league's best defence count for more than two against the worst. The adjustment is fitted like V0, but on xG instead of goals, with a shorter memory of about three months.</p>
-<pre>log(rate) = log(V0 rate) + b0 + b1·(team's xG attack) + b2·(opponent's xG allowed)</pre>
-            <dl class="kv">
-              <dt>Uses</dt><dd>Scores and team xG from Fantasy Premier League</dd>
-              <dt>Gain over V0</dt><dd>−0.0031 log-loss on 2024-26, and the same direction in every season</dd>
-              <dt>When used</dt><dd>Any time before team news. This is the default early forecast.</dd>
-            </dl>
-          </div>
-        </details>
-
-        <details class="acc">
-          <summary><span class="lab">V2x: lineups <span class="sub">V1x + starting-XI strength</span></span><span class="chev" aria-hidden="true"></span></summary>
-          <div class="acc-body">
-            <p>Team ratings assume a team's usual players. V2x checks who is actually starting. Each outfield player has a rating: their recent xG plus assists-xG per 90 minutes, pulled toward the average for their position until they've played enough to trust.</p>
-            <p>The model compares tonight's XI with the team's usual XI. If the starters are weaker than usual, it expects fewer goals. It also checks whether the opponent's defence is its regular back line.</p>
-<pre>XI strength = log( tonight's starters' rating / usual starters' rating )</pre>
-            <dl class="kv">
-              <dt>Uses</dt><dd>Everything V1x uses, plus the confirmed starting XIs (about an hour before kickoff)</dd>
-              <dt>Gain over V1x</dt><dd>−0.0038 on 2024-26, but none on 2022-24</dd>
-              <dt>Where it helps</dt><dd>Matches where a team's lineup is far from normal, such as heavy rotation or several injuries. Elsewhere it changes almost nothing.</dd>
-            </dl>
-            <div class="callout">
-              <p><strong>Rechecked on older seasons.</strong> We rebuilt the same lineup feature for 2018-21, a period never used for any decision, with player ratings based on FPL threat and creativity because xG didn't exist yet. Across all matches the gain was small (−0.0009) and not significant. In the third of matches with the most unusual lineups it was −0.0042, the same pattern as recently.</p>
-            </div>
-          </div>
-        </details>
-
-        <details class="acc">
-          <summary><span class="lab">Predicted lineups <span class="sub">V2x a day before kickoff</span></span><span class="chev" aria-hidden="true"></span></summary>
-          <div class="acc-body">
-            <p>Confirmed lineups arrive an hour before kickoff. To forecast a day earlier, we feed V2x the lineups that two fantasy-football sites predict, Fantasy Football Scout and RotoWire, plus our own guess from recent team selections and FPL injury news.</p>
-            <ul>
-              <li><strong>Several versions are logged for every match,</strong> 24 hours before kickoff: V1x alone, each site's lineup, their average, and our own guess.</li>
-              <li><strong>A blend is learned, not assumed.</strong> After gameweek 19 we fit how much weight the predicted lineups deserve compared with V1x alone, then freeze that weight.</li>
-              <li><strong>The rules were fixed before the first forecast,</strong> so the result can't be tuned after the fact. A first read comes after gameweek 29, and the real verdict at the end of the season.</li>
-            </ul>
-          </div>
-        </details>
-
-        <details class="acc">
-          <summary><span class="lab">Betting odds <span class="sub">The benchmark, never an input</span></span><span class="chev" aria-hidden="true"></span></summary>
-          <div class="acc-body">
-            <p>Bookmakers' prices, with their margin removed, are the strongest public forecast. They include everything the market knows: injuries, team news, money from well-informed bettors. We use them only to measure how far we are from the best available forecast. No model ever sees them, so a model can't simply copy the market.</p>
-          </div>
-        </details>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec" id="method">
-    <div class="sec-head">
-      <h2>How a forecast is made</h2>
-      <p>The same five steps run before every matchday.</p>
-    </div>
-    <div class="sec-body">
-      <ol class="steps">
-        <li>Take every result known at least two and a half hours before the first kickoff of the day.</li>
-        <li>Refit the team ratings (V0) on those results.</li>
-        <li>Add the xG adjustment (V1x), and the lineup adjustment if lineups are known (V2x).</li>
-        <li>Turn the two expected goal counts into a grid of scorelines, then add up the home-win, draw and away-win cells.</li>
-        <li>Log the probabilities before kickoff, and score them once the result is in.</li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="sec" id="tested">
-    <div class="sec-head">
-      <h2>Ideas we tested and dropped</h2>
-      <p>Each idea was compared with the simpler model it was meant to beat, on the same matches. Negative numbers mean it helped. None of them earned a place.</p>
-    </div>
-    <div class="sec-body">
-      <div class="panel">
-        <div class="scroll">
-          <table>
-            <thead><tr><th>Idea</th><th class="num">Change</th><th>Verdict</th></tr></thead>
-            <tbody>
-              <tr><td class="name">Calibration layer<span class="note">Sharpen or soften all probabilities, nudge draws</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Similar-player ratings<span class="note">Rate new players from statistically similar players</span></td><td class="num">+0.0002</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Team playing style<span class="note">Shot volume, shot quality, corners and fouls</span></td><td class="num">+0.0023</td><td><span class="tag t-red">Slightly worse</span></td></tr>
-              <tr><td class="name">Lineup changes by role<span class="note">Which positions were missing, not just how many players</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Faster-moving league trends<span class="note">Recent league scoring and home advantage</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Predict outcomes directly<span class="note">Model win/draw/loss instead of goals</span></td><td class="num">+0.0011</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Lineups guessed from history<span class="note">V2x with our own projected XI, no team news</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Four more leagues<span class="note">Learn shared settings from La Liga, Serie A, Bundesliga, Ligue 1</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Match stats<span class="note">Recent dribbles, duels, passing, tackles, key passes</span></td><td class="num">−0.0028</td><td><span class="tag t-yellow">Promising, not proven</span></td></tr>
-              <tr><td class="name">Promoted-team ratings<span class="note">Start promoted sides from their Championship stats</span></td><td class="num">−0.0008</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">New-signing ratings<span class="note">Rate arrivals from their previous league's output</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Ratings that move every week<span class="note">Score-driven ratings with a summer reset</span></td><td class="num">+0.0009</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Shorter memory<span class="note">Team ratings with a 116-day half-life instead of 173</span></td><td class="num">+0.0056</td><td><span class="tag t-red">Worse</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21.</p>
-
-      <details class="acc">
-        <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="acc-body">
-          <ul>
-            <li><strong>Team strength changes slowly.</strong> Every faster-adapting version lost. Ratings that react quickly mostly chase noise.</li>
-            <li><strong>A star signing shows up in the results anyway.</strong> The new-signing ratings did pick out the big names, such as Wirtz, Cherki and Ekitiké. But a regular starter is part of the team's usual lineup, so the lineup comparison barely moves. The team's own xG catches the improvement within a few matches.</li>
-            <li><strong>Stats from the same match describe the game, not the teams.</strong> Teams that are winning stop passing and start defending, so possession looks bad and tackles look good. Only stats from earlier matches can predict anything.</li>
-            <li><strong>Three promoted teams a year is too few</strong> to learn how Championship form carries over.</li>
-          </ul>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section class="sec" id="alternatives">
-    <div class="sec-head">
-      <h2>Other models compared with ours</h2>
-      <p>Four approaches (six versions), each tested against our current team ratings (Dixon-Coles) on the same matches. The main test uses 1,140 matches from 2018-19 to 2020-21, seasons never used for any earlier decision. Negative numbers mean the new model was better.</p>
-    </div>
-    <div class="sec-body">
-      <div class="panel">
-        <div class="scroll">
-          <table>
-            <thead><tr><th>Model</th><th class="num">2018-21</th><th class="num wide">2024-26</th><th>Verdict</th></tr></thead>
-            <tbody>
-              <tr><td class="name">Bivariate Poisson goals<span class="note">Same ratings; lets the two teams' goal counts move together</span></td><td class="num">−0.0028</td><td class="num wide">+0.0009</td><td><span class="tag t-yellow">Passed, not repeated</span></td></tr>
-              <tr><td class="name">Negative binomial goals<span class="note">Same ratings; allows more lopsided scorelines</span></td><td class="num">−0.0001</td><td class="num wide">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Elo blend<span class="note">Mix in a simple Elo rating</span></td><td class="num">−0.0009</td><td class="num wide">+0.0020</td><td><span class="tag t-gray">No effect</span></td></tr>
-              <tr><td class="name">Returning-team reset<span class="note">Clubs back after a season away start fresh</span></td><td class="num">+0.0008</td><td class="num wide">+0.0011</td><td><span class="tag t-red">Slightly worse</span></td></tr>
-              <tr><td class="name">Reset + promoted-team start<span class="note">Fresh start below average for promoted sides</span></td><td class="num">+0.0035</td><td class="num wide">−0.0018</td><td><span class="tag t-red">Worse</span></td></tr>
-              <tr><td class="name">Bayesian Dixon-Coles<span class="note">Tracks how sure we are of each rating</span></td><td class="num">+0.0063</td><td class="num wide">−0.0020</td><td><span class="tag t-red">Worse</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <p class="table-note">Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
-
-      <div class="callout">
-        <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
-      </div>
-
-      <details class="acc">
-        <summary><span class="lab">How each alternative works</span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="acc-body">
-          <ul>
-            <li><strong>Bivariate Poisson goals.</strong> Our model treats the two teams' goal counts as independent, apart from a small fix for low scores. This version adds a shared part, so in games that open up both sides tend to score more. The team ratings are unchanged.</li>
-            <li><strong>Negative binomial goals.</strong> Allows more spread in goals than a Poisson count. The data pushed it straight back to Poisson, so it changed nothing.</li>
-            <li><strong>Returning-team reset.</strong> A club that comes back after a season or more away (Burnley, Leeds, Ipswich) gets a fresh rating instead of its old one from a different squad.</li>
-            <li><strong>Reset + promoted-team start.</strong> As above, but every promoted side starts from how promoted teams have usually done, rather than league average.</li>
-            <li><strong>Bayesian Dixon-Coles.</strong> Keeps track of how uncertain each rating is, pulls promoted teams' early ratings harder toward a promoted-team average so a few results can't swing them, and averages forecasts over that uncertainty.</li>
-          </ul>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section class="sec" id="reading">
-    <div class="sec-head">
-      <h2>Reading the numbers</h2>
-    </div>
-    <div class="sec-body">
-      <p><strong>Log-loss</strong> scores the probability a model gave to what actually happened. If the model said 50% and the home team won, the score is −log(0.5) ≈ 0.69. If it said 20% and the home team won, the score is −log(0.2) ≈ 1.61. Confident wrong answers cost the most. Lower is better.</p>
-      <p>Differences look tiny because football is mostly luck. Giving each outcome a one-in-three chance scores 1.10. The whole gap between our simplest model and the betting market is 0.015, so a change of 0.003 is a fifth of that gap.</p>
-      <blockquote>We judge models on probabilities, not on picking winners. A model that says 60% should be right about six times in ten, no more and no less.</blockquote>
-    </div>
-  </section>
-
-  <section class="sec" id="rules">
-    <div class="sec-head">
-      <h2>Rules every model follows</h2>
-    </div>
-    <div class="sec-body">
-      <ul class="rules">
-        <li><strong>No peeking.</strong> A forecast only uses information that existed before kickoff. A result counts as known two and a half hours after its own kickoff.</li>
-        <li><strong>No odds as inputs.</strong> Betting prices and fantasy-football ownership are benchmarks only.</li>
-        <li><strong>Past predicts future, never the reverse.</strong> Models are trained on earlier matches and scored on later ones, never on a random shuffle.</li>
-        <li><strong>Tests are written down first.</strong> The main comparisons were committed to the project's history before they were run.</li>
-      </ul>
-    </div>
-  </section>
+  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Big numbers: TaBet. Small line: the betting market.</span></div>
 </main>
 
-<footer class="foot">
-  <div class="wrap foot-in">
-    <a class="brand brand-inv" href="/"><span class="mark" aria-hidden="true"></span>TaBet</a>
-    <p>TaBet is a student software-engineering project. Data comes from football-data.co.uk, the Fantasy Premier League API and its public archive, Fantasy Football Scout and RotoWire. Nothing here is betting advice.</p>
-  </div>
+<footer>
+  <span>A student project. Not betting advice. Click the ball (top left) for how the models work.</span>
+  <button id="replay" type="button">REPLAY INTRO</button>
 </footer>
 
 <script src="common.js"></script>
 <script>
 (function () {
-  var T = window.TaBet, feat = document.getElementById("featured"), grid = document.getElementById("fixtures");
-  function card(m, big) {
-    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null;
-    var rows = [[m.home, 0, "h"], ["Draw", 1, "d"], [m.away, 2, "a"]].map(function (r) {
-      var v = p ? p[r[1]] : null;
-      return '<li class="o o-' + r[2] + '"' + (v != null ? ' style="--w:' + (v * 100).toFixed(1) + '%"' : "") + '><span class="o-name">' + T.esc(r[0]) +
-        '</span><span class="o-p">' + (v != null ? T.pct(v) : "–") + "</span></li>";
-    }).join("");
-    var tag = f ? '<span class="tag ' + T.KIND[f.kind][1] + '">' + T.KIND[f.kind][0] + "</span>" : '<span class="tag t-gray">Forecast pending</span>';
-    var foot = mk ? T.esc(mk.label) + ": " + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ")
-                  : (f ? "Market odds not out yet" : "Our forecast appears about two gameweeks ahead");
-    return '<a class="fx' + (big ? " fx-lg" : "") + '" href="/matches#' + encodeURIComponent(m.id) + '">' +
-      (big ? '<div class="fx-kicker">Next match</div>' : "") +
-      '<div class="fx-top"><span>' + T.esc(T.when(m.kickoff, "card")) + (m.gameweek ? ", GW" + m.gameweek : "") + "</span>" + tag + "</div>" +
-      '<ul class="outs" aria-label="TaBet probabilities">' + rows + "</ul>" +
-      (p ? T.bar(p) : "") + '<div class="fx-foot">' + foot + "</div></a>";
+  "use strict";
+  var T = window.TaBet;
+  var CODES = { "Arsenal": "ARS", "Aston Villa": "AVL", "Bournemouth": "BOU", "Brentford": "BRE", "Brighton & Hove Albion": "BHA",
+    "Burnley": "BUR", "Cardiff City": "CAR", "Chelsea": "CHE", "Coventry City": "COV", "Crystal Palace": "CRY", "Everton": "EVE",
+    "Fulham": "FUL", "Huddersfield Town": "HUD", "Hull City": "HUL", "Ipswich Town": "IPS", "Leeds United": "LEE", "Leicester City": "LEI",
+    "Liverpool": "LIV", "Luton Town": "LUT", "Manchester City": "MCI", "Manchester United": "MUN", "Middlesbrough": "MID",
+    "Newcastle United": "NEW", "Norwich City": "NOR", "Nottingham Forest": "NFO", "Sheffield United": "SHU", "Southampton": "SOU",
+    "Stoke City": "STK", "Sunderland": "SUN", "Swansea City": "SWA", "Tottenham Hotspur": "TOT", "Watford": "WAT",
+    "West Bromwich Albion": "WBA", "West Ham United": "WHU", "Wolverhampton Wanderers": "WOL" };
+  function code(n) { return CODES[n] || String(n).replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase(); }
+  var OUT = { H: 0, D: 1, A: 2 };
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= arcade intro ================= */
+  var intro = document.getElementById("intro"), cv = document.getElementById("arcade"), ctx = cv.getContext("2d");
+  var big = document.getElementById("big"), msg = document.getElementById("msg"), sc1 = document.getElementById("sc1");
+  var W = 192, H = 108, raf = 0, t0 = 0, done = false;
+  var PAL = { g1: "#2f8a3f", g2: "#27773a", line: "#e8f4ea", skin: "#f1c27d", shirt: "#1d4fa3", shorts: "#ffffff", hair: "#3b2414",
+              sock: "#1d4fa3", boot: "#111111", net: "#9fb3a6", post: "#ffffff", ball: "#ffffff", ball2: "#111111", sky: "#000000" };
+  function px(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+  function pitch() {
+    for (var y = 30; y < H; y += 6) px(0, y, W, 6, ((y / 6) | 0) % 2 ? PAL.g1 : PAL.g2);
+    px(0, 0, W, 30, PAL.sky);
+    for (var i = 0; i < 40; i++) px((i * 37) % W, 4 + (i * 13) % 22, 1, 1, i % 3 ? "#5a5a7a" : "#ffffff");   /* crowd / stars */
+    px(0, 30, W, 1, PAL.line);
+    px(150, 30, 1, 78, PAL.line); px(150, 50, 42, 1, PAL.line); px(150, 96, 42, 1, PAL.line);   /* box */
   }
+  function goal(shake) {
+    var gx = 172, gy = 46, gh = 30;
+    for (var j = 0; j <= gh; j += 4) px(gx + 1 + (shake && j % 8 ? 1 : 0), gy + j, 18, 1, PAL.net);
+    for (var i = 0; i <= 18; i += 4) px(gx + 1 + i + (shake ? (i % 8 ? 1 : -1) : 0), gy, 1, gh, PAL.net);
+    px(gx, gy - 2, 20, 2, PAL.post); px(gx, gy - 2, 2, gh + 3, PAL.post); px(gx, gy + gh, 20, 1, PAL.post);
+  }
+  function player(x, y, f) {   /* 8x14 sprite; f = 0,1 run frames, 2 kick */
+    px(x + 2, y, 4, 2, PAL.hair); px(x + 2, y + 2, 4, 3, PAL.skin);
+    px(x + 1, y + 5, 6, 4, PAL.shirt); px(x, y + 6, 1, 3, PAL.skin); px(x + 7, y + 6, 1, 3, PAL.skin);
+    px(x + 1, y + 9, 6, 2, PAL.shorts);
+    if (f === 2) { px(x + 1, y + 11, 2, 3, PAL.sock); px(x + 6, y + 10, 3, 2, PAL.sock); px(x + 9, y + 10, 2, 2, PAL.boot); px(x + 1, y + 13, 2, 1, PAL.boot); }
+    else if (f === 1) { px(x + 1, y + 11, 2, 2, PAL.sock); px(x + 5, y + 11, 2, 3, PAL.sock); px(x, y + 13, 3, 1, PAL.boot); px(x + 5, y + 13, 3, 1, PAL.boot); }
+    else { px(x + 2, y + 11, 2, 3, PAL.sock); px(x + 4, y + 11, 2, 2, PAL.sock); px(x + 2, y + 13, 3, 1, PAL.boot); px(x + 5, y + 12, 3, 1, PAL.boot); }
+  }
+  function ball(x, y, spin) {
+    px(x + 1, y, 2, 1, PAL.ball); px(x, y + 1, 4, 2, PAL.ball); px(x + 1, y + 3, 2, 1, PAL.ball);
+    px(x + (spin % 2 ? 1 : 2), y + 1 + (spin % 2), 1, 1, PAL.ball2);
+  }
+  function shadow(x, y) { px(x, y, 4, 1, "rgba(0,0,0,.35)"); }
+  var ORDER = (function () {   /* a fixed shuffle of the 24 x 12 blocks, so the dissolve looks random */
+    var a = [], s = 7;
+    for (var i = 0; i < 288; i++) a.push(i);
+    for (var j = 287; j > 0; j--) { s = (s * 1103515245 + 12345) % 2147483648; var r = s % (j + 1), t = a[j]; a[j] = a[r]; a[r] = t; }
+    return a;
+  })();
+  function wipe(p) {   /* pixel dissolve */
+    var n = Math.floor(p * 288);
+    for (var k = 0; k < n; k++) { var c = ORDER[k]; px((c % 24) * 8, Math.floor(c / 24) * 9, 8, 9, "#000"); }
+  }
+  function frame(now) {
+    if (!t0) t0 = now;
+    var t = Math.floor((now - t0) / 1000 * 12) / 12;   /* 12 fps, like the old cabinets */
+    ctx.clearRect(0, 0, W, H);
+    if (t < 0.9) { px(0, 0, W, H, "#000"); big.textContent = "TABET"; big.className = "big"; msg.textContent = "INSERT COIN"; }
+    else {
+      if (t < 1) msg.textContent = "PLAYER 1  KICK-OFF";
+      big.textContent = "";
+      pitch();
+      var shake = t > 2.55 && t < 3.6 && Math.floor(t * 12) % 2;
+      goal(shake);
+      var bx0 = 70, by0 = 82;
+      var runT = Math.min(Math.max((t - 0.9) / 0.8, 0), 1);
+      var pxp = 24 + runT * (bx0 - 33), f = t < 1.7 ? Math.floor(t * 12) % 2 : 2;
+      if (t > 2.3) f = Math.floor(t * 4) % 2;   /* celebrate */
+      player(pxp, by0 - 10 + (t > 2.6 && Math.floor(t * 6) % 2 ? -2 : 0), f);
+      var fl = Math.min(Math.max((t - 1.7) / 0.85, 0), 1);
+      var bx = bx0 + fl * (182 - bx0), by = by0 - Math.sin(fl * Math.PI) * 30 - fl * 22;
+      if (fl > 0) shadow(bx, by0 + 3 - fl * 10);
+      ball(bx, by, Math.floor(t * 12));
+      if (t >= 2.55) { big.textContent = "GOAL!"; big.className = "big goal"; sc1.textContent = "TABET 1"; msg.textContent = "TABET 1 - 0 MARKET"; }
+      if (t > 3.6) wipe(Math.min((t - 3.6) / 0.6, 1));
+    }
+    if (t >= 4.25) return finish();
+    raf = requestAnimationFrame(frame);
+  }
+  function finish() {
+    if (done) return; done = true;
+    cancelAnimationFrame(raf);
+    intro.hidden = true;
+    document.removeEventListener("keydown", finish);
+    try { sessionStorage.setItem("tabet-intro", "1"); } catch (e) {}
+    document.querySelector(".ballbtn").focus({ preventScroll: true });
+  }
+  function play() {
+    done = false; t0 = 0; intro.hidden = false;
+    msg.className = "blink"; sc1.textContent = "TABET 0";
+    document.addEventListener("keydown", finish);
+    raf = requestAnimationFrame(frame);
+  }
+  intro.addEventListener("click", finish);
+  document.getElementById("replay").addEventListener("click", function () { play(); });
+  var seen = false;
+  try { seen = sessionStorage.getItem("tabet-intro") === "1"; } catch (e) {}
+  if (!seen && !reduce) {
+    if (document.fonts && document.fonts.load) document.fonts.load('16px "Press Start 2P"').then(play, play); else play();
+  }
+
+  /* ================= the pitch ================= */
+  var DATA = null, gws = [], gi = 0, cards = [];
+  var left = document.getElementById("left"), right = document.getElementById("right"), feat = document.getElementById("feature");
+  var gwlab = document.getElementById("gwlab"), prev = document.getElementById("prev"), next = document.getElementById("next");
+
+  function chip(m) {
+    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null, played = m.status === "played";
+    var y = played ? OUT[m.result] : -1, badge = "";
+    if (played && p) {
+      var pick = p.indexOf(Math.max.apply(null, p));
+      badge = pick === y ? '<span class="badge ok" title="TaBet\'s favourite happened">HIT</span>' : '<span class="badge no" title="TaBet\'s favourite did not happen">MISS</span>';
+    } else if (m.status === "awaiting") badge = '<span class="badge tbc">LIVE</span>';
+    var tm = '<span>' + code(m.home) + (played ? ' <span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span> " : " v ") + code(m.away) + "</span>";
+    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' + T.esc(m.home + " v " + m.away) + '">' +
+      '<span class="when"><span>' + T.esc(T.when(m.kickoff, "card")) + "</span>" + badge + "</span>" +
+      '<span class="tm">' + tm + "</span>" +
+      '<span class="full">' + T.esc(m.home + " v " + m.away) + "</span>" +
+      (p ? '<span class="bar" aria-hidden="true"><i class="h" style="width:' + p[0] * 100 + '%"></i><i class="d" style="width:' + p[1] * 100 + '%"></i><i class="a" style="width:' + p[2] * 100 + '%"></i></span>' +
+           '<span class="nums"><b style="color:var(--c-h)">' + T.pct(p[0]) + '</b><b style="color:var(--c-d)">' + T.pct(p[1]) + '</b><b style="color:var(--c-a)">' + T.pct(p[2]) + "</b></span>"
+         : '<span class="mk">' + (m.status === "upcoming" ? "TaBet\'s forecast comes about two gameweeks ahead." : "No TaBet forecast was logged for this match.") + "</span>") +
+      (mk ? '<span class="mk">Market ' + mk.p.map(function (x) { return Math.round(x * 100); }).join(" / ") + "</span>" : "") +
+      "</a>";
+  }
+
+  function feature(m, label) {
+    if (!m) { feat.innerHTML = '<span class="lab px">NO MATCHES</span>'; return; }
+    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null;
+    var kick = new Date(m.kickoff).getTime();
+    feat.dataset.kick = m.status === "upcoming" ? kick : "";
+    var three = p ? '<div class="three">' + [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
+      return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b>" +
+        (mk ? "<small>mkt " + T.pct(mk.p[r[2]]) + "</small>" : "") + "</div>";
+    }).join("") + "</div>" : "";
+    feat.innerHTML = '<span class="lab px">' + label + "</span>" +
+      "<h2>" + T.esc(m.home) + " v " + T.esc(m.away) + "</h2>" +
+      '<div class="k">' + T.esc(T.when(m.kickoff, "long")) + (m.status === "played" ? " · " + T.esc(m.score.replace("-", "–")) : "") + "</div>" +
+      '<div class="count" id="count"></div>' + three +
+      (f ? '<div class="src">' + T.esc(f.label) + (mk ? " · market: " + T.esc(mk.label.toLowerCase()) : "") + "</div>" : '<div class="src">TaBet\'s forecast is not out yet.</div>') +
+      '<a class="go" href="matches#' + encodeURIComponent(m.id) + '">OPEN MATCH ▶</a>';
+    tick();
+  }
+  function tick() {
+    var el = document.getElementById("count"); if (!el) return;
+    var k = Number(feat.dataset.kick);
+    if (!k) { el.textContent = ""; return; }
+    var s = Math.max(0, Math.floor((k - Date.now()) / 1000));
+    var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), mi = Math.floor(s % 3600 / 60), se = s % 60;
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    el.textContent = s ? "KICK-OFF IN " + (d ? d + "D " : "") + two(h) + ":" + two(mi) + ":" + two(se) : "KICK-OFF!";
+  }
+  setInterval(tick, 1000);
+
+  function render() {
+    var g = gws[gi], ms = DATA.filter(function (m) { return m.gameweek === g; }).sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; });
+    gwlab.textContent = "GW " + g;
+    prev.disabled = gi === 0; next.disabled = gi === gws.length - 1;
+    var half = Math.ceil(ms.length / 2);
+    left.innerHTML = ms.slice(0, half).map(chip).join("") || '<div class="empty">No matches.</div>';
+    right.innerHTML = ms.slice(half).map(chip).join("");
+    cards = ms;
+    var up = ms.filter(function (m) { return m.status !== "played"; });
+    feature(up[0] || ms[ms.length - 1], up.length ? "NEXT MATCH" : "LAST MATCH");
+    try { sessionStorage.setItem("tabet-gw", String(g)); } catch (e) {}
+  }
+
+  function kick() {
+    var els = document.querySelectorAll(".chip");
+    if (!els.length) return;
+    var i = Math.floor(Math.random() * els.length), target = els[i];
+    var m = cards.filter(function (x) { return x.id === target.dataset.id; })[0];
+    function land() {
+      document.querySelectorAll(".chip.spot-on").forEach(function (c) { c.classList.remove("spot-on"); });
+      void target.offsetWidth; target.classList.add("spot-on");
+      if (m) feature(m, "YOU PICKED");
+    }
+    if (reduce) return land();
+    var from = document.querySelector("#kick svg").getBoundingClientRect(), to = target.getBoundingClientRect();
+    var ball = document.querySelector("#kick svg").cloneNode(true);
+    ball.classList.add("flyer"); document.body.appendChild(ball);
+    var x0 = from.left, y0 = from.top, x1 = to.left + to.width / 2 - 15, y1 = to.top + to.height / 2 - 15, st = 0;
+    function step(ts) {
+      if (!st) st = ts;
+      var q = Math.min((ts - st) / 650, 1), e = 1 - Math.pow(1 - q, 2);
+      var x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(q * Math.PI) * 90;
+      ball.style.transform = "translate(" + x + "px," + y + "px) rotate(" + q * 720 + "deg)";
+      if (q < 1) requestAnimationFrame(step); else { ball.remove(); land(); }
+    }
+    ball.style.left = "0"; ball.style.top = "0";
+    requestAnimationFrame(step);
+  }
+  document.getElementById("kick").addEventListener("click", kick);
+  prev.addEventListener("click", function () { if (gi > 0) { gi--; render(); } });
+  next.addEventListener("click", function () { if (gi < gws.length - 1) { gi++; render(); } });
+  document.addEventListener("keydown", function (e) {
+    if (!intro.hidden || e.target.closest("input,select,textarea")) return;
+    if (e.key === "ArrowLeft") prev.click(); else if (e.key === "ArrowRight") next.click();
+  });
+
   T.load().then(function (d) {
+    var season = d.seasons[d.seasons.length - 1];
+    DATA = d.matches.filter(function (m) { return m.season === season && m.gameweek; });
+    gws = Array.from(new Set(DATA.map(function (m) { return m.gameweek; }))).sort(function (a, b) { return a - b; });
     var now = Date.now() - 3 * 3600e3;
-    var up = d.matches.filter(function (m) { return m.status !== "played" && new Date(m.kickoff).getTime() > now; })
+    var upcoming = DATA.filter(function (m) { return m.status !== "played" && new Date(m.kickoff).getTime() > now; })
       .sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; });
-    if (!up.length) { feat.innerHTML = '<div class="fx fx-lg"><p>No upcoming matches in the data yet.</p></div>'; grid.innerHTML = ""; return; }
-    var withF = up.filter(function (m) { return T.primary(m); });
-    var first = withF[0] || up[0];
-    feat.innerHTML = card(first, true);
-    var gw = first.gameweek;
-    var list = up.filter(function (m) { return m.id !== first.id && (!gw || m.gameweek === gw); }).slice(0, 9);
-    document.getElementById("fx-title").textContent = gw ? "Gameweek " + gw + " forecasts" : "Upcoming forecasts";
-    grid.innerHTML = list.map(function (m) { return card(m, false); }).join("");
+    var g = upcoming.length ? upcoming[0].gameweek : gws[gws.length - 1];
+    try { var s = Number(sessionStorage.getItem("tabet-gw")); if (s && gws.indexOf(s) >= 0) g = s; } catch (e) {}
+    gi = Math.max(0, gws.indexOf(g));
+    render();
   }).catch(function () {
-    feat.innerHTML = '<div class="fx fx-lg"><p>Match data didn’t load. Refresh the page to try again.</p></div>';
-    grid.innerHTML = "";
+    left.innerHTML = '<div class="empty">Couldn\'t load the match data. Try refreshing.</div>';
+    feat.innerHTML = '<span class="lab px">NO DATA</span>';
   });
 })();
 </script>

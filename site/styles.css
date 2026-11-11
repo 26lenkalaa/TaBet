@@ -74,6 +74,8 @@ code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; 
 .brand:hover { text-decoration: none; }
 .mark { width: 24px; height: 24px; border-radius: 7px; background: var(--navy); position: relative; flex: none; }
 .mark::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 2.5px solid var(--sky); }
+.ballmark { width: 28px; height: 28px; flex: none; color: #12233a; transition: transform .5s cubic-bezier(.3,1.6,.5,1); }
+.brand:hover .ballmark, .brand:focus-visible .ballmark { transform: rotate(-200deg); }
 .links { display: flex; gap: 4px; }
 .links a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 500; padding: 6px 10px; border-radius: var(--r-sm); }
 .links a:hover, .links a[aria-current="page"] { color: var(--ink); background: var(--surface); }
