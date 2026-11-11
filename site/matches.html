@@ -11,7 +11,9 @@
 <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* fonts served from this site (no Google round trips); licences in fonts/OFL-*.txt */
-@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); }
+@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* accented player names (Dedić, Horniček, …) */
+@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin-ext.woff2) format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
 </style>
 <script type="speculationrules">
@@ -115,6 +117,21 @@ td.name .pbar { margin-top: 8px; }
 .callout { margin-top: 18px; background: var(--deep); border-left: 4px solid var(--gold); padding: 10px 14px; font-size: 14px; color: var(--muted); }
 .callout p { margin: 4px 0; }
 .empty { color: var(--muted); font-size: 15px; margin: 0; }
+/* predicted lineups */
+.lu-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+.lu-tab { font-family: var(--px); font-size: 8px; padding: 8px 10px; background: var(--deep); color: var(--muted); border: 2px solid var(--chalk-dim); cursor: pointer; }
+.lu-tab[aria-pressed="true"] { background: var(--gold); color: #1c1600; border-color: var(--gold); }
+.lu-pitch { position: relative; aspect-ratio: 105 / 68; border: 2px solid var(--chalk); overflow: hidden;
+  background: repeating-linear-gradient(90deg, #2f8a3f 0 8.33%, #2a7f39 8.33% 16.66%); }
+.lu-pitch.vert { aspect-ratio: 68 / 105; max-width: 440px; margin: 0 auto; background: repeating-linear-gradient(0deg, #2f8a3f 0 8.33%, #2a7f39 8.33% 16.66%); }
+.lu-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lu-lines * { fill: none; stroke: rgba(255,255,255,.7); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.pl { position: absolute; transform: translate(-50%, -55%); display: flex; flex-direction: column; align-items: center; width: 84px; pointer-events: auto; }
+.pl-s { width: 24px; height: 33px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,.35)); }
+.pl-n { font-family: var(--px); font-size: 7px; line-height: 1.4; margin-top: 3px; padding: 2px 3px; background: rgba(5,20,9,.78); color: #fff;
+  max-width: 84px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lu-pitch.vert .pl { width: 64px; } .lu-pitch.vert .pl-n { max-width: 64px; font-size: 6px; } .lu-pitch.vert .pl-s { width: 20px; height: 27px; }
+.lu-note { font-size: 13px; color: var(--muted); margin: 8px 2px 0; }
 
 .tag { display: inline-block; font-family: var(--px); font-size: 8px; padding: 4px 5px; vertical-align: 2px; margin-left: 4px; background: var(--deep); border: 1px solid currentColor; }
 .t-gray { color: #c7d3cb; } .t-green { color: var(--green); } .t-purple { color: var(--purple); } .t-blue { color: var(--sky); } .t-yellow { color: var(--gold); }
@@ -186,7 +203,7 @@ footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padd
 <script src="common.js"></script>
 <script>
 var T = window.TaBet, esc = T.esc, pct = T.pct, when = T.when;
-var DATA = null, seasonEl = document.getElementById("season"), teamEl = document.getElementById("team"),
+var IX = null, SEASON = null, seasonEl = document.getElementById("season"), teamEl = document.getElementById("team"),
     matchEl = document.getElementById("match"), card = document.getElementById("card");
 var OUT = { H: 0, D: 1, A: 2 };
 
@@ -194,7 +211,7 @@ function opts(el, items, value) {
   el.innerHTML = items.map(function (i) { return '<option value="' + esc(i[0]) + '">' + esc(i[1]) + "</option>"; }).join("");
   if (value != null && items.some(function (i) { return i[0] === value; })) el.value = value;
 }
-function inSeason() { return DATA.matches.filter(function (m) { return m.season === seasonEl.value; }); }
+function inSeason() { return SEASON ? SEASON.matches : []; }
 
 function fillTeams(keep) {
   var t = {}; inSeason().forEach(function (m) { t[m.home] = 1; t[m.away] = 1; });
@@ -240,7 +257,7 @@ function summary(m, y) {
 }
 
 function render() {
-  var m = DATA.matches.find(function (x) { return x.id === matchEl.value; });
+  var m = inSeason().find(function (x) { return x.id === matchEl.value; });
   if (!m) { card.innerHTML = '<p class="empty">No matches for this selection. Pick another team or season.</p>'; return; }
   try { history.replaceState(null, "", "#" + encodeURIComponent(m.id)); } catch (e) {}
   var played = m.status === "played", y = played ? OUT[m.result] : -1, cols = played ? 5 : 4;
@@ -262,19 +279,112 @@ function render() {
   var callout = notes.length ? '<div class="callout"><p>' + notes.map(esc).join("</p><p>") + "</p></div>" : "";
   card.innerHTML = '<div class="meta">' + status + "<span>" + esc(when(m.kickoff, "long")) + (m.gameweek ? ", gameweek " + m.gameweek : "") + ". Season " + esc(m.season) + ".</span></div>" +
     '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" +
-    summary(m, y) + table + callout;
+    summary(m, y) + '<div id="lineups">' + lineups(m) + "</div>" + table + callout;
 }
 
-T.load().then(function (d) {
-  DATA = d;
+/* ---- predicted lineups: 8-bit players in club colours ---- */
+// shirt, trim (sleeves, socks, stripes), shorts, striped shirt?
+var KITS = {
+  "Arsenal": ["#DB0007", "#FFFFFF", "#FFFFFF"], "Aston Villa": ["#670E36", "#95BFE5", "#FFFFFF"],
+  "Bournemouth": ["#DA291C", "#111111", "#111111", 1], "Brentford": ["#E30613", "#FFFFFF", "#111111", 1],
+  "Brighton & Hove Albion": ["#0057B8", "#FFFFFF", "#0057B8"], "Burnley": ["#6C1D45", "#99D6EA", "#FFFFFF"],
+  "Chelsea": ["#034694", "#FFFFFF", "#034694"], "Coventry City": ["#59CBE8", "#FFFFFF", "#59CBE8"],
+  "Crystal Palace": ["#1B458F", "#C4122E", "#1B458F", 1], "Everton": ["#003399", "#FFFFFF", "#FFFFFF"],
+  "Fulham": ["#FFFFFF", "#111111", "#111111"], "Hull City": ["#F5A12D", "#111111", "#111111"],
+  "Ipswich Town": ["#3A64A3", "#FFFFFF", "#FFFFFF"], "Leeds United": ["#FFFFFF", "#1D428A", "#FFFFFF"],
+  "Leicester City": ["#003090", "#FDBE11", "#FFFFFF"], "Liverpool": ["#C8102E", "#F6EB61", "#C8102E"],
+  "Luton Town": ["#F78F1E", "#002D62", "#002D62"], "Manchester City": ["#6CABDD", "#FFFFFF", "#FFFFFF"],
+  "Manchester United": ["#DA291C", "#FBE122", "#FFFFFF"], "Middlesbrough": ["#E11B22", "#FFFFFF", "#FFFFFF"],
+  "Newcastle United": ["#241F20", "#FFFFFF", "#241F20", 1], "Norwich City": ["#FFF200", "#00A650", "#00A650"],
+  "Nottingham Forest": ["#DD0000", "#FFFFFF", "#FFFFFF"], "Sheffield United": ["#EE2737", "#111111", "#111111", 1],
+  "Southampton": ["#D71920", "#FFFFFF", "#111111", 1], "Stoke City": ["#E03A3E", "#FFFFFF", "#FFFFFF", 1],
+  "Sunderland": ["#EB172B", "#FFFFFF", "#111111", 1], "Swansea City": ["#FFFFFF", "#111111", "#FFFFFF"],
+  "Tottenham Hotspur": ["#FFFFFF", "#132257", "#132257"], "Watford": ["#FBEE23", "#ED2127", "#111111"],
+  "West Bromwich Albion": ["#122F67", "#FFFFFF", "#FFFFFF", 1], "West Ham United": ["#7A263A", "#1BB1E7", "#FFFFFF"],
+  "Wolverhampton Wanderers": ["#FDB913", "#111111", "#111111"]
+};
+var GK = { home: ["#FF8C1A", "#111111", "#111111"], away: ["#B07CFF", "#111111", "#111111"] };
+var SKIN = ["#F1C27D", "#E0AC69", "#C68642", "#8D5524"], HAIR = ["#3B2414", "#111111", "#A0522D", "#E6C200"];
+var SPRITE = ["..hhhh..", "..ffff..", "..ffff..", ".ssssss.", "tsssssst", "fssssssf", ".ssssss.", ".pppppp.", ".kk..kk.", ".kk..kk.", ".bb..bb."];
+var LU_SRC = "ffs";
+
+function hash(t) { var h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h; }
+function sprite(name, k) {
+  var hh = hash(name), skin = SKIN[hh % 4], hair = HAIR[(hh >> 3) % 4], rects = "";
+  for (var y = 0; y < SPRITE.length; y++) for (var x = 0; x < 8; x++) {
+    var ch = SPRITE[y][x], c = null;
+    if (ch === "h") c = hair; else if (ch === "f") c = skin; else if (ch === "p") c = k[2]; else if (ch === "b") c = "#111111";
+    else if (ch === "k" || ch === "t") c = k[1];
+    else if (ch === "s") c = k[3] && x % 2 === 1 ? k[1] : k[0];
+    if (c) rects += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>';
+  }
+  return '<svg class="pl-s" viewBox="0 0 8 11" shape-rendering="crispEdges" aria-hidden="true">' + rects + "</svg>";
+}
+var LINES = ["GK", "DEF", "MID", "FWD"], DEPTH = { GK: 5, DEF: 17, MID: 30, FWD: 43 };
+function lineups(m) {
+  var L = m.lineups;
+  if (!L || !L.xi) return "";
+  var srcs = Object.keys(L.xi);
+  if (srcs.indexOf(LU_SRC) < 0) LU_SRC = srcs[0];
+  var xi = L.xi[LU_SRC], vertical = card.clientWidth < 640, out = "", forms = {};
+  ["home", "away"].forEach(function (side) {
+    var team = side === "home" ? m.home : m.away, kit = KITS[team] || ["#CCCCCC", "#777777", "#333333"];
+    var byLine = { GK: [], DEF: [], MID: [], FWD: [] };
+    xi[side].forEach(function (p) { (byLine[p[1]] || byLine.MID).push(p[0]); });
+    forms[side] = [byLine.DEF.length, byLine.MID.length, byLine.FWD.length].filter(function (n) { return n; }).join("-");
+    LINES.forEach(function (ln) {
+      var ps = byLine[ln], n = ps.length;
+      ps.forEach(function (name, i) {
+        var depth = side === "home" ? DEPTH[ln] : 100 - DEPTH[ln], across = 10 + (i + 0.5) * (80 / n);
+        var x = vertical ? across : depth, y = vertical ? 100 - depth : across;
+        out += '<div class="pl" style="left:' + x.toFixed(1) + "%;top:" + y.toFixed(1) + '%" title="' + esc(name + " (" + team + ", " + ln + ")") + '">' +
+          sprite(name, ln === "GK" ? GK[side] : kit) + '<span class="pl-n">' + esc(name) + "</span></div>";
+      });
+    });
+  });
+  var tabs = srcs.length > 1 ? '<div class="lu-tabs" role="group" aria-label="Lineup source">' + srcs.map(function (s) {
+    return '<button type="button" class="lu-tab" data-src="' + s + '"' + (s === LU_SRC ? ' aria-pressed="true"' : ' aria-pressed="false"') + ">" +
+      (s === "ffs" ? "FANTASY FOOTBALL SCOUT" : "ROTOWIRE") + "</button>";
+  }).join("") + "</div>" : "";
+  var lines = vertical
+    ? '<line x1="0" y1="50" x2="100" y2="50"/><circle cx="50" cy="50" r="9"/>'
+    : '<line x1="50" y1="0" x2="50" y2="100"/><circle cx="50" cy="50" r="9"/>';
+  return "<h3>Predicted lineups</h3>" + tabs +
+    '<div class="lu-pitch' + (vertical ? " vert" : "") + '"><svg class="lu-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + lines + "</svg>" + out + "</div>" +
+    '<p class="lu-note">' + esc(m.home) + " " + esc(forms.home) + (vertical ? " (bottom)" : " (left)") + " · " + esc(m.away) + " " + esc(forms.away) +
+    (vertical ? " (top)" : " (right)") + ". " + esc(L.note) + ", from " + (LU_SRC === "ffs" ? "Fantasy Football Scout" : "RotoWire") + ".</p>";
+}
+card.addEventListener("click", function (e) {
+  var b = e.target.closest(".lu-tab");
+  if (!b) return;
+  LU_SRC = b.dataset.src;
+  var m = inSeason().find(function (x) { return x.id === matchEl.value; });
+  if (m) document.getElementById("lineups").innerHTML = lineups(m);
+});
+var lastVert = null;
+window.addEventListener("resize", function () {
+  var v = card.clientWidth < 640;
+  if (v === lastVert) return; lastVert = v;
+  var m = inSeason().find(function (x) { return x.id === matchEl.value; }), el = document.getElementById("lineups");
+  if (m && el) el.innerHTML = lineups(m);
+});
+
+/* only the season being shown is downloaded: a match id starts with its season ("2024-25-…"),
+   and "fpl-…" ids are the current season */
+var want = decodeURIComponent((location.hash || "").slice(1));
+var wantSeason = /^\d{4}-\d{2}-/.test(want) ? want.slice(0, 7) : null;
+T.load(wantSeason).then(function (d) {
+  SEASON = d;
   document.getElementById("built").textContent = "Data updated " + when(d.built_utc, "long") + " (UK time).";
-  var want = decodeURIComponent((location.hash || "").slice(1));
-  var target = DATA.matches.find(function (m) { return m.id === want; });
-  var season = target ? target.season : d.seasons[d.seasons.length - 1];
-  opts(seasonEl, d.seasons.slice().reverse().map(function (s) { return [s, s]; }), season);
+  var target = d.matches.find(function (m) { return m.id === want; });
+  opts(seasonEl, d.seasons.slice().reverse().map(function (s) { return [s, s]; }), d.season);
   fillTeams("");
   fillMatches(target ? target.id : null);
-  seasonEl.addEventListener("change", function () { fillTeams(teamEl.value); fillMatches(null); });
+  seasonEl.addEventListener("change", function () {
+    var keep = teamEl.value;
+    card.innerHTML = '<p class="empty">Loading ' + esc(seasonEl.value) + "…</p>";
+    T.load(seasonEl.value).then(function (sd) { SEASON = sd; fillTeams(keep); fillMatches(null); });
+  });
   teamEl.addEventListener("change", function () { fillMatches(matchEl.value); });
   matchEl.addEventListener("change", render);
 }).catch(function () {

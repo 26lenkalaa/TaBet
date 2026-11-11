@@ -33,6 +33,7 @@ from .teams import TEAMS, try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "site" / "data" / "matches.json"
+INDEX = OUT.with_name("index.json")   # seasons, build time and per-season file names
 LIVE_SEASON = "2026-27"
 LEDGER = ROOT / "results" / "xg_strength" / "ledger.csv"
 LOG = ROOT / "results" / "prospective" / "log.jsonl"
@@ -125,6 +126,21 @@ def _odds_log() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+POS = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
+LINEUP_SOURCES = (("ffs", "Fantasy Football Scout"), ("rotowire", "RotoWire"))
+
+
+def _xis(codes: dict, who: dict) -> dict:
+    """Predicted XIs for the match page: per source and side, [name, position] for each player (by FPL
+    player code, positions from FPL). Only the two scraped sources; display only."""
+    out = {}
+    for src, _ in LINEUP_SOURCES:
+        c = codes.get(src) or {}
+        if c.get("home") and c.get("away"):
+            out[src] = {side: [list(who.get(int(k), (str(k), "MID"))) for k in c[side]] for side in ("home", "away")}
+    return out
+
+
 def _logged_forecasts(r: dict) -> list[dict]:
     role = "primary" if r["horizon_h"] == 24.0 else "fallback"
     note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
@@ -149,6 +165,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     fpl["home_id"], fpl["away_id"] = fpl["team_h"].map(tid), fpl["team_a"].map(tid)
     gw_of = {(h, a): int(e) for h, a, e in zip(fpl["home_id"], fpl["away_id"], fpl["event"]) if pd.notna(e)}
     fpl_id = {(h, a): int(i) for h, a, i in zip(fpl["home_id"], fpl["away_id"], fpl["id"])}
+    who = {int(e["code"]): (e["web_name"], POS.get(e["element_type"], "MID")) for e in boot["elements"]}
 
     entries = []
     done = matches[(matches["status"] == "completed") & (matches["season"] >= "2022-23")]
@@ -171,6 +188,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
             r = logged.get(fpl_id.get((m.home_id, m.away_id), -1))
             if r:
                 e["forecasts"] = _logged_forecasts(r) + e["forecasts"]
+                xi = _xis(r.get("lineup_codes") or {}, who)
+                if xi:
+                    e["lineups"] = {"xi": xi, "note": f"Predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
                 mm = _matched_market(r, odds_log)
                 if mm:
                     e["market"].insert(0, mm)
@@ -205,6 +225,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         r = logged.get(int(f.id))
         if r:
             e["forecasts"] += _logged_forecasts(r)
+            xi = _xis(r.get("lineup_codes") or {}, who)
+            if xi:
+                e["lineups"] = {"xi": xi, "note": f"Predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
             mm = _matched_market(r, odds_log)
             if mm:
                 e["market"].append(mm)
@@ -217,6 +240,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                 e["forecasts"].append({"key": "preview_lineups", "label": "TaBet, predicted lineups (preview)", "kind": "preview",
                                        "note": f"{built} with {src}'s predicted XIs as published then; the logged forecast comes 24-32 h before kickoff",
                                        "p": _p(w["source_average"])})
+            xi = _xis(w.get("lineup_codes") or {}, who)
+            if xi:
+                e["lineups"] = {"xi": xi, "note": f"Predicted XIs as published when this page was {built}"}
             e["forecasts"].append({"key": "preview", "label": "TaBet, no lineups (preview)", "kind": "preview",
                                    "note": f"{built}; the logged forecast comes 24-32 h before kickoff",
                                    "p": _p(pv)})
@@ -239,13 +265,21 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     head = {k: v for k, v in data.items() if k != "matches"}
     body = ",\n".join(json.dumps(e, separators=(",", ":")) for e in entries)
     out.write_text(json.dumps(head, separators=(",", ":"))[:-1] + ',"matches":[\n' + body + "\n]}\n")
+    # one small file per season plus an index, so a page loads only the season it shows
+    files = {}
+    for season in data["seasons"]:
+        name = f"matches-{season}.json"
+        rows = ",\n".join(json.dumps(e, separators=(",", ":")) for e in entries if e["season"] == season)
+        (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"matches":[\n' + rows + "\n]}\n")
+        files[season] = name
+    (out.parent / INDEX.name).write_text(json.dumps(dict(head, files=files), separators=(",", ":")) + "\n")
     return data
 
 
 def stale(max_age_h: float = 20.0, out: Path = OUT) -> bool:
     """Rebuild if the file is missing, older than max_age_h, the log has records it has not seen, or
     The Odds API has a snapshot newer than the build (so new odds reach the site the same day)."""
-    if not out.exists():
+    if not out.exists() or not out.with_name(INDEX.name).exists():
         return True
     try:
         head = json.loads(out.read_text())

@@ -33,11 +33,35 @@
     return '<div class="pbar" aria-hidden="true"><span class="h" style="width:' + (p[0] * 100) + '%"></span><span class="d" style="width:' +
       (p[1] * 100) + '%"></span><span class="a" style="width:' + (p[2] * 100) + '%"></span></div>';
   }
-  var cache = null;
-  function load() {
-    if (!cache) cache = fetch("data/matches.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
-    return cache;
+  /* Data is split by season (data/index.json lists the files), so a page downloads only the season it
+     shows. Falls back to the single data/matches.json if the index is missing. */
+  function getJSON(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  var idx = null, legacy = null, bySeason = {};
+  function index() {
+    if (!idx) idx = getJSON("data/index.json").catch(function () {
+      return getJSON("data/matches.json").then(function (d) {
+        legacy = d;
+        return { built_utc: d.built_utc, n_log_records: d.n_log_records, seasons: d.seasons, files: null };
+      });
+    });
+    return idx;
+  }
+  function season(s) {
+    if (!bySeason[s]) bySeason[s] = index().then(function (ix) {
+      if (!ix.files) return { season: s, matches: legacy.matches.filter(function (m) { return m.season === s; }) };
+      return getJSON("data/" + ix.files[s]);
+    });
+    return bySeason[s];
+  }
+  /* load(season?): {built_utc, n_log_records, seasons, matches} for one season (default: the latest) */
+  function load(s) {
+    return index().then(function (ix) {
+      var want = s && ix.seasons.indexOf(s) >= 0 ? s : ix.seasons[ix.seasons.length - 1];
+      return season(want).then(function (sd) {
+        return { built_utc: ix.built_utc, n_log_records: ix.n_log_records, seasons: ix.seasons, season: want, matches: sd.matches };
+      });
+    });
   }
 
-  window.TaBet = { KIND: KIND, esc: esc, pct: pct, when: when, primary: primary, market: market, bar: bar, load: load };
+  window.TaBet = { KIND: KIND, esc: esc, pct: pct, when: when, primary: primary, market: market, bar: bar, load: load, index: index };
 })();
