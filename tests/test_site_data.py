@@ -71,11 +71,14 @@ def test_build_writes_one_file_per_season_and_lineups_for_logged_matches(tmp_pat
     full = json.loads(out.read_text())["matches"]
     per = sum(len(json.loads((tmp_path / f).read_text())["matches"]) for f in ix["files"].values())
     assert per == len(full)  # the split loses nothing
-    cur = json.loads((tmp_path / ix["files"]["2026-27"]).read_text())["matches"]
-    lt = next(e for e in cur if e["id"] == "2026-27-20261107-leeds-tottenham")
-    xi = lt["lineups"]["xi"]
-    assert set(xi) <= {"ffs", "rotowire"} and xi
-    for side in ("home", "away"):
-        team = next(iter(xi.values()))[side]
-        assert len(team) == 11 and all(p[1] in ("GK", "DEF", "MID", "FWD") for p in team)
-        assert sum(p[1] == "GK" for p in team) == 1
+    lu = json.loads((tmp_path / ix["lineup_files"]["2026-27"]).read_text())["lineups"]
+    lt = lu["2026-27-20261107-leeds-tottenham"]
+    assert set(lt["pred"]) <= {"ffs", "rotowire"} and lt["pred"]
+    for xi in [lt["actual"], *lt["pred"].values()]:  # [code, name, position] per player
+        for side in ("home", "away"):
+            assert len(xi[side]) == 11 and all(p[2] in ("GK", "DEF", "MID", "FWD") for p in xi[side])
+            assert sum(p[2] == "GK" for p in xi[side]) == 1
+    # actual XIs exist for completed matches of every season
+    for season, f in ix["lineup_files"].items():
+        if season < "2026-27":
+            assert len(json.loads((tmp_path / f).read_text())["lineups"]) >= 370

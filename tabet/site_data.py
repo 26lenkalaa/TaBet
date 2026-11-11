@@ -137,8 +137,30 @@ def _xis(codes: dict, who: dict) -> dict:
     for src, _ in LINEUP_SOURCES:
         c = codes.get(src) or {}
         if c.get("home") and c.get("away"):
-            out[src] = {side: [list(who.get(int(k), (str(k), "MID"))) for k in c[side]] for side in ("home", "away")}
+            out[src] = {side: [[int(k), *who.get(int(k), (str(k), "MID"))] for k in c[side]] for side in ("home", "away")}
     return out
+
+
+def _short(name: str) -> str:
+    """'Bukayo Saka' -> 'B. Saka' for players no longer in the current FPL game."""
+    t = str(name).split()
+    return name if len(t) < 2 else f"{t[0][0]}. {t[-1]}"
+
+
+def _actual_xis(app: pd.DataFrame, who: dict) -> dict:
+    """Confirmed starting XIs from FPL appearances: {match_id: {"home": [[code, name, pos], ...], "away": ...,
+    "inferred": bool}} (older seasons infer starters from minutes)."""
+    order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+    st = app[app["started"] == 1]
+    out: dict = {}
+    for (mid, venue), g in st.groupby(["match_id", "venue"], sort=False):
+        side = "home" if venue == "H" else "away"
+        g = g.assign(o=g["position"].map(order).fillna(2)).sort_values("o", kind="stable")
+        out.setdefault(mid, {})[side] = [[int(c), who.get(int(c), (_short(n),))[0], p or "MID"]
+                                         for c, n, p in zip(g["player_code"], g["player_name"], g["position"])]
+        if bool(g["started_inferred"].any()):
+            out[mid]["inferred"] = True
+    return {k: v for k, v in out.items() if len(v.get("home", [])) == 11 and len(v.get("away", [])) == 11}
 
 
 def _logged_forecasts(r: dict) -> list[dict]:
@@ -166,6 +188,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     gw_of = {(h, a): int(e) for h, a, e in zip(fpl["home_id"], fpl["away_id"], fpl["event"]) if pd.notna(e)}
     fpl_id = {(h, a): int(i) for h, a, i in zip(fpl["home_id"], fpl["away_id"], fpl["id"])}
     who = {int(e["code"]): (e["web_name"], POS.get(e["element_type"], "MID")) for e in boot["elements"]}
+    pred: dict = {}
 
     entries = []
     done = matches[(matches["status"] == "completed") & (matches["season"] >= "2022-23")]
@@ -190,7 +213,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                 e["forecasts"] = _logged_forecasts(r) + e["forecasts"]
                 xi = _xis(r.get("lineup_codes") or {}, who)
                 if xi:
-                    e["lineups"] = {"xi": xi, "note": f"Predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
+                    pred[e["id"]] = {"pred": xi, "note": f"predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
                 mm = _matched_market(r, odds_log)
                 if mm:
                     e["market"].insert(0, mm)
@@ -227,7 +250,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
             e["forecasts"] += _logged_forecasts(r)
             xi = _xis(r.get("lineup_codes") or {}, who)
             if xi:
-                e["lineups"] = {"xi": xi, "note": f"Predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
+                pred[e["id"]] = {"pred": xi, "note": f"predicted XIs saved with the logged forecast, {r['hours_before']:.0f} h before kickoff"}
             mm = _matched_market(r, odds_log)
             if mm:
                 e["market"].append(mm)
@@ -242,7 +265,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                                        "p": _p(w["source_average"])})
             xi = _xis(w.get("lineup_codes") or {}, who)
             if xi:
-                e["lineups"] = {"xi": xi, "note": f"Predicted XIs as published when this page was {built}"}
+                pred[e["id"]] = {"pred": xi, "note": f"predicted XIs as published when this page was {built}"}
             e["forecasts"].append({"key": "preview", "label": "TaBet, no lineups (preview)", "kind": "preview",
                                    "note": f"{built}; the logged forecast comes 24-32 h before kickoff",
                                    "p": _p(pv)})
@@ -272,7 +295,33 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         rows = ",\n".join(json.dumps(e, separators=(",", ":")) for e in entries if e["season"] == season)
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"matches":[\n' + rows + "\n]}\n")
         files[season] = name
-    (out.parent / INDEX.name).write_text(json.dumps(dict(head, files=files), separators=(",", ":")) + "\n")
+    # starting XIs (actual for played matches, predicted where we have them), one file per season,
+    # downloaded only by the match page
+    try:
+        from .fpl import load_appearances
+        from .forecast import ARCHIVE_SEASONS
+        app = load_appearances(matches, [s for s in ARCHIVE_SEASONS if s >= data["seasons"][0]], LIVE_SEASON, refresh_live=False)
+        actual = _actual_xis(app, who)
+    except Exception as ex:  # the site must build even if the appearance data is unavailable
+        print(f"actual lineups skipped ({ex})")
+        actual = {}
+    lfiles = {}
+    for season in data["seasons"]:
+        rows = []
+        for e in entries:
+            if e["season"] != season:
+                continue
+            rec = dict(pred.get(e["id"], {}))
+            if e["id"] in actual:
+                rec["actual"] = {k: v for k, v in actual[e["id"]].items() if k in ("home", "away")}
+                if actual[e["id"]].get("inferred"):
+                    rec["inferred"] = True
+            if rec:
+                rows.append(json.dumps(e["id"]) + ":" + json.dumps(rec, separators=(",", ":"), ensure_ascii=False))
+        name = f"lineups-{season}.json"
+        (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
+        lfiles[season] = name
+    (out.parent / INDEX.name).write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
     return data
 
 

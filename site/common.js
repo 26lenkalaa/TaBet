@@ -53,6 +53,15 @@
     });
     return bySeason[s];
   }
+  /* starting XIs for one season ({match id: {actual, pred, note, inferred}}), only for the match page */
+  var luBySeason = {};
+  function lineups(s) {
+    if (!luBySeason[s]) luBySeason[s] = index().then(function (ix) {
+      if (!ix.lineup_files || !ix.lineup_files[s]) return {};
+      return getJSON("data/" + ix.lineup_files[s]).then(function (d) { return d.lineups || {}; });
+    }).catch(function () { return {}; });
+    return luBySeason[s];
+  }
   /* load(season?): {built_utc, n_log_records, seasons, matches} for one season (default: the latest) */
   function load(s) {
     return index().then(function (ix) {
@@ -63,5 +72,5 @@
     });
   }
 
-  window.TaBet = { KIND: KIND, esc: esc, pct: pct, when: when, primary: primary, market: market, bar: bar, load: load, index: index };
+  window.TaBet = { KIND: KIND, esc: esc, pct: pct, when: when, primary: primary, market: market, bar: bar, load: load, index: index, lineups: lineups };
 })();
