@@ -1,27 +1,5 @@
-/* Shared helpers for the TaBet site: theme toggle, formatting, data loading. */
+/* Shared helpers for the TaBet pitch and match explorer: formatting and data loading. */
 (function () {
-  var root = document.documentElement;
-
-  /* theme */
-  function cur() {
-    var t = root.getAttribute("data-theme");
-    if (t) return t;
-    return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-  try { var saved = localStorage.getItem("tabet-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
-  document.addEventListener("DOMContentLoaded", function () {
-    var btn = document.getElementById("theme");
-    if (!btn) return;
-    function label() { btn.textContent = cur() === "dark" ? "Light mode" : "Dark mode"; }
-    label();
-    btn.addEventListener("click", function () {
-      var n = cur() === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", n);
-      try { localStorage.setItem("tabet-theme", n); } catch (e) {}
-      label();
-    });
-  });
-
   var KIND = { backtest: ["Backtest", "t-gray"], logged: ["Logged", "t-green"], preview: ["Preview", "t-purple"], market: ["Market", "t-blue"] };
   var PRIORITY = ["pE", "p0", "V2x", "V1x", "preview_lineups", "preview", "V0"];
 

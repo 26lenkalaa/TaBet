@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaBet match explorer</title>
 <meta name="description" content="Pick a season and a match to see TaBet's forecasts, the betting market's, and the result.">
-<link rel="icon" type="image/png" href="img/favicon-tamid.png">
+<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-tamid.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="preload" href="fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -39,10 +40,6 @@ a { color: var(--gold); }
 
 /* top bar, as on the pitch */
 .hud { position: relative; z-index: 2; display: flex; flex-wrap: wrap; row-gap: 12px; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
-.ballbtn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
-.ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
-.ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
-.ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; }
 .title { flex: 1 1 340px; min-width: 0; }
 .tamid { width: 44px; height: 44px; flex: none; display: block; box-shadow: 3px 3px 0 rgba(0,0,0,.3); image-rendering: auto; }
 .hud { column-gap: 18px; }
@@ -133,16 +130,24 @@ footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padd
 @media (max-width: 760px) {
   .toolbar { grid-template-columns: 1fr 1fr; } .toolbar .f-match { grid-column: 1 / -1; }
   .hud { flex-wrap: wrap; } .title { order: 3; flex-basis: 100%; } .title h1 { font-size: 15px; }
-  .ballbtn .tip { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .ballbtn svg { transition: none; } }
+
+/* the TAMID badge is the clickable logo: on the pitch it opens the notebook, elsewhere it returns to the pitch */
+.logo { display: block; flex: none; line-height: 0; }
+.logo img { width: 48px; height: 48px; display: block; box-shadow: 4px 4px 0 rgba(0,0,0,.35); transition: transform .1s, box-shadow .1s; }
+.logo:hover img, .logo:focus-visible img { animation: hop .6s steps(6) infinite; }
+.logo:active img { animation: none; transform: translate(3px, 3px); box-shadow: 1px 1px 0 rgba(0,0,0,.35); }
+@keyframes hop { 0%, 100% { transform: translateY(0); } 33% { transform: translateY(-6px) rotate(-5deg); } 66% { transform: translateY(-2px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .logo:hover img, .logo:focus-visible img { animation: none; } }
+/* smooth cross-fade between pages instead of a blank flash (Chrome, Edge, Safari 18.2+) */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
 </style>
 </head>
 <body>
 
 <header class="hud">
-  <a class="ballbtn" href="./" aria-label="Back to the pitch" title="Back to the pitch"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg></a>
-  <img class="tamid" src="img/tamid-mark.png" width="44" height="44" alt="TAMID Group at Northeastern" title="TAMID Group at Northeastern">
+  <a class="logo" href="./" aria-label="Back to the pitch" title="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
   <div class="title">
     <h1>MATCH EXPLORER</h1>
     <p>Pick a season and a match: what TaBet predicted, what the market predicted, and what happened.</p>

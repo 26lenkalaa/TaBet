@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaBet</title>
 <meta name="description" content="TaBet's Premier League forecasts for this gameweek, next to the betting market. Pick a match to see every forecast.">
-<link rel="icon" type="image/png" href="img/favicon-tamid.png">
+<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-tamid.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="preload" href="fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -41,10 +42,6 @@ a { color: inherit; }
 
 /* ---- top bar ---- */
 .hud { display: flex; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1440px; margin: 0 auto; }
-.ballbtn { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
-.ballbtn svg { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
-.ballbtn:hover svg, .ballbtn:focus-visible svg { transform: rotate(-360deg) translateY(-3px); }
-.ballbtn .tip { font-size: 10px; line-height: 1.6; color: var(--gold); text-shadow: 2px 2px 0 #000; max-width: 9em; }
 .title { flex: 1 1 300px; min-width: 0; }
 .tamid { width: 44px; height: 44px; flex: none; display: block; box-shadow: 3px 3px 0 rgba(0,0,0,.3); image-rendering: auto; }
 .hud { column-gap: 18px; }
@@ -145,7 +142,6 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   .halves { grid-template-columns: minmax(0, 1fr); }
   .pitch { padding: 0 10px; }
   .gw span { min-width: 5em; }
-  .ballbtn .tip { display: none; }
 }
 
 /* ---- arcade intro ---- */
@@ -164,8 +160,17 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 .goal { animation: goalc .24s steps(1) infinite; }
 @keyframes goalc { 0% { color: var(--gold); } 33% { color: var(--red); } 66% { color: #7dd1ff; } }
 @media (prefers-reduced-motion: reduce) {
-  .ballbtn svg, .chip, .kick svg { transition: none; animation: none; }
 }
+/* the TAMID badge is the clickable logo: on the pitch it opens the notebook, elsewhere it returns to the pitch */
+.logo { display: block; flex: none; line-height: 0; }
+.logo img { width: 48px; height: 48px; display: block; box-shadow: 4px 4px 0 rgba(0,0,0,.35); transition: transform .1s, box-shadow .1s; }
+.logo:hover img, .logo:focus-visible img { animation: hop .6s steps(6) infinite; }
+.logo:active img { animation: none; transform: translate(3px, 3px); box-shadow: 1px 1px 0 rgba(0,0,0,.35); }
+@keyframes hop { 0%, 100% { transform: translateY(0); } 33% { transform: translateY(-6px) rotate(-5deg); } 66% { transform: translateY(-2px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .logo:hover img, .logo:focus-visible img { animation: none; } }
+/* smooth cross-fade between pages instead of a blank flash (Chrome, Edge, Safari 18.2+) */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
 </style>
 </head>
 <body>
@@ -181,10 +186,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 </div>
 
 <header class="hud">
-  <a class="ballbtn" href="notebook" aria-label="Open the model notebook" title="Model notebook">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
-  </a>
-  <img class="tamid" src="img/tamid-mark.png" width="44" height="44" alt="TAMID Group at Northeastern" title="TAMID Group at Northeastern">
+  <a class="logo" href="notebook" aria-label="Open the model notebook" title="Model notebook"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
   <div class="title">
     <h1>TABET</h1>
     <p>Premier League forecasts, scored against the betting market. Pick a match.</p>
@@ -325,7 +327,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     intro.hidden = true;
     document.removeEventListener("keydown", finish);
     try { sessionStorage.setItem("tabet-intro", "1"); } catch (e) {}
-    document.querySelector(".ballbtn").focus({ preventScroll: true });
+    document.querySelector(".logo").focus({ preventScroll: true });
   }
   function play() {
     done = false; t0 = 0; intro.hidden = false;
