@@ -240,7 +240,7 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 4px solid var
 <section class="hero">
   <div class="wrap hero-in">
     <div class="hero-copy">
-      <span class="status"><span class="dot" aria-hidden="true"></span>Live testing from gameweek 10</span>
+      <span class="status"><span class="dot" aria-hidden="true"></span>Live testing since gameweek 10</span>
       <h1>Premier League probabilities, scored against the betting market.</h1>
       <p class="hero-lead">TaBet gives a probability for each Premier League match ending in a home win, a draw or an away win. Three models are in use. Each one builds on the last, and each step makes the probabilities a little more accurate.</p>
       <div class="hero-cta">
@@ -250,7 +250,7 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 4px solid var
       <dl class="facts">
         <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
         <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
-        <div><dt>Last updated</dt><dd>5 November 2026</dd></div>
+        <div><dt>Last updated</dt><dd>12 November 2026</dd></div>
       </dl>
     </div>
   </div>
@@ -297,7 +297,7 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 4px solid var
           <div class="panel">
             <div class="scroll">
               <table>
-                <thead><tr><th>Model</th><th class="num">2022-24 (760)</th><th class="num">2024-26 (760)</th><th class="num">2026-27 so far (90)</th></tr></thead>
+                <thead><tr><th>Model</th><th class="num">2022-24 (760)</th><th class="num">2024-26 (760)</th><th class="num">2026-27, GW 1-9 (90)</th></tr></thead>
                 <tbody>
                   <tr><td class="name">Closing betting odds</td><td class="num">0.9314</td><td class="num">0.9893</td><td class="num">n/a</td></tr>
                   <tr><td class="name">V2x: lineups</td><td class="num">0.9610</td><td class="num">0.9973</td><td class="num">1.0315</td></tr>
@@ -428,7 +428,8 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
           <div class="acc-body">
             <p>Confirmed lineups arrive an hour before kickoff. To forecast a day earlier, we feed V2x the lineups that two fantasy-football sites predict, Fantasy Football Scout and RotoWire, plus our own guess from recent team selections and FPL injury news.</p>
             <ul>
-              <li><strong>Several versions are logged for every match,</strong> 24 hours before kickoff: V1x alone, each site's lineup, their average, and our own guess.</li>
+              <li><strong>Several versions are logged for every match,</strong> about a day before kickoff (24–26 hours, or 26–32 hours if that run is missed): V1x alone, each site's lineup, their average, and our own guess.</li>
+              <li><strong>The market is saved at the same moment.</strong> Each logged forecast comes with the bookmakers' prices from that run, so it's compared with the odds that were available when it was made, not ones set later.</li>
               <li><strong>A blend is learned, not assumed.</strong> After gameweek 19 we fit how much weight the predicted lineups deserve compared with V1x alone, then freeze that weight.</li>
               <li><strong>The rules were fixed before the first forecast,</strong> so the result can't be tuned after the fact. A first read comes after gameweek 29, and the real verdict at the end of the season.</li>
             </ul>
@@ -439,6 +440,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
           <summary><span class="lab">Betting odds <span class="sub">The benchmark, never an input</span></span><span class="chev" aria-hidden="true"></span></summary>
           <div class="acc-body">
             <p>Bookmakers' prices, with their margin removed, are the strongest public forecast. They include everything the market knows: injuries, team news, money from well-informed bettors. We use them only to measure how far we are from the best available forecast. No model ever sees them, so a model can't simply copy the market.</p>
+            <p>Three versions of the market appear on this site: <strong>earlier odds</strong> (set on the Friday or Tuesday before), <strong>closing odds</strong> (at kickoff), and, for logged forecasts, <strong>the market at our forecast time</strong> (saved in the same run as the forecast).</p>
           </div>
         </details>
       </div>
