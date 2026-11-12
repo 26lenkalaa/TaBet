@@ -141,9 +141,28 @@ def _xis(codes: dict, who: dict) -> dict:
     return out
 
 
+_MOJIBAKE = ("Ã", "Ä", "Å", "Â", "Ð", "â€")
+
+
+def _fix_text(s: str) -> str:
+    """Repair names that were UTF-8 but decoded as Latin-1/cp1252 somewhere upstream (the FPL archive
+    has 'DoucourÃ©' for 'Doucouré', 'BegoviÄ\\x87' for 'Begović'). Display only: names are never
+    used to join anything here. A string that does not round-trip cleanly is returned unchanged."""
+    s = str(s)
+    if not any(m in s for m in _MOJIBAKE):
+        return s
+    for enc in ("latin-1", "cp1252"):
+        try:
+            return s.encode(enc).decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            continue
+    return s
+
+
 def _short(name: str) -> str:
     """'Bukayo Saka' -> 'B. Saka' for players no longer in the current FPL game."""
-    t = str(name).split()
+    name = _fix_text(name)
+    t = name.split()
     return name if len(t) < 2 else f"{t[0][0]}. {t[-1]}"
 
 

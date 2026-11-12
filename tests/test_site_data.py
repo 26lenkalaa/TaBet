@@ -82,3 +82,12 @@ def test_build_writes_one_file_per_season_and_lineups_for_logged_matches(tmp_pat
     for season, f in ix["lineup_files"].items():
         if season < "2026-27":
             assert len(json.loads((tmp_path / f).read_text())["lineups"]) >= 370
+
+
+def test_mis_decoded_player_names_are_repaired_for_display():
+    assert S._fix_text("A. DoucourÃ©") == "A. Doucouré"
+    assert S._fix_text("A. BegoviÄ\x87") == "A. Begović"
+    assert S._fix_text("A. GrÃ¸nbÃ¦k") == "A. Grønbæk"
+    assert S._fix_text("Ødegaard") == "Ødegaard"  # already correct: unchanged
+    assert S._fix_text("Saka") == "Saka"
+    assert S._short("Abdoulaye DoucourÃ©") == "A. Doucouré"
