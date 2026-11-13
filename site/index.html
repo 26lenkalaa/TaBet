@@ -95,7 +95,7 @@ a { color: inherit; }
 .bar.mkt { height: 4px; margin: 3px 0 0; opacity: .6; }
 .next .k { font-size: 9px; color: var(--muted); margin-top: 10px; }
 .soon2 { font-size: 10px; color: var(--faint); margin: 16px 0 12px; }
-.next .bar { margin: 4px 0 0; } .next .bar.mkt { margin: 3px 0 16px; }
+.next .bar { margin: 4px 0 0; } .next .bar.mkt { margin: 3px 0 0; }
 .chip .tm .sc { color: var(--gold); }
 .bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
 .bar i { display: block; height: 100%; }
@@ -117,7 +117,7 @@ a { color: inherit; }
 .next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
 .next .three .h b { color: var(--c-h); } .next .three .d b { color: var(--c-d); } .next .three .a b { color: var(--c-a); }
 .next .three small { font-size: 12px; color: var(--muted); }
-.next a.go { display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
+.next a.go { margin-top: 18px; display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
 .kick { font-family: var(--px); font-size: 9px; color: var(--ink); background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; }
 .kick svg { width: 34px; height: 34px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
 .kick:hover svg { animation: bounce .5s steps(4) infinite alternate; }
@@ -212,6 +212,14 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <rect x="20" y="20" width="1010" height="640"/>
       <line x1="525" y1="20" x2="525" y2="660"/>
       <circle cx="525" cy="340" r="91.5"/><circle class="spot" cx="525" cy="340" r="4"/>
+      <rect x="20" y="138.5" width="165" height="403"/><rect x="865" y="138.5" width="165" height="403"/>
+      <rect x="20" y="248.5" width="55" height="183"/><rect x="975" y="248.5" width="55" height="183"/>
+      <circle class="spot" cx="130" cy="340" r="4"/><circle class="spot" cx="920" cy="340" r="4"/>
+      <path d="M185 266.9 A91.5 91.5 0 0 1 185 413.1"/><path d="M865 266.9 A91.5 91.5 0 0 0 865 413.1"/>
+      <path d="M20 30 A10 10 0 0 0 30 20"/><path d="M1020 20 A10 10 0 0 0 1030 30"/>
+      <path d="M30 660 A10 10 0 0 0 20 650"/><path d="M1030 650 A10 10 0 0 0 1020 660"/>
+      <rect x="6" y="303.4" width="14" height="73.2"/><rect x="1030" y="303.4" width="14" height="73.2"/>
+      <path class="net" d="M6 315H20M6 328H20M6 340H20M6 352H20M6 365H20M1030 315H1044M1030 328H1044M1030 340H1044M1030 352H1044M1030 365H1044"/>
     </svg>
     <div class="halves">
       <div class="half" id="left"></div>
