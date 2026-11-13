@@ -168,6 +168,39 @@ footer { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padd
 /* smooth cross-fade between pages instead of a blank flash (Chrome, Edge, Safari 18.2+) */
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
+
+/* ---- calmer look (peer feedback): charcoal instead of grass, thin borders, the pixel font only for
+   the page title, the page menu and the score; everything else in the regular font ---- */
+:root {
+  --panel: #161d24; --panel-hi: #121920; --deep: #10161c; --deeper: #0c1116;
+  --chalk: rgba(255, 255, 255, .16); --chalk-dim: rgba(255, 255, 255, .10);
+  --muted: #b9c3cd; --faint: #8b97a3;
+}
+body { background: #0e1318; }
+body::before { content: ""; display: block; height: 8px;
+  background: repeating-linear-gradient(90deg, #2f8a3f 0 48px, #2a7f39 48px 96px); }   /* a thin strip of pitch */
+.pages a { border-width: 1px; box-shadow: none; }
+.pages a[aria-current="page"] { box-shadow: none; }
+.tag { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .01em; padding: 2px 7px; border-radius: 3px; }
+th { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; line-height: 1.4; }
+.chalk { border: 1px solid var(--chalk); box-shadow: none; }
+.toolbar label { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+select { border: 1px solid var(--chalk); background: var(--deeper); }
+.teams { background: #0a0e12; border: 1px solid var(--chalk); box-shadow: none; }
+.teams .side { font-family: var(--sans); font-size: 26px; font-weight: 800; letter-spacing: -.01em; text-shadow: none; }
+.sum .cell { background: var(--deep); border: 1px solid transparent; }
+.sum .cell.hit { border-color: var(--gold); box-shadow: none; }
+.sum .v { font-family: var(--sans); font-size: 36px; font-weight: 800; letter-spacing: -.02em; }
+.sum .m { font-family: var(--sans); font-size: 13px; }
+.match h3 { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--ink); }
+.panel { border: 1px solid var(--chalk); background: var(--deeper); }
+.num { font-family: var(--sans); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+tr.group td { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.xi-head b { font-family: var(--sans); font-size: 16px; font-weight: 700; }
+.xi-score { font-family: var(--sans); font-size: 12px; font-weight: 700; background: var(--deep); }
+details.xi-more summary, details.acc summary { font-family: var(--sans); font-size: 15px; font-weight: 700; }
+.callout { background: var(--deep); }
+@media (max-width: 600px) { .teams .side { font-size: 16px; } .sum .v { font-size: 24px; } }
 </style>
 </head>
 <body>

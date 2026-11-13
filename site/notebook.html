@@ -215,6 +215,36 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 4px solid var
 /* smooth cross-fade between pages instead of a blank flash (Chrome, Edge, Safari 18.2+) */
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
+
+/* ---- calmer look (peer feedback): charcoal instead of grass, thin borders, the pixel font only for
+   the page title, the page menu and the score; everything else in the regular font ---- */
+:root {
+  --panel: #161d24; --panel-hi: #121920; --deep: #10161c; --deeper: #0c1116;
+  --chalk: rgba(255, 255, 255, .16); --chalk-dim: rgba(255, 255, 255, .10);
+  --muted: #b9c3cd; --faint: #8b97a3;
+}
+body { background: #0e1318; }
+body::before { content: ""; display: block; height: 8px;
+  background: repeating-linear-gradient(90deg, #2f8a3f 0 48px, #2a7f39 48px 96px); }   /* a thin strip of pitch */
+.pages a { border-width: 1px; box-shadow: none; }
+.pages a[aria-current="page"] { box-shadow: none; }
+.tag { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .01em; padding: 2px 7px; border-radius: 3px; }
+th { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; line-height: 1.4; }
+.hero-in, .sec { border: 1px solid var(--chalk); box-shadow: none; }
+.links a { font-family: var(--sans); font-size: 13px; font-weight: 600; border-color: var(--chalk-dim); }
+.btn { font-family: var(--sans); font-size: 15px; font-weight: 700; border-width: 1px; box-shadow: none; }
+.status { font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.hero h1 { font-family: var(--sans); font-weight: 800; font-size: clamp(30px, 4.4vw, 48px); line-height: 1.1; letter-spacing: -.025em; text-shadow: none; }
+.facts dt { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+h2 { font-family: var(--sans); font-weight: 800; font-size: 26px; line-height: 1.2; letter-spacing: -.015em; color: var(--ink); text-shadow: none; }
+h3 { font-family: var(--sans); font-weight: 700; font-size: 18px; }
+td.num { font-family: var(--sans); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.gapbar .val { font-family: var(--sans); font-size: 13px; font-variant-numeric: tabular-nums; }
+.chev::before { font-family: var(--sans); font-size: 18px; font-weight: 700; }
+.kv dt { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 1.8; }
+.steps li::before { font-family: var(--sans); font-size: 15px; font-weight: 800; box-shadow: none; }
+.rules li strong { font-family: var(--sans); font-size: 15px; font-weight: 700; line-height: 1.4; }
+.rules li, .panel, .acc { border: 1px solid var(--chalk-dim); }
 </style>
 </head>
 <body>
