@@ -1,11 +1,11 @@
 name: Prospective forecast log
 
 # Logs a primary forecast for each fixture while its kickoff is 24-26 h ahead, and a fallback while it is
-# 26-32 h ahead (docs/PROSPECTIVE_PROTOCOL.md, amendment A4), and commits the log back to main.
+# 26-32 h ahead (soccer (premier league)/docs/PROSPECTIVE_PROTOCOL.md, amendment A4), and commits the log back to main.
 #
 # Triggers (operations, not protocol):
 #   - primary: an external cron service (cron-job.org) calls workflow_dispatch every 30 minutes;
-#     dispatched runs start within about a minute. Setup: docs/LOGGER_SETUP.md.
+#     dispatched runs start within about a minute. Setup: soccer (premier league)/docs/LOGGER_SETUP.md.
 #   - backup: GitHub's own schedule below. In gameweek 10 GitHub started these only every 4-8 h,
 #     so they are a safety net, not the main trigger.
 # Each log run also refreshes the results file once a UTC day and archives football-data's fixtures.csv
@@ -38,6 +38,9 @@ jobs:
   log:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: "soccer (premier league)"   # the football project lives in soccer (premier league)/
     env:
       MODE: ${{ inputs.mode || 'log' }}
       GH_TOKEN: ${{ github.token }}
@@ -51,13 +54,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: soccer (premier league)/requirements.txt
       - run: pip install -r requirements.txt
       - name: Restore downloaded data and training-row cache
         uses: actions/cache@v4
         with:
           path: |
-            data/raw/fpl
-            data/processed
+            soccer (premier league)/data/raw/fpl
+            soccer (premier league)/data/processed
           key: tabet-data-${{ github.run_id }}
           restore-keys: tabet-data-
       - name: Run
@@ -94,7 +98,7 @@ jobs:
           sed '$d' heartbeat.txt >> "$GITHUB_STEP_SUMMARY"
           tail -n 1 heartbeat.txt > heartbeat.json
       - name: Alert on a missed fixture or a long gap between runs
-        if: always() && hashFiles('heartbeat.json') != ''
+        if: always() && hashFiles('soccer (premier league)/heartbeat.json') != ''
         run: |
           missed=$(jq -r '.missed | join(", ")' heartbeat.json)
           open_now=$(jq -r '.window_open_now' heartbeat.json)
