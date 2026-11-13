@@ -3,7 +3,7 @@
   "framework": null,
   "installCommand": "",
   "buildCommand": "",
-  "outputDirectory": "site",
+  "outputDirectory": "soccer (premier league)/site",
   "cleanUrls": true,
   "headers": [
     {

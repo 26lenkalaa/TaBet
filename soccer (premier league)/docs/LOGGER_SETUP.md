@@ -18,7 +18,7 @@ workflows in this repo.
 3. **Expiration:** pick a date, for example 90 days, and put a reminder in your calendar a week
    before it so the logger does not silently stop.
 4. **Resource owner:** `26lenkalaa`.
-5. **Repository access:** **Only select repositories** → `TaBet-ML-Model-Edition`.
+5. **Repository access:** **Only select repositories** → `TaBet`.
 6. **Permissions → Repository permissions → Actions:** **Read and write**. Leave everything else at
    "No access" (Metadata becomes read-only automatically, which is required).
 7. Click **Generate token** and copy it. GitHub shows it only once.
@@ -34,7 +34,7 @@ curl -i -X POST \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/repos/26lenkalaa/TaBet-ML-Model-Edition/actions/workflows/prospective.yml/dispatches \
+  https://api.github.com/repos/26lenkalaa/TaBet/actions/workflows/prospective.yml/dispatches \
   -d '{"ref":"main","inputs":{"mode":"dry-run"}}'
 ```
 
@@ -49,7 +49,7 @@ curl -i -X POST \
 
 1. Sign up at **cron-job.org** (free) and click **Create cronjob**.
 2. **Title:** `TaBet logger`.
-3. **URL:** `https://api.github.com/repos/26lenkalaa/TaBet-ML-Model-Edition/actions/workflows/prospective.yml/dispatches`
+3. **URL:** `https://api.github.com/repos/26lenkalaa/TaBet/actions/workflows/prospective.yml/dispatches`
 4. **Schedule:** every 30 minutes.
 5. Open the **Advanced** tab:
    - **Request method:** `POST`

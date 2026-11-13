@@ -3,8 +3,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .venv/
-data/processed/
-data/raw/
+soccer (premier league)/data/processed/
+soccer (premier league)/data/raw/
 *.pkl
 .DS_Store
 .claude/

@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "soccer (premier league)"   # the football project; other sports get their own folders
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
