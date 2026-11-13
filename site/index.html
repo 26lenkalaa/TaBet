@@ -20,8 +20,8 @@
 </script>
 <style>
 :root {
-  --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
-  --chalk: rgba(255, 255, 255, .86); --line: rgba(255, 255, 255, .45);
+  --grass-a: #2a6e38; --grass-b: #266533; --grass-edge: #1d5229;
+  --chalk: rgba(255, 255, 255, .78); --line: rgba(255, 255, 255, .32);
   --panel: rgba(8, 32, 16, .90); --panel-hi: rgba(7, 27, 13, .95);
   --ink: #ffffff; --muted: #d4e8d8; --faint: #b0cdb7;
   --gold: #ffd23f; --red: #ff5a4f;
@@ -187,6 +187,39 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 /* smooth cross-fade between pages instead of a blank flash (Chrome, Edge, Safari 18.2+) */
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .16s; }
+
+/* ---- polish pass: calmer pitch, thicker labelled bars, gap chips, filter, touch targets ---- */
+.field { background: rgba(0, 0, 0, .12); }
+.next { padding: 26px 28px; box-shadow: 0 14px 30px rgba(0,0,0,.35), 6px 6px 0 rgba(0,0,0,.25); }
+.bar.big { height: 20px; }
+.bar.big i { position: relative; overflow: hidden; }
+.bar.big em { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-style: normal;
+  font-size: 11px; font-weight: 800; letter-spacing: .03em; color: #0b2c14; }
+.bar.big .d em { color: #213528; }
+.chip .tm { margin-bottom: 12px; }
+.chip .line .m { display: inline-flex; align-items: center; gap: 8px; }
+.g { font-size: 12px; font-weight: 800; padding: 2px 7px; border-radius: 3px; font-variant-numeric: tabular-nums; }
+.g.up { background: rgba(125, 255, 156, .16); color: #9dffb5; } .g.dn { background: rgba(255, 138, 128, .16); color: #ffb0a8; }
+.g.eq { background: rgba(255, 255, 255, .1); color: var(--muted); }
+.badge.big { font-size: 12px; padding: 3px 8px; box-shadow: 0 0 0 2px rgba(255, 210, 63, .35); }
+.chip.is-big { border-color: var(--gold); }
+.grid.only-big .chip:not(.is-big) { display: none; }
+.tbtns { display: flex; gap: 10px; flex-wrap: wrap; }
+.fbtn, .kick { min-height: 44px; font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); background: var(--panel-hi);
+  border: 2px solid var(--chalk); padding: 8px 14px; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,.3); }
+.fbtn[aria-pressed="true"] { background: var(--gold); color: #1c1600; border-color: var(--gold); }
+.gw button { min-width: 44px; min-height: 44px; }
+.pages a { min-height: 44px; display: inline-flex; align-items: center; }
+footer .linkish { font-family: var(--sans); font-size: 14px; font-weight: 600; color: var(--gold); background: none; border: 0; padding: 10px 0;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.key { color: #e6f2e9; }
+@media (max-width: 860px) {
+  .next { padding: 18px 16px; gap: 6px; }
+  .next h2 { font-size: 20px; margin: 6px 0 2px; }
+  .next .src { display: none; }
+  .cmp th, .cmp td { padding: 5px 4px; }
+}
+@media (max-width: 560px) { .tbtns { width: 100%; } .fbtn, .kick { flex: 1; justify-content: center; white-space: nowrap; padding: 8px 10px; } }
 </style>
 </head>
 <body>
@@ -235,20 +268,23 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <section class="next" id="feature" aria-live="polite"><span class="lab">LOADING…</span></section>
       <div class="tools">
         <span class="lab" id="gwinfo"></span>
+        <div class="tbtns">
+        <button class="fbtn" id="bigonly" type="button" aria-pressed="false">Show only big gaps</button>
         <button class="kick" id="kick" type="button">
           <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
-          <span>RANDOM MATCH</span>
+          <span>Random match</span>
         </button>
+        </div>
       </div>
       <div class="grid" id="grid"></div>
     </div>
   </div>
-  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Bar: TaBet's forecast. BIG GAP: TaBet and the market differ by 5+ points. Percentages are rounded.</span></div>
+  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Bar: TaBet's forecast, labelled home · D (draw) · away. The chip is TaBet minus market, in points. BIG GAP: 5+ points apart. Percentages are rounded.</span></div>
 </main>
 
 <footer>
   <span>A student project. Not betting advice. Times are UK time.</span>
-  <button id="replay" type="button">REPLAY INTRO</button>
+  <button id="replay" type="button" class="linkish">Replay intro</button>
 </footer>
 
 <script src="common.js?v=20261111"></script>
@@ -372,10 +408,12 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     return d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" }) + " · " +
       d.toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
   }
-  function bar(q, cls) {
+  function bar(q, cls, labels) {
     if (!q) return '<span class="bar ' + (cls || "") + '" aria-hidden="true"></span>';
-    return '<span class="bar" aria-hidden="true"><i class="h" style="width:' + q[0] * 100 + '%"></i><i class="d" style="width:' +
-      q[1] * 100 + '%"></i><i class="a" style="width:' + q[2] * 100 + '%"></i></span>';
+    var lab = labels || ["", "", ""];
+    return '<span class="bar' + (labels ? " big" : "") + '" aria-hidden="true">' + ["h", "d", "a"].map(function (c, k) {
+      return '<i class="' + c + '" style="width:' + q[k] * 100 + '%">' + (labels && q[k] >= 0.16 ? "<em>" + lab[k] + "</em>" : "") + "</i>";
+    }).join("") + "</span>";
   }
   function gap(a, b) { return Math.round(a * 100) - Math.round(b * 100); }   /* from the rounded numbers shown */
   function pts(v) { return (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v); }
@@ -395,14 +433,16 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     var g = p && mk ? gap(p[i], mk.p[i]) : 0;
     if (!tag && p && mk && Math.max.apply(null, [0, 1, 2].map(function (k) { return Math.abs(gap(p[k], mk.p[k])); })) >= BIG)
       tag = '<span class="badge big">BIG GAP</span>';
-    var line = p ? '<b>' + who + " " + T.pct(p[i]) + "</b>" + (mk ? '<span class="m">Market ' + T.pct(mk.p[i]) + "</span>" : '<span class="m">No odds yet</span>')
+    var chipGap = p && mk ? '<span class="g ' + (g > 0 ? "up" : g < 0 ? "dn" : "eq") + '">' + (g > 0 ? "+" : g < 0 ? "−" : "±") + Math.abs(g) + "</span>" : "";
+    var line = p ? '<b>' + who + " " + T.pct(p[i]) + "</b>" + (mk ? '<span class="m">Market ' + T.pct(mk.p[i]) + chipGap + "</span>" : '<span class="m">No odds yet</span>')
              : mk ? '<span class="m">Market: ' + who + " " + T.pct(mk.p[i]) + "</span>"
              : '<span class="m">' + (m.status === "upcoming" ? "Forecast soon" : "Not logged") + "</span>";
-    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
+    var isBig = p && mk && Math.max.apply(null, [0, 1, 2].map(function (k) { return Math.abs(gap(p[k], mk.p[k])); })) >= BIG;
+    return '<a class="chip' + (isBig ? " is-big" : "") + '" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
       T.esc(m.home + " v " + m.away + (p ? " · TaBet " + p.map(T.pct).join(" / ") : "") + (mk ? " · market " + mk.p.map(T.pct).join(" / ") : "")) + '">' +
       '<span class="when">' + slot(m.kickoff) + tag + "</span>" +
       '<span class="tm">' + code(m.home) + mid + code(m.away) + "</span>" +
-      (p ? bar(p) : bar(mk ? mk.p : null, m.status === "upcoming" ? "tbd" : "")) +
+      (p ? bar(p, "", [L[0], "D", L[2]]) : bar(mk ? mk.p : null, m.status === "upcoming" ? "tbd" : "", mk ? [L[0], "D", L[2]] : null)) +
       '<span class="line">' + line + "</span></a>";
   }
 
@@ -467,7 +507,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     if (r.top < 0 || r.bottom > innerHeight) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }
   function kick() {   /* "Random match": the ball flies to a random fixture, which then fills the top panel */
-    var els = document.querySelectorAll(".chip");
+    var els = Array.prototype.filter.call(document.querySelectorAll(".chip"), function (c) { return c.offsetParent !== null; });
     if (!els.length) return;
     var target = els[Math.floor(Math.random() * els.length)];
     var m = cards.filter(function (x) { return x.id === target.dataset.id; })[0];
@@ -492,6 +532,13 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     requestAnimationFrame(step);
   }
   document.getElementById("kick").addEventListener("click", kick);
+  var bigOnly = document.getElementById("bigonly");
+  bigOnly.addEventListener("click", function () {
+    var on = bigOnly.getAttribute("aria-pressed") !== "true";
+    bigOnly.setAttribute("aria-pressed", on ? "true" : "false");
+    bigOnly.textContent = on ? "Showing big gaps · show all" : "Show only big gaps";
+    grid.classList.toggle("only-big", on);
+  });
   grid.addEventListener("click", function (e) {
     var a = e.target.closest(".chip");
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
