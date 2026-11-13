@@ -219,11 +219,11 @@ blockquote { margin: 20px 0; padding: 4px 0 4px 18px; border-left: 4px solid var
 /* ---- calmer look (peer feedback): charcoal instead of grass, thin borders, the pixel font only for
    the page title, the page menu and the score; everything else in the regular font ---- */
 :root {
-  --panel: #161d24; --panel-hi: #121920; --deep: #10161c; --deeper: #0c1116;
-  --chalk: rgba(255, 255, 255, .16); --chalk-dim: rgba(255, 255, 255, .10);
-  --muted: #b9c3cd; --faint: #8b97a3;
+  --panel: #15241b; --panel-hi: #122019; --deep: #0f1c15; --deeper: #0b1711;   /* night-pitch greens */
+  --chalk: rgba(220, 255, 230, .17); --chalk-dim: rgba(220, 255, 230, .10);
+  --muted: #bccdc1; --faint: #8ea596;
 }
-body { background: #0e1318; }
+body { background: #0d1812 linear-gradient(180deg, #13261a 0, #0d1812 420px) no-repeat; }
 body::before { content: ""; display: block; height: 8px;
   background: repeating-linear-gradient(90deg, #2f8a3f 0 48px, #2a7f39 48px 96px); }   /* a thin strip of pitch */
 .pages a { border-width: 1px; box-shadow: none; }
