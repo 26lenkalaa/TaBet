@@ -1,7 +1,7 @@
 /* Shared helpers for the TaBet pitch and match explorer: formatting and data loading. */
 (function () {
-  var KIND = { backtest: ["Backtest", "t-gray"], logged: ["Logged", "t-green"], preview: ["Preview", "t-purple"], market: ["Market", "t-blue"] };
-  var PRIORITY = ["pE", "p0", "V2x", "V1x", "preview_lineups", "preview", "V0"];
+  var KIND = { backtest: ["Backtest", "t-gray"], logged: ["Logged", "t-green"], saved: ["Pre-match", "t-yellow"], preview: ["Preview", "t-purple"], market: ["Market", "t-blue"] };
+  var PRIORITY = ["pE", "p0", "saved_lineups", "saved", "V2x", "V1x", "preview_lineups", "preview", "V0"];
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function pct(x) { return Math.round(x * 100) + "%"; }

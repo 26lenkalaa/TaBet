@@ -182,6 +182,41 @@ def _actual_xis(app: pd.DataFrame, who: dict) -> dict:
     return {k: v for k, v in out.items() if len(v.get("home", [])) == 11 and len(v.get("away", [])) == 11}
 
 
+FORECASTS_DIR = ROOT / "results" / "forecasts"
+
+
+def _saved_forecasts() -> dict[int, list[tuple[pd.Timestamp, dict]]]:
+    """Full forecast runs saved by `python -m tabet forecast` (results/forecasts/*.json), by FPL fixture:
+    [(cutoff, fixture forecast)], oldest first. Used only where no logged record exists."""
+    out: dict = {}
+    for f in sorted(FORECASTS_DIR.glob("forecast_*.json")):
+        try:
+            d = json.loads(f.read_text())
+            cut = pd.Timestamp(d["cutoff_utc"])
+        except Exception:
+            continue
+        for x in d.get("fixtures", []):
+            out.setdefault(int(x["fpl_fixture"]), []).append((cut, x))
+    return {k: sorted(v, key=lambda t: t[0]) for k, v in out.items()}
+
+
+def _saved_entries(saved: dict, fixture: int | None, kickoff: pd.Timestamp) -> list[dict]:
+    """The latest saved forecast made before kickoff, labelled for what it is: a real pre-match forecast
+    that is not a protocol record."""
+    before = [(c, x) for c, x in saved.get(fixture, []) if c < kickoff]
+    if fixture is None or not before:
+        return []
+    cut, x = before[-1]
+    note = f"made {cut:%d %b %H:%M} UTC, {(kickoff - cut).total_seconds() / 3600:.0f} h before kickoff (a saved forecast run, not a logged record)"
+    out = []
+    w = x.get("with_lineups") or {}
+    if "source_average" in w:
+        out.append({"key": "saved_lineups", "label": "TaBet, predicted lineups (pre-match)", "kind": "saved", "note": note,
+                    "p": _p(w["source_average"])})
+    out.append({"key": "saved", "label": "TaBet, no lineups (pre-match)", "kind": "saved", "note": note, "p": _p(x)})
+    return out
+
+
 def _logged_forecasts(r: dict) -> list[dict]:
     role = "primary" if r["horizon_h"] == 24.0 else "fallback"
     note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
@@ -198,6 +233,7 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     led = {v: led[led["variant"] == v].drop_duplicates("match_id").set_index("match_id") for v in BACKTEST}
     logged = _logged()
     odds_log = _odds_log()
+    saved = _saved_forecasts()
 
     d = fetch_live_season(LIVE_SEASON, refresh=preview)
     boot = json.loads((d / "bootstrap.json").read_text())
@@ -237,7 +273,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                 if mm:
                     e["market"].insert(0, mm)
             elif not e["forecasts"]:
-                e["missing"] = "No forecast was logged for this match (the logger missed its window)."
+                e["forecasts"] = _saved_entries(saved, fpl_id.get((m.home_id, m.away_id)), m.kickoff_utc)
+                e["missing"] = "The logger missed this match's window, so there is no logged record." + (
+                    " The forecast shown was saved before kickoff by a separate forecast run." if e["forecasts"] else "")
         entries.append(e)
 
     # current season: fixtures not (yet) in the football-data results file
@@ -289,7 +327,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
                                    "note": f"{built}; the logged forecast comes 24-32 h before kickoff",
                                    "p": _p(pv)})
         elif played or started:
-            e["missing"] = "No forecast was logged for this match (the logger missed its window)."
+            e["forecasts"] = _saved_entries(saved, int(f.id), pd.Timestamp(f.kickoff_time))
+            e["missing"] = "The logger missed this match's window, so there is no logged record." + (
+                " The forecast shown was saved before kickoff by a separate forecast run." if e["forecasts"] else "")
         if not played and not started:
             lm = _latest_market(int(f.id), odds_log)
             if lm:

@@ -96,6 +96,7 @@ a { color: inherit; }
 .next .k { font-size: 9px; color: var(--muted); margin-top: 10px; }
 .soon2 { font-size: 10px; color: var(--faint); margin: 16px 0 12px; }
 .bar.none { background: #0b2c14; }
+.bar.mkonly { opacity: .75; }
 .chip .fav.dim { color: var(--faint); }
 .next .fscore { font-family: var(--px); font-size: 22px; color: var(--gold); margin: 12px 0 4px; text-shadow: 0 0 10px rgba(255,210,63,.45); }
 .next .bar { margin: 4px 0 0; } .next .bar.mkt { margin: 3px 0 0; }
@@ -236,7 +237,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <div class="half" id="right"></div>
     </div>
   </div>
-  <div class="key px"><span><i style="background:var(--c-h)"></i>HOME</span><span><i style="background:var(--c-d)"></i>DRAW</span><span><i style="background:var(--c-a)"></i>AWAY</span><span>THICK BAR: TABET</span><span>THIN BAR: MARKET</span></div>
+  <div class="key px"><span><i style="background:var(--c-h)"></i>HOME</span><span><i style="background:var(--c-d)"></i>DRAW</span><span><i style="background:var(--c-a)"></i>AWAY</span><span>THICK BAR: TABET</span><span>THIN BAR: MARKET</span><span>MKT: ODDS ONLY</span></div>
 </main>
 
 <footer>
@@ -369,6 +370,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
         q[1] * 100 + '%"></i><i class="a" style="width:' + q[2] * 100 + '%"></i></span>';
     }
     /* no forecast: dashed "coming" bar for a future match, a plain empty bar for one the logger missed */
+    if (!p && mk) return b(mk.p, " mkonly");   // no TaBet forecast: the odds become the main bar
     return (p ? b(p, "") : '<span class="bar ' + (upcoming ? "tbd" : "none") + '" aria-hidden="true"></span>') + (mk ? b(mk.p, " mkt") : "");
   }
   function chip(m) {
@@ -377,13 +379,13 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     if (played && p) tag = p.indexOf(Math.max.apply(null, p)) === y ? '<span class="badge ok">HIT</span>' : '<span class="badge no">MISS</span>';
     else if (m.status === "awaiting") tag = '<span class="badge tbc">LIVE</span>';
     var mid = played ? '<span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span>" : '<span class="vs">v</span>';
-    var fav = p ? [code(m.home), "DRAW", code(m.away)][p.indexOf(Math.max.apply(null, p))] + " " + T.pct(Math.max.apply(null, p))
-                : (m.status === "upcoming" ? "FORECAST SOON" : "NOT LOGGED");
+    function favOf(q) { return [code(m.home), "DRAW", code(m.away)][q.indexOf(Math.max.apply(null, q))] + " " + T.pct(Math.max.apply(null, q)); }
+    var fav = p ? favOf(p) : (mk ? "MKT · " + favOf(mk.p) : (m.status === "upcoming" ? "FORECAST SOON" : "NOT LOGGED"));
     return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
       T.esc(m.home + " v " + m.away + (p ? " · TaBet " + p.map(T.pct).join(" / ") : "") + (mk ? " · market " + mk.p.map(T.pct).join(" / ") : "")) + '">' +
       '<span class="when">' + slot(m.kickoff) + tag + "</span>" +
       '<span class="tm">' + code(m.home) + mid + code(m.away) + "</span>" +
-      bars(p, mk, m.status === "upcoming") + '<span class="fav' + (p ? "" : " dim") + '">' + fav + "</span></a>";
+      bars(p, mk, m.status === "upcoming") + '<span class="fav' + (p || mk ? "" : " dim") + '">' + fav + "</span></a>";
   }
 
   function feature(m, label) {
@@ -393,8 +395,11 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     feat.dataset.kick = m.status === "upcoming" ? kick : "";
     var three = p ? '<div class="three">' + [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
       return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b></div>";
-    }).join("") + "</div>" + bars(p, mk) : '<div class="soon2 px">' + (m.status === "upcoming" ? "FORECAST SOON" : "NO FORECAST LOGGED") + "</div>" +
-      bars(null, mk, m.status === "upcoming");
+    }).join("") + "</div>" + bars(p, mk) : mk ? '<div class="soon2 px">MARKET ODDS</div><div class="three">' +
+      [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
+        return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(mk.p[r[2]]) + "</b></div>";
+      }).join("") + "</div>" + bars(null, mk) :
+      '<div class="soon2 px">' + (m.status === "upcoming" ? "FORECAST SOON" : "NO FORECAST LOGGED") + "</div>" + bars(null, null, m.status === "upcoming");
     feat.innerHTML = '<span class="lab px">' + label + "</span>" +
       "<h2>" + T.esc(m.home) + " v " + T.esc(m.away) + "</h2>" +
       (m.status === "played" ? '<div class="fscore">' + T.esc(m.score.replace("-", "–")) + "</div>" : "") +
