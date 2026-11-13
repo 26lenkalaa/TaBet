@@ -108,15 +108,15 @@ a { color: inherit; }
 .flyer { position: fixed; width: 30px; height: 30px; z-index: 50; pointer-events: none; }
 
 /* fixture cards, in kick-off order */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
-.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 14px 16px 15px;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 22px; }
+.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 16px 18px 17px;
   box-shadow: 4px 4px 0 rgba(0,0,0,.28); transition: transform .15s, box-shadow .15s, background .15s; position: relative; }
 .chip:hover, .chip:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,.3); background: var(--panel-hi); }
 .chip.spot-on { animation: spot 1.2s steps(2) 3; border-color: var(--gold); }
 .chip.sel { border-color: var(--gold); background: var(--panel-hi); }
 @keyframes spot { 50% { box-shadow: 0 0 0 6px var(--gold); } }
 .chip .when { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 22px; }
-.chip .tm { font-size: 22px; font-weight: 800; letter-spacing: .01em; margin: 8px 0 0; display: flex; align-items: baseline; gap: 10px; }
+.chip .tm { font-size: 24px; font-weight: 800; letter-spacing: .01em; margin: 10px 0 14px; display: flex; align-items: baseline; gap: 10px; }
 .chip .tm .vs { font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip .tm .sc { color: var(--gold); }
 .chip .full { display: block; font-size: 13px; color: var(--muted); margin: 2px 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -126,6 +126,10 @@ a { color: inherit; }
 .row.mkt .val { font-weight: 600; color: #e8f2ea; }
 .row .na { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; }
 .bar { display: flex; height: 10px; background: #0b2c14; }
+.chip .line { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; font-size: 16px; font-variant-numeric: tabular-nums; }
+.chip .line b { font-weight: 800; }
+.chip .line .m { font-size: 14px; color: var(--muted); }
+.badge.big { color: #1c1600; background: var(--gold); }
 .row.mkt .bar { height: 6px; opacity: .85; }
 .bar i { display: block; height: 100%; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
@@ -239,7 +243,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <div class="grid" id="grid"></div>
     </div>
   </div>
-  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Gaps are in percentage points, TaBet minus market. Percentages are rounded, so a row can add up to 99–101%.</span></div>
+  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Bar: TaBet's forecast. BIG GAP: TaBet and the market differ by 5+ points. Percentages are rounded.</span></div>
 </main>
 
 <footer>
@@ -378,24 +382,28 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   function ptsWord(v) { return pts(v) + (Math.abs(v) === 1 ? " pt" : " pts"); }
   function argmax(q) { return q.indexOf(Math.max.apply(null, q)); }
 
+  /* a card shows only what you scan for: time, teams, one bar (TaBet), and TaBet vs market on the
+     favourite. Big disagreements get a gold tag; everything else is in the panel and on the match page */
+  var BIG = 5;   // points
   function chip(m) {
     var f = T.primary(m), mk = T.market(m), p = f ? f.p : null, played = m.status === "played";
     var y = played ? OUT[m.result] : -1, tag = "", L = LBL(m);
     if (played && p) tag = argmax(p) === y ? '<span class="badge ok">HIT</span>' : '<span class="badge no">MISS</span>';
     else if (m.status === "awaiting") tag = '<span class="badge tbc">LIVE</span>';
     var mid = played ? '<span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span>" : '<span class="vs">v</span>';
-    var i = p ? argmax(p) : (mk ? argmax(mk.p) : 0), name = i === 1 ? "Draw" : L[i] + " win";
-    var tab = p ? bar(p) + '<span class="val">' + T.pct(p[i]) + "</span>"
-                : bar(null, m.status === "upcoming" ? "tbd" : "") + '<span class="na">' + (m.status === "upcoming" ? "Forecast soon" : "Not logged") + "</span>";
-    var mkt = mk ? bar(mk.p) + '<span class="val">' + T.pct(mk.p[i]) + "</span>" : bar(null) + '<span class="na">No odds yet</span>';
-    var diff = p && mk ? '<div class="diff">' + name + ": <b>" + ptsWord(gap(p[i], mk.p[i])) + "</b> vs market</div>"
-             : (mk ? '<div class="diff">' + name + " is the market favourite</div>" : '<div class="diff">&nbsp;</div>');
-    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '">' +
+    var i = p ? argmax(p) : (mk ? argmax(mk.p) : 0), who = i === 1 ? "Draw" : L[i];
+    var g = p && mk ? gap(p[i], mk.p[i]) : 0;
+    if (!tag && p && mk && Math.max.apply(null, [0, 1, 2].map(function (k) { return Math.abs(gap(p[k], mk.p[k])); })) >= BIG)
+      tag = '<span class="badge big">BIG GAP</span>';
+    var line = p ? '<b>' + who + " " + T.pct(p[i]) + "</b>" + (mk ? '<span class="m">Market ' + T.pct(mk.p[i]) + "</span>" : '<span class="m">No odds yet</span>')
+             : mk ? '<span class="m">Market: ' + who + " " + T.pct(mk.p[i]) + "</span>"
+             : '<span class="m">' + (m.status === "upcoming" ? "Forecast soon" : "Not logged") + "</span>";
+    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
+      T.esc(m.home + " v " + m.away + (p ? " · TaBet " + p.map(T.pct).join(" / ") : "") + (mk ? " · market " + mk.p.map(T.pct).join(" / ") : "")) + '">' +
       '<span class="when">' + slot(m.kickoff) + tag + "</span>" +
       '<span class="tm">' + code(m.home) + mid + code(m.away) + "</span>" +
-      '<span class="full">' + T.esc(m.home + " v " + m.away) + "</span>" +
-      '<div class="row"><span class="lbl">TaBet</span>' + tab + "</div>" +
-      '<div class="row mkt"><span class="lbl">Market</span>' + mkt + "</div>" + diff + "</a>";
+      (p ? bar(p) : bar(mk ? mk.p : null, m.status === "upcoming" ? "tbd" : "")) +
+      '<span class="line">' + line + "</span></a>";
   }
 
   function feature(m, label) {
