@@ -39,3 +39,15 @@ jobs:
       - run: npm test
       - name: Check every season converts for the database
         run: node scripts/sync-soccer.mjs --dry-run
+
+  football:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Football
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -v

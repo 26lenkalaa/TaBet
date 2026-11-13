@@ -8,6 +8,7 @@ Each sport has its own folder:
 | --- | --- |
 | [`soccer (premier league)/`](<soccer (premier league)/>) | Premier League home/draw/away forecasts: the model (`tabet/`), data, results, the live forecast log, tests, docs and the website (`site/`). Start with its [README](<soccer (premier league)/README.md>). |
 | [`backend/`](backend/) | The API (Express on Vercel, `/api/*`) and its Supabase database, shared by every sport. See its [README](backend/README.md). |
+| [`Football/`](Football/) | NFL pregame Elo forecasts and moneyline backtests. Start with its [README](Football/README.md). |
 
 Shared at the top level:
 
