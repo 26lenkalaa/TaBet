@@ -43,7 +43,9 @@ def test_a_logged_forecast_stays_after_the_match_reaches_the_results_file(tmp_pa
     assert [f["key"] for f in m[0]["forecasts"] if f["kind"] == "logged"] == ["p0", "pE"]
     missed = [e for e in d["matches"] if e["season"] == "2026-27" and e.get("gameweek") == 10
               and e["id"] != "2026-27-20261107-leeds-tottenham"]
-    assert missed and all(e.get("missing") and not e["forecasts"] for e in missed)
+    # missed by the logger: flagged, and shown with the forecast run saved before kickoff (5 Nov), never a logged one
+    assert missed and all(e.get("missing") for e in missed)
+    assert all(e["forecasts"] and {f["kind"] for f in e["forecasts"]} == {"saved"} for e in missed)
 
 
 def test_market_at_our_forecast_time_comes_from_the_same_run_only(tmp_path, monkeypatch):
