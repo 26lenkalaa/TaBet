@@ -22,8 +22,8 @@
 :root {
   --grass-a: #2f8a3f; --grass-b: #2a7f39; --grass-edge: #1f6a2e;
   --chalk: rgba(255, 255, 255, .86); --line: rgba(255, 255, 255, .45);
-  --panel: rgba(9, 38, 18, .80); --panel-hi: rgba(9, 38, 18, .92);
-  --ink: #ffffff; --muted: #cfe6d3; --faint: #9cc4a4;
+  --panel: rgba(8, 32, 16, .90); --panel-hi: rgba(7, 27, 13, .95);
+  --ink: #ffffff; --muted: #d4e8d8; --faint: #b0cdb7;
   --gold: #ffd23f; --red: #ff5a4f;
   --c-h: #7dd1ff; --c-d: #dfe7ee; --c-a: #ffb347;   /* home / draw / away, readable on dark green */
   --px: "Press Start 2P", ui-monospace, monospace;
@@ -66,91 +66,92 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) { .pages a[aria-current="page"]::before { animation: none; } }
 
 
-/* ---- the pitch ---- */
-.pitch { position: relative; max-width: 1440px; margin: 6px auto 0; padding: 0 20px; }
-.field { position: relative; aspect-ratio: 105 / 68; min-height: 560px; }
+/* ---- the pitch: next match on top, then every fixture in kick-off order (the pitch is background) ---- */
+.pitch { position: relative; max-width: 1360px; margin: 6px auto 0; padding: 0 20px; }
+.field { position: relative; border: 3px solid var(--chalk); padding: 28px; overflow: hidden; }
 .lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .lines * { fill: none; stroke: var(--line); stroke-width: 3; vector-effect: non-scaling-stroke; }
 .lines .spot { fill: var(--line); stroke: none; }
 .lines .net { stroke: rgba(255,255,255,.35); stroke-width: 1; }
-.halves { position: absolute; inset: 6% 5%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 23%) minmax(0, 1fr); gap: 5%; align-items: center; }
-.half { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px 20px; align-content: center; }
-/* an odd last card sits centred in its own row, so each half stays symmetrical (2 + 2 + 1) */
-.half > .chip:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
-.centre { display: flex; flex-direction: column; align-items: center; gap: 14px; position: relative; }
-/* the next-match panel sits exactly on the centre spot; the KICK! ball hangs below it without shifting it */
-.centre .kick { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); }
+.board { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 22px; }
 
-/* match cards */
-.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 12px 14px 13px;
+/* next match: a wide panel with TaBet and the market side by side */
+.next { background: var(--panel-hi); border: 2px solid var(--chalk); padding: 20px 22px; box-shadow: 6px 6px 0 rgba(0,0,0,.3);
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 10px 32px; align-items: center; }
+.next .lab { font-family: var(--px); font-size: 10px; color: var(--gold); }
+.next h2 { font-size: 26px; font-weight: 800; line-height: 1.15; margin: 10px 0 6px; letter-spacing: -.01em; }
+.next .k { font-size: 15px; color: var(--muted); }
+.next .count { font-size: 16px; font-weight: 700; color: var(--gold); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.next .fscore { font-family: var(--px); font-size: 26px; color: var(--gold); margin: 8px 0 2px; text-shadow: 0 0 10px rgba(255,210,63,.45); }
+.cmp { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.cmp th, .cmp td { padding: 7px 8px; text-align: right; font-size: 16px; }
+.cmp th { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmp th:first-child, .cmp td:first-child { text-align: left; color: var(--muted); font-size: 14px; font-weight: 600; }
+.cmp td { font-weight: 800; font-size: 22px; }
+.cmp tr.mkt td { font-weight: 600; font-size: 18px; color: #e8f2ea; }
+.cmp tr.gap td { font-size: 15px; font-weight: 700; color: var(--muted); border-top: 1px solid rgba(255,255,255,.18); }
+.cmp tr.gap td.big { color: var(--gold); }
+.cmp .h { color: var(--c-h); } .cmp .d { color: var(--c-d); } .cmp .a { color: var(--c-a); }
+.next .take { font-size: 15px; margin: 8px 0 0; color: var(--ink); }
+.next .take b { color: var(--gold); }
+.next .src { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.next a.go { justify-self: start; display: inline-block; font-family: var(--px); font-size: 10px; background: var(--gold); color: #1c1600; padding: 10px 12px; text-decoration: none; box-shadow: 3px 3px 0 #000; margin-top: 10px; }
+.next .none { font-size: 16px; color: var(--muted); }
+
+.tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tools .lab { font-size: 13px; font-weight: 800; letter-spacing: .06em; color: var(--ink); text-shadow: 1px 1px 0 #0b2c14; }
+.kick { font-family: var(--px); font-size: 10px; color: var(--ink); background: var(--panel-hi); border: 2px solid var(--chalk); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 10px; padding: 7px 12px 7px 8px; box-shadow: 3px 3px 0 rgba(0,0,0,.3); }
+.kick svg { width: 24px; height: 24px; }
+.kick:hover svg { animation: bounce .5s steps(4) infinite alternate; }
+@keyframes bounce { to { transform: translateY(-4px); } }
+.flyer { position: fixed; width: 30px; height: 30px; z-index: 50; pointer-events: none; }
+
+/* fixture cards, in kick-off order */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+.chip { display: block; text-decoration: none; background: var(--panel); border: 2px solid var(--chalk); padding: 14px 16px 15px;
   box-shadow: 4px 4px 0 rgba(0,0,0,.28); transition: transform .15s, box-shadow .15s, background .15s; position: relative; }
 .chip:hover, .chip:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,.3); background: var(--panel-hi); }
 .chip.spot-on { animation: spot 1.2s steps(2) 3; border-color: var(--gold); }
 .chip.sel { border-color: var(--gold); background: var(--panel-hi); }
 @keyframes spot { 50% { box-shadow: 0 0 0 6px var(--gold); } }
-.chip .when { font-family: var(--px); font-size: 8px; color: var(--faint); display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 17px; }
-.chip .tm { font-family: var(--px); font-size: 15px; margin: 12px 0 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
-.chip .vs { font-size: 9px; color: var(--faint); }
-.chip .fav { display: block; font-family: var(--px); font-size: 8px; color: var(--muted); margin-top: 9px; }
-.bar.mkt { height: 4px; margin: 3px 0 0; opacity: .6; }
-.next .k { font-size: 9px; color: var(--muted); margin-top: 10px; }
-.soon2 { font-size: 10px; color: var(--faint); margin: 16px 0 12px; }
-.bar.none { background: #0b2c14; }
-.bar.mkonly { opacity: .75; }
-.chip .fav.dim { color: var(--faint); }
-.next .fscore { font-family: var(--px); font-size: 22px; color: var(--gold); margin: 12px 0 4px; text-shadow: 0 0 10px rgba(255,210,63,.45); }
-.next .bar { margin: 4px 0 0; } .next .bar.mkt { margin: 3px 0 0; }
+.chip .when { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 22px; }
+.chip .tm { font-size: 22px; font-weight: 800; letter-spacing: .01em; margin: 8px 0 0; display: flex; align-items: baseline; gap: 10px; }
+.chip .tm .vs { font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip .tm .sc { color: var(--gold); }
-.bar { display: flex; height: 9px; margin: 8px 0 5px; background: #0b2c14; }
+.chip .full { display: block; font-size: 13px; color: var(--muted); margin: 2px 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 7px; }
+.row .lbl { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.row .val { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; min-width: 70px; }
+.row.mkt .val { font-weight: 600; color: #e8f2ea; }
+.row .na { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; }
+.bar { display: flex; height: 10px; background: #0b2c14; }
+.row.mkt .bar { height: 6px; opacity: .85; }
 .bar i { display: block; height: 100%; }
 .bar .h { background: var(--c-h); } .bar .d { background: var(--c-d); } .bar .a { background: var(--c-a); }
-/* a match with no forecast yet: an empty bar and a short pixel label instead of a sentence */
-.bar.tbd { background: repeating-linear-gradient(90deg, #0b2c14 0 6px, rgba(255,255,255,.12) 6px 12px); }
-.soon { display: block; font-family: var(--px); font-size: 8px; color: var(--faint); margin-top: 6px; }
-.badge { font-family: var(--px); font-size: 8px; padding: 3px 4px; background: #0b2c14; }
-.badge.ok { color: #7dff9c; } .badge.no { color: var(--red); } .badge.tbc { color: var(--gold); }
-
-/* centre circle: next match */
-.next { width: 100%; background: var(--panel-hi); border: 3px solid var(--chalk); padding: 14px; text-align: center; box-shadow: 6px 6px 0 rgba(0,0,0,.3); }
-.next .lab { font-size: 9px; color: var(--gold); }
-.next h2 { font-size: 17px; margin: 10px 0 2px; line-height: 1.25; }
-.next .k { font-size: 13px; color: var(--muted); }
-.next .count { font-family: var(--px); font-size: 10px; line-height: 1.8; margin: 12px 0; color: var(--gold); }
-.next .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0 6px; }
-.next .three div { background: #0b2c14; padding: 8px 2px; }
-.next .three b { display: block; font-family: var(--px); font-size: 14px; margin-top: 6px; }
-.next .three .h b { color: var(--c-h); } .next .three .d b { color: var(--c-d); } .next .three .a b { color: var(--c-a); }
-.next .three small { font-size: 12px; color: var(--muted); }
-.next a.go { margin-top: 18px; display: inline-block; font-family: var(--px); font-size: 9px; background: var(--gold); color: #1c1600; padding: 9px 10px; text-decoration: none; box-shadow: 3px 3px 0 #000; }
-.kick { font-family: var(--px); font-size: 9px; color: var(--ink); background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; }
-.kick svg { width: 34px; height: 34px; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
-.kick:hover svg { animation: bounce .5s steps(4) infinite alternate; }
-@keyframes bounce { to { transform: translateY(-6px); } }
-.flyer { position: fixed; width: 30px; height: 30px; z-index: 50; pointer-events: none; }
-.empty { grid-column: 1 / -1; text-align: center; background: var(--panel); border: 2px dashed var(--chalk); padding: 18px; font-size: 14px; }
-.key { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 8px; color: var(--muted); padding: 18px 20px 4px; }
-.key i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
-footer { max-width: 1440px; margin: 0 auto; padding: 8px 20px 28px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+.bar.tbd { background: repeating-linear-gradient(90deg, #0b2c14 0 6px, rgba(255,255,255,.14) 6px 12px); }
+.chip .diff { font-size: 13px; color: var(--muted); margin-top: 9px; }
+.chip .diff b { color: var(--ink); }
+.badge { font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 2px 6px; background: #0b2c14; }
+.badge.ok { color: #7dff9c; } .badge.no { color: #ff8a80; } .badge.tbc { color: var(--gold); }
+.empty { grid-column: 1 / -1; text-align: center; background: var(--panel); border: 2px dashed var(--chalk); padding: 18px; font-size: 15px; }
+.key { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: var(--ink); padding: 16px 20px 4px; text-shadow: 1px 1px 0 #0b2c14; }
+.key i { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; }
+footer { max-width: 1360px; margin: 0 auto; padding: 8px 20px 28px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 14px; color: var(--ink); text-shadow: 1px 1px 0 #0b2c14; }
 footer button { font-family: var(--px); font-size: 9px; background: var(--panel-hi); color: var(--gold); border: 2px solid var(--chalk); padding: 8px 10px; cursor: pointer; }
 
-/* phones and narrow windows: one column, portrait markings */
 @media (max-width: 1200px) {
   .hud { flex-wrap: wrap; }
   .title { order: 3; flex-basis: 100%; }
   .title h1 { font-size: 16px; }
-  .field { aspect-ratio: auto; min-height: 0; padding: 26px 16px; border: 3px solid var(--chalk); }
-  .lines { display: none; }
-  .halves { position: relative; z-index: 1; inset: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
-  .half { display: contents; }
-  .half > .chip:last-child:nth-child(odd) { grid-column: auto; width: auto; justify-self: stretch; }
-  .centre { order: -1; grid-column: 1 / -1; width: 100%; }
-  .centre .kick { position: static; transform: none; }
-  .field::before { content: ""; position: absolute; left: 50%; top: 26px; width: 150px; height: 150px; margin-left: -75px; border: 3px solid var(--chalk); border-radius: 50%; pointer-events: none; }
 }
+@media (max-width: 860px) { .next { grid-template-columns: 1fr; } .field { padding: 18px 14px; } }
 @media (max-width: 560px) {
-  .halves { grid-template-columns: minmax(0, 1fr); }
   .pitch { padding: 0 10px; }
   .gw span { min-width: 5em; }
+  .grid { grid-template-columns: 1fr; }
+  .cmp td { font-size: 18px; } .cmp tr.mkt td { font-size: 15px; }
+  .next h2 { font-size: 21px; }
 }
 
 /* ---- arcade intro ---- */
@@ -165,12 +166,14 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 .intro .big { position: absolute; top: 34%; left: 0; right: 0; text-align: center; font-size: clamp(28px, 9vw, 96px); }
 .intro .msg { position: absolute; bottom: 9%; left: 0; right: 0; text-align: center; font-size: clamp(9px, 1.5vw, 16px); }
 .blink { animation: blink 1s steps(1) infinite; }
+.intro .skip { position: absolute; right: 20px; bottom: 20px; z-index: 2; font-family: var(--px); font-size: 14px; color: #1c1600; background: var(--gold);
+  border: 0; padding: 14px 18px; box-shadow: 4px 4px 0 #000; cursor: pointer; }
 @keyframes blink { 50% { opacity: 0; } }
 .goal { animation: goalc .24s steps(1) infinite; }
 @keyframes goalc { 0% { color: var(--gold); } 33% { color: var(--red); } 66% { color: #7dd1ff; } }
 @media (prefers-reduced-motion: reduce) {
 }
-/* the TAMID badge is the clickable logo: on the pitch it opens the notebook, elsewhere it returns to the pitch */
+/* the TAMID badge is the clickable logo: it always goes to the pitch (home) */
 .logo { display: block; flex: none; line-height: 0; }
 .logo img { width: 48px; height: 48px; display: block; box-shadow: 4px 4px 0 rgba(0,0,0,.35); transition: transform .1s, box-shadow .1s; }
 .logo:hover img, .logo:focus-visible img { animation: hop .6s steps(6) infinite; }
@@ -187,15 +190,16 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 <div class="intro" id="intro" hidden aria-hidden="true">
   <canvas id="arcade" width="192" height="108"></canvas>
   <div class="crt"></div>
+  <button class="skip" id="skip" type="button">SKIP ▶</button>
   <div class="ovl">
     <div class="top"><span><span class="r">1UP</span> <span id="sc1">TABET 0</span></span><span>HI-SCORE <span class="r">MARKET</span></span><span><span class="r">2UP</span> <span id="sc2">0</span></span></div>
     <div class="big" id="big"></div>
-    <div class="msg"><span id="msg" class="blink">INSERT COIN</span><br><br><span style="opacity:.7">PRESS ANY KEY TO SKIP</span></div>
+    <div class="msg"><span id="msg" class="blink">INSERT COIN</span></div>
   </div>
 </div>
 
 <header class="hud">
-  <a class="logo" href="notebook" aria-label="Open the model notebook" title="Model notebook"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <a class="logo" href="./" aria-label="TaBet home" title="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
   <div class="title">
     <h1>TABET</h1>
     <p>Our forecasts against the betting market. Pick a match.</p>
@@ -212,7 +216,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 
 <main class="pitch">
   <div class="field">
-    <svg class="lines" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <svg class="lines" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <rect x="20" y="20" width="1010" height="640"/>
       <line x1="525" y1="20" x2="525" y2="660"/>
       <circle cx="525" cy="340" r="91.5"/><circle class="spot" cx="525" cy="340" r="4"/>
@@ -222,26 +226,24 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
       <path d="M185 266.9 A91.5 91.5 0 0 1 185 413.1"/><path d="M865 266.9 A91.5 91.5 0 0 0 865 413.1"/>
       <path d="M20 30 A10 10 0 0 0 30 20"/><path d="M1020 20 A10 10 0 0 0 1030 30"/>
       <path d="M30 660 A10 10 0 0 0 20 650"/><path d="M1030 650 A10 10 0 0 0 1020 660"/>
-      <rect x="6" y="303.4" width="14" height="73.2"/><rect x="1030" y="303.4" width="14" height="73.2"/>
-      <path class="net" d="M6 315H20M6 328H20M6 340H20M6 352H20M6 365H20M1030 315H1044M1030 328H1044M1030 340H1044M1030 352H1044M1030 365H1044"/>
     </svg>
-    <div class="halves">
-      <div class="half" id="left"></div>
-      <div class="centre">
-        <div class="next" id="feature"><span class="lab px">LOADING…</span></div>
-        <button class="kick" id="kick" type="button" aria-label="Kick the ball to a random match">
+    <div class="board">
+      <section class="next" id="feature" aria-live="polite"><span class="lab">LOADING…</span></section>
+      <div class="tools">
+        <span class="lab" id="gwinfo"></span>
+        <button class="kick" id="kick" type="button">
           <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#12233a" stroke-width="1.5"/><path d="M16 9.5l5.6 4.1-2.1 6.6h-7l-2.1-6.6z" fill="#12233a"/><path d="M16 9.5V2.6M21.6 13.6l6.5-2.1M19.5 20.2l4 5.6M12.5 20.2l-4 5.6M10.4 13.6l-6.5-2.1" stroke="#12233a" stroke-width="1.5" fill="none"/></svg>
-          <span>KICK!</span>
+          <span>RANDOM MATCH</span>
         </button>
       </div>
-      <div class="half" id="right"></div>
+      <div class="grid" id="grid"></div>
     </div>
   </div>
-  <div class="key px"><span><i style="background:var(--c-h)"></i>HOME</span><span><i style="background:var(--c-d)"></i>DRAW</span><span><i style="background:var(--c-a)"></i>AWAY</span><span>THICK BAR: TABET</span><span>THIN BAR: MARKET</span><span>MKT: ODDS ONLY</span></div>
+  <div class="key"><span><i style="background:var(--c-h)"></i>Home win</span><span><i style="background:var(--c-d)"></i>Draw</span><span><i style="background:var(--c-a)"></i>Away win</span><span>Gaps are in percentage points, TaBet minus market. Percentages are rounded, so a row can add up to 99–101%.</span></div>
 </main>
 
 <footer>
-  <span>A student project. Not betting advice. Click the ball (top left) for how the models work.</span>
+  <span>A student project. Not betting advice. Times are UK time.</span>
   <button id="replay" type="button">REPLAY INTRO</button>
 </footer>
 
@@ -306,7 +308,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
   }
   function frame(now) {
     if (!t0) t0 = now;
-    var t = Math.floor((now - t0) / 1000 * 12) / 12 * 1.6;   /* 12 fps like the old cabinets; whole intro about 2.6 s */
+    var t = Math.floor((now - t0) / 1000 * 12) / 12 * 2.1;   /* 12 fps like the old cabinets; whole intro about 2 s */
     ctx.clearRect(0, 0, W, H);
     if (t < 0.9) { px(0, 0, W, H, "#000"); big.textContent = "TABET"; big.className = "big"; msg.textContent = "INSERT COIN"; }
     else {
@@ -335,7 +337,7 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     cancelAnimationFrame(raf);
     intro.hidden = true;
     document.removeEventListener("keydown", finish);
-    try { sessionStorage.setItem("tabet-intro", "1"); } catch (e) {}
+    try { sessionStorage.setItem("tabet-intro", "1"); localStorage.setItem("tabet-intro-seen", "1"); } catch (e) {}
     document.querySelector(".logo").focus({ preventScroll: true });
   }
   function play() {
@@ -344,10 +346,11 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     document.addEventListener("keydown", finish);
     raf = requestAnimationFrame(frame);
   }
-  intro.addEventListener("click", finish);
+  intro.addEventListener("click", finish);   /* tap anywhere, or the SKIP button */
   document.getElementById("replay").addEventListener("click", function () { play(); });
   var seen = false, internal = false;
-  try { seen = sessionStorage.getItem("tabet-intro") === "1"; } catch (e) {}
+  /* first visit only: after that the forecasts come straight up (REPLAY INTRO in the footer replays it) */
+  try { seen = sessionStorage.getItem("tabet-intro") === "1" || localStorage.getItem("tabet-intro-seen") === "1"; } catch (e) {}
   /* the intro greets visitors arriving from outside; coming back from the notebook or the explorer goes straight to the pitch */
   try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
   if (!seen && !reduce && !internal) {
@@ -356,56 +359,73 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
 
   /* ================= the pitch ================= */
   var DATA = null, gws = [], gi = 0, cards = [];
-  var left = document.getElementById("left"), right = document.getElementById("right"), feat = document.getElementById("feature");
+  var grid = document.getElementById("grid"), feat = document.getElementById("feature"), gwinfo = document.getElementById("gwinfo");
   var gwlab = document.getElementById("gwlab"), prev = document.getElementById("prev"), next = document.getElementById("next");
+  var LBL = function (m) { return [code(m.home), "Draw", code(m.away)]; };
 
-  function slot(iso) {   /* "SAT 12:30" */
+  function slot(iso) {   /* "Sat 21 Nov · 12:30" in UK time */
     var d = new Date(iso);
-    return (d.toLocaleString("en-GB", { weekday: "short", timeZone: "Europe/London" }) + " " +
-      d.toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })).toUpperCase();
+    return d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" }) + " · " +
+      d.toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
   }
-  function bars(p, mk, upcoming) {
-    function b(q, cls) {
-      return '<span class="bar' + cls + '" aria-hidden="true"><i class="h" style="width:' + q[0] * 100 + '%"></i><i class="d" style="width:' +
-        q[1] * 100 + '%"></i><i class="a" style="width:' + q[2] * 100 + '%"></i></span>';
-    }
-    /* no forecast: dashed "coming" bar for a future match, a plain empty bar for one the logger missed */
-    if (!p && mk) return b(mk.p, " mkonly");   // no TaBet forecast: the odds become the main bar
-    return (p ? b(p, "") : '<span class="bar ' + (upcoming ? "tbd" : "none") + '" aria-hidden="true"></span>') + (mk ? b(mk.p, " mkt") : "");
+  function bar(q, cls) {
+    if (!q) return '<span class="bar ' + (cls || "") + '" aria-hidden="true"></span>';
+    return '<span class="bar" aria-hidden="true"><i class="h" style="width:' + q[0] * 100 + '%"></i><i class="d" style="width:' +
+      q[1] * 100 + '%"></i><i class="a" style="width:' + q[2] * 100 + '%"></i></span>';
   }
+  function gap(a, b) { return Math.round(a * 100) - Math.round(b * 100); }   /* from the rounded numbers shown */
+  function pts(v) { return (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v); }
+  function ptsWord(v) { return pts(v) + (Math.abs(v) === 1 ? " pt" : " pts"); }
+  function argmax(q) { return q.indexOf(Math.max.apply(null, q)); }
+
   function chip(m) {
     var f = T.primary(m), mk = T.market(m), p = f ? f.p : null, played = m.status === "played";
-    var y = played ? OUT[m.result] : -1, tag = "";
-    if (played && p) tag = p.indexOf(Math.max.apply(null, p)) === y ? '<span class="badge ok">HIT</span>' : '<span class="badge no">MISS</span>';
+    var y = played ? OUT[m.result] : -1, tag = "", L = LBL(m);
+    if (played && p) tag = argmax(p) === y ? '<span class="badge ok">HIT</span>' : '<span class="badge no">MISS</span>';
     else if (m.status === "awaiting") tag = '<span class="badge tbc">LIVE</span>';
     var mid = played ? '<span class="sc">' + T.esc(m.score.replace("-", "–")) + "</span>" : '<span class="vs">v</span>';
-    function favOf(q) { return [code(m.home), "DRAW", code(m.away)][q.indexOf(Math.max.apply(null, q))] + " " + T.pct(Math.max.apply(null, q)); }
-    var fav = p ? favOf(p) : (mk ? "MKT · " + favOf(mk.p) : (m.status === "upcoming" ? "FORECAST SOON" : "NOT LOGGED"));
-    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '" title="' +
-      T.esc(m.home + " v " + m.away + (p ? " · TaBet " + p.map(T.pct).join(" / ") : "") + (mk ? " · market " + mk.p.map(T.pct).join(" / ") : "")) + '">' +
+    var i = p ? argmax(p) : (mk ? argmax(mk.p) : 0), name = i === 1 ? "Draw" : L[i] + " win";
+    var tab = p ? bar(p) + '<span class="val">' + T.pct(p[i]) + "</span>"
+                : bar(null, m.status === "upcoming" ? "tbd" : "") + '<span class="na">' + (m.status === "upcoming" ? "Forecast soon" : "Not logged") + "</span>";
+    var mkt = mk ? bar(mk.p) + '<span class="val">' + T.pct(mk.p[i]) + "</span>" : bar(null) + '<span class="na">No odds yet</span>';
+    var diff = p && mk ? '<div class="diff">' + name + ": <b>" + ptsWord(gap(p[i], mk.p[i])) + "</b> vs market</div>"
+             : (mk ? '<div class="diff">' + name + " is the market favourite</div>" : '<div class="diff">&nbsp;</div>');
+    return '<a class="chip" href="matches#' + encodeURIComponent(m.id) + '" data-id="' + T.esc(m.id) + '">' +
       '<span class="when">' + slot(m.kickoff) + tag + "</span>" +
       '<span class="tm">' + code(m.home) + mid + code(m.away) + "</span>" +
-      bars(p, mk, m.status === "upcoming") + '<span class="fav' + (p || mk ? "" : " dim") + '">' + fav + "</span></a>";
+      '<span class="full">' + T.esc(m.home + " v " + m.away) + "</span>" +
+      '<div class="row"><span class="lbl">TaBet</span>' + tab + "</div>" +
+      '<div class="row mkt"><span class="lbl">Market</span>' + mkt + "</div>" + diff + "</a>";
   }
 
   function feature(m, label) {
-    if (!m) { feat.innerHTML = '<span class="lab px">NO MATCHES</span>'; return; }
-    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null;
-    var kick = new Date(m.kickoff).getTime();
-    feat.dataset.kick = m.status === "upcoming" ? kick : "";
-    var three = p ? '<div class="three">' + [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
-      return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(p[r[2]]) + "</b></div>";
-    }).join("") + "</div>" + bars(p, mk) : mk ? '<div class="soon2 px">MARKET ODDS</div><div class="three">' +
-      [["h", code(m.home), 0], ["d", "DRAW", 1], ["a", code(m.away), 2]].map(function (r) {
-        return '<div class="' + r[0] + '"><small>' + T.esc(r[1]) + "</small><b>" + T.pct(mk.p[r[2]]) + "</b></div>";
-      }).join("") + "</div>" + bars(null, mk) :
-      '<div class="soon2 px">' + (m.status === "upcoming" ? "FORECAST SOON" : "NO FORECAST LOGGED") + "</div>" + bars(null, null, m.status === "upcoming");
-    feat.innerHTML = '<span class="lab px">' + label + "</span>" +
+    if (!m) { feat.innerHTML = '<span class="lab">NO MATCHES</span>'; return; }
+    var f = T.primary(m), mk = T.market(m), p = f ? f.p : null, L = LBL(m), names = [m.home + " win", "the draw", m.away + " win"];
+    feat.dataset.kick = m.status === "upcoming" ? new Date(m.kickoff).getTime() : "";
+    var left = '<div><span class="lab">' + label + "</span>" +
       "<h2>" + T.esc(m.home) + " v " + T.esc(m.away) + "</h2>" +
       (m.status === "played" ? '<div class="fscore">' + T.esc(m.score.replace("-", "–")) + "</div>" : "") +
-      '<div class="k px">' + slot(m.kickoff) + "</div>" +
-      '<div class="count" id="count"></div>' + three +
-      '<a class="go" href="matches#' + encodeURIComponent(m.id) + '">OPEN MATCH ▶</a>';
+      '<div class="k">' + slot(m.kickoff) + " UK time" + (m.gameweek ? " · Gameweek " + m.gameweek : "") + "</div>" +
+      '<div class="count" id="count"></div>' +
+      '<a class="go" href="matches#' + encodeURIComponent(m.id) + '">OPEN MATCH ▶</a></div>';
+    var right;
+    if (p || mk) {
+      var gaps = p && mk ? [0, 1, 2].map(function (k) { return gap(p[k], mk.p[k]); }) : null;
+      var bigI = gaps ? gaps.map(Math.abs).indexOf(Math.max.apply(null, gaps.map(Math.abs))) : -1;
+      var cls = ["h", "d", "a"];
+      right = '<div><table class="cmp"><thead><tr><th></th>' + L.map(function (x, k) { return '<th class="' + cls[k] + '">' + T.esc(k === 1 ? "Draw" : x + " win") + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        '<tr><td>TaBet</td>' + [0, 1, 2].map(function (k) { return '<td class="' + cls[k] + '">' + (p ? T.pct(p[k]) : "–") + "</td>"; }).join("") + "</tr>" +
+        '<tr class="mkt"><td>Market</td>' + [0, 1, 2].map(function (k) { return "<td>" + (mk ? T.pct(mk.p[k]) : "–") + "</td>"; }).join("") + "</tr>" +
+        (gaps ? '<tr class="gap"><td>Gap (pts)</td>' + gaps.map(function (g, k) { return '<td class="' + (k === bigI ? "big" : "") + '">' + pts(g) + "</td>"; }).join("") + "</tr>" : "") +
+        "</tbody></table>" +
+        (gaps ? (gaps[bigI] === 0 ? '<p class="take">TaBet and the market <b>agree</b> on every outcome.</p>'
+          : '<p class="take">Biggest gap: TaBet rates <b>' + T.esc(names[bigI]) + " " + ptsWord(Math.abs(gaps[bigI])).replace(/^[+±]/, "") + " " +
+          (gaps[bigI] > 0 ? "higher" : "lower") + "</b> than the market.</p>") : "") +
+        '<p class="src">' + (f ? T.esc(f.label) : "No TaBet forecast yet") + (mk ? " · market: " + T.esc(mk.label.toLowerCase()) : " · no odds yet") + "</p></div>";
+    } else {
+      right = '<div class="none">' + (m.status === "upcoming" ? "TaBet's forecast and the odds appear closer to the match." : "No forecast was logged for this match.") + "</div>";
+    }
+    feat.innerHTML = left + right;
     tick();
   }
   function tick() {
@@ -415,33 +435,38 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     var s = Math.max(0, Math.floor((k - Date.now()) / 1000));
     var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), mi = Math.floor(s % 3600 / 60), se = s % 60;
     function two(n) { return (n < 10 ? "0" : "") + n; }
-    el.textContent = s ? "KICK-OFF IN " + (d ? d + "D " : "") + two(h) + ":" + two(mi) + ":" + two(se) : "KICK-OFF!";
+    el.textContent = s ? "Kick-off in " + (d ? d + "d " : "") + two(h) + ":" + two(mi) + ":" + two(se) : "Kick-off!";
   }
   setInterval(tick, 1000);
 
   function render() {
     var g = gws[gi], ms = DATA.filter(function (m) { return m.gameweek === g; }).sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; });
     gwlab.textContent = "GW " + g;
+    gwinfo.textContent = "GAMEWEEK " + g + " · " + ms.length + " MATCHES IN KICK-OFF ORDER";
     prev.disabled = gi === 0; next.disabled = gi === gws.length - 1;
-    var half = Math.ceil(ms.length / 2);
-    left.innerHTML = ms.slice(0, half).map(chip).join("") || '<div class="empty">No matches.</div>';
-    right.innerHTML = ms.slice(half).map(chip).join("");
+    grid.innerHTML = ms.map(chip).join("") || '<div class="empty">No matches.</div>';
     cards = ms;
     var up = ms.filter(function (m) { return m.status !== "played"; });
     feature(up[0] || ms[ms.length - 1], up.length ? "NEXT MATCH" : "LAST MATCH");
     try { sessionStorage.setItem("tabet-gw", String(g)); } catch (e) {}
   }
 
-  function kick() {
+  function select(card, m, label) {
+    document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
+    card.classList.add("sel"); card.setAttribute("aria-current", "true");
+    feature(m, label);
+    var r = feat.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > innerHeight) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }
+  function kick() {   /* "Random match": the ball flies to a random fixture, which then fills the top panel */
     var els = document.querySelectorAll(".chip");
     if (!els.length) return;
-    var i = Math.floor(Math.random() * els.length), target = els[i];
+    var target = els[Math.floor(Math.random() * els.length)];
     var m = cards.filter(function (x) { return x.id === target.dataset.id; })[0];
     function land() {
       document.querySelectorAll(".chip.spot-on").forEach(function (c) { c.classList.remove("spot-on"); });
-      document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
-      void target.offsetWidth; target.classList.add("spot-on", "sel"); target.setAttribute("aria-current", "true");
-      if (m) feature(m, "YOU PICKED");
+      void target.offsetWidth; target.classList.add("spot-on");
+      if (m) select(target, m, "RANDOM PICK");
     }
     if (reduce) return land();
     var from = document.querySelector("#kick svg").getBoundingClientRect(), to = target.getBoundingClientRect();
@@ -450,8 +475,8 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     var x0 = from.left, y0 = from.top, x1 = to.left + to.width / 2 - 15, y1 = to.top + to.height / 2 - 15, st = 0;
     function step(ts) {
       if (!st) st = ts;
-      var q = Math.min((ts - st) / 650, 1), e = 1 - Math.pow(1 - q, 2);
-      var x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(q * Math.PI) * 90;
+      var q = Math.min((ts - st) / 600, 1), e = 1 - Math.pow(1 - q, 2);
+      var x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(q * Math.PI) * 80;
       ball.style.transform = "translate(" + x + "px," + y + "px) rotate(" + q * 720 + "deg)";
       if (q < 1) requestAnimationFrame(step); else { ball.remove(); land(); }
     }
@@ -459,16 +484,12 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     requestAnimationFrame(step);
   }
   document.getElementById("kick").addEventListener("click", kick);
-  document.querySelector(".halves").addEventListener("click", function (e) {
+  grid.addEventListener("click", function (e) {
     var a = e.target.closest(".chip");
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     var m = cards.filter(function (x) { return x.id === a.dataset.id; })[0];
-    if (!m) return;
-    document.querySelectorAll(".chip.sel").forEach(function (c) { c.classList.remove("sel"); c.removeAttribute("aria-current"); });
-    a.classList.add("sel"); a.setAttribute("aria-current", "true");
-    feature(m, "SELECTED");
-    if (window.matchMedia && matchMedia("(max-width: 1200px)").matches) feat.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    if (m) select(a, m, "SELECTED");
   });
   prev.addEventListener("click", function () { if (gi > 0) { gi--; render(); } });
   next.addEventListener("click", function () { if (gi < gws.length - 1) { gi++; render(); } });
@@ -489,8 +510,8 @@ footer button { font-family: var(--px); font-size: 9px; background: var(--panel-
     gi = Math.max(0, gws.indexOf(g));
     render();
   }).catch(function () {
-    left.innerHTML = '<div class="empty">Couldn\'t load the match data. Try refreshing.</div>';
-    feat.innerHTML = '<span class="lab px">NO DATA</span>';
+    grid.innerHTML = '<div class="empty">Couldn\'t load the match data. Try refreshing.</div>';
+    feat.innerHTML = '<span class="lab">NO DATA</span>';
   });
 })();
 </script>

@@ -238,13 +238,30 @@ th { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing
 .facts dt { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 h2 { font-family: var(--sans); font-weight: 800; font-size: 26px; line-height: 1.2; letter-spacing: -.015em; color: var(--ink); text-shadow: none; }
 h3 { font-family: var(--sans); font-weight: 700; font-size: 18px; }
-td.num { font-family: var(--sans); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.5; }
-.gapbar .val { font-family: var(--sans); font-size: 13px; font-variant-numeric: tabular-nums; }
+td.num { font-family: var(--sans); font-size: 15px; font-weight: 700; font-variant-numeric: normal; line-height: 1.5; }
+.gapbar .val { font-family: var(--sans); font-size: 13px; font-variant-numeric: normal; }
 .chev::before { font-family: var(--sans); font-size: 18px; font-weight: 700; }
 .kv dt { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 1.8; }
 .steps li::before { font-family: var(--sans); font-size: 15px; font-weight: 800; box-shadow: none; }
 .rules li strong { font-family: var(--sans); font-size: 15px; font-weight: 700; line-height: 1.4; }
 .rules li, .panel, .acc { border: 1px solid var(--chalk-dim); }
+
+/* design review: lead with findings, separate the live test from the historical evaluation, stronger contrast */
+:root { --muted: #cddcd1; --faint: #a6bcad; --chalk: rgba(220, 255, 230, .22); }
+.findings { margin: 0 0 22px; }
+.findings > h2 { margin: 0 0 12px; }
+.f-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.f { background: var(--panel); border: 1px solid var(--chalk); padding: 18px 18px 16px; display: flex; flex-direction: column; }
+.f b { font-size: 18px; line-height: 1.3; }
+.f p { color: var(--muted); font-size: 15px; margin: 8px 0 12px; flex: 1; }
+.f a { font-weight: 700; font-size: 14px; }
+@media (max-width: 860px) { .f-grid { grid-template-columns: 1fr; } }
+.live { background: var(--panel); border: 1px solid var(--chalk); border-left: 4px solid #7dff9c; padding: 20px 22px; margin: 0 0 28px; }
+.live h2 { margin: 8px 0 8px; } .live p { margin: 0; max-width: 72ch; color: var(--muted); }
+.ctx { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.ctx-live { color: #7dff9c; }
+p.ctx-hist { display: block; color: var(--gold); margin: 6px 0 12px; padding-top: 14px; border-top: 2px dashed var(--chalk); }
+p.ctx-hist { text-transform: none; letter-spacing: .02em; } 
 </style>
 </head>
 <body>
@@ -288,6 +305,23 @@ td.num { font-family: var(--sans); font-size: 14px; font-weight: 600; font-varia
 
 
 <main class="wrap">
+
+  <section class="findings" aria-labelledby="f-title">
+    <h2 id="f-title">Three findings</h2>
+    <div class="f-grid">
+      <div class="f"><b>The market is still better.</b><p>Our best model, V2x, scores 0.9973 on 2024-26 against 0.9893 for the closing odds. Nothing we've tested has closed that gap.</p><a href="#scoreboard">See the scoreboard</a></div>
+      <div class="f"><b>Chance quality and lineups help.</b><p>Adding opponent-adjusted xG beats results alone every season, and knowing the starting XI helps again in recent seasons.</p><a href="#models">How the models work</a></div>
+      <div class="f"><b>When we disagree, the market usually wins.</b><p>Across 1,520 matches, when the picks differ the market is right alone about 45% of the time and TaBet about 28%.</p><a href="#market">See the disagreements</a></div>
+    </div>
+  </section>
+
+  <section class="live" id="live" aria-labelledby="live-title">
+    <span class="ctx ctx-live">LIVE TEST · 2026-27</span>
+    <h2 id="live-title">Forecasts made before the matches</h2>
+    <p>Since gameweek 10, TaBet saves a forecast for every match about a day before kickoff, with the market's prices from the same moment, and never changes it. The question: do predicted lineups make that forecast better? The blend is fixed after gameweek 19, a first read comes after gameweek 29, and the verdict at the end of the season. Every logged forecast is on the <a href="/matches">match pages</a>.</p>
+  </section>
+
+  <p class="ctx ctx-hist">HISTORICAL EVALUATION · past seasons, every forecast made with only information from before each match</p>
 
   <section class="sec" id="scoreboard">
     <div class="sec-head">
