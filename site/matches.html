@@ -201,6 +201,18 @@ tr.group td { font-family: var(--sans); font-size: 12px; font-weight: 700; lette
 details.xi-more summary, details.acc summary { font-family: var(--sans); font-size: 15px; font-weight: 700; }
 .callout { background: var(--deep); }
 @media (max-width: 600px) { .teams .side { font-size: 16px; } .sum .v { font-size: 24px; } }
+
+/* design review: a takeaway above the table, notes on demand, stronger contrast */
+:root { --muted: #cddcd1; --faint: #a6bcad; --chalk: rgba(220, 255, 230, .22); }
+.take { margin: 18px 0 4px; border: 1px solid var(--chalk); background: var(--deep); }
+.tk { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 14px; padding: 10px 14px; border-top: 1px solid rgba(220,255,230,.1); }
+.tk:first-child { border-top: 0; }
+.tk span { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--gold); padding-top: 2px; }
+.tk p { margin: 0; font-size: 15px; } .tk b { color: #fff; }
+@media (max-width: 600px) { .tk { grid-template-columns: 1fr; gap: 2px; } }
+.th3 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.notes-btn { font: inherit; font-size: 13px; font-weight: 700; color: var(--gold); background: none; border: 1px solid var(--chalk); padding: 5px 10px; cursor: pointer; }
+#card:not(.show-notes) .note { display: none; }
 </style>
 </head>
 <body>
@@ -299,6 +311,42 @@ function summary(m, y) {
   return '<div class="sum">' + cells + '</div><p class="sum-src">' + src + "</p>";
 }
 
+/* takeaway: the answers people want before the detailed table */
+function rpct(x) { return Math.round(x * 100); }
+function ptsWord(v) { return (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v) + (Math.abs(v) === 1 ? " pt" : " pts"); }
+function takeaway(m) {
+  var f = T.primary(m), mk = T.market(m), out = [];
+  var names = [m.home + " win", "the draw", m.away + " win"];
+  if (f) {
+    var kind = { logged: "a <b>logged forecast</b>, saved before kickoff and never changed",
+                 saved: "a <b>pre-match forecast</b> from a saved run (the logger missed this match)",
+                 preview: "a <b>preview</b>; it updates until the logged forecast is made 24–32 hours before kickoff",
+                 backtest: "a <b>backtest</b>: computed afterwards, using only information from before the match" }[f.kind] || "a forecast";
+    out.push(["Forecast", "The headline numbers are " + kind + "."]);
+  } else out.push(["Forecast", "TaBet has no forecast for this match yet."]);
+  if (f && mk) {
+    var g = [0, 1, 2].map(function (k) { return rpct(f.p[k]) - rpct(mk.p[k]); });
+    var a = g.map(Math.abs), i = a.indexOf(Math.max.apply(null, a));
+    out.push(["Vs the market", g[i] === 0 ? "TaBet and the market <b>agree</b> on every outcome." :
+      "Biggest gap: <b>" + esc(names[i]) + "</b>, " + rpct(f.p[i]) + "% vs " + rpct(mk.p[i]) + "% (<b>" + ptsWord(g[i]) + "</b>)."]);
+  }
+  var pairs = [["pE", "p0", "Predicted lineups"], ["preview_lineups", "preview", "Predicted lineups"], ["saved_lineups", "saved", "Predicted lineups"], ["V2x", "V1x", "Confirmed lineups"]];
+  for (var j = 0; j < pairs.length; j++) {
+    var w = m.forecasts.find(function (x) { return x.key === pairs[j][0]; }), wo = m.forecasts.find(function (x) { return x.key === pairs[j][1]; });
+    if (!w || !wo) continue;
+    var d = [0, 1, 2].map(function (k) { return rpct(w.p[k]) - rpct(wo.p[k]); }), ad = d.map(Math.abs), k2 = ad.indexOf(Math.max.apply(null, ad));
+    out.push(["Lineups", d[k2] === 0 ? pairs[j][2] + " <b>didn't change</b> the forecast (to the nearest point)." :
+      pairs[j][2] + " moved <b>" + esc(names[k2]) + "</b> from " + rpct(wo.p[k2]) + "% to " + rpct(w.p[k2]) + "% (<b>" + ptsWord(d[k2]) + "</b>)."]);
+    break;
+  }
+  if (m.status === "played" && (f || mk)) {
+    var y = OUT[m.result], what = y === 1 ? "It was a draw" : (y === 0 ? m.home : m.away) + " won";
+    out.push(["Result", esc(what) + " " + esc(m.score.replace("-", "–")) + "." + (f ? " TaBet gave that " + rpct(f.p[y]) + "%" : "") +
+      (mk ? (f ? ", the market " : " The market gave that ") + rpct(mk.p[y]) + "%" : "") + "."]);
+  }
+  return '<div class="take">' + out.map(function (r) { return '<div class="tk"><span>' + r[0] + "</span><p>" + r[1] + "</p></div>"; }).join("") + "</div>";
+}
+
 function render() {
   var m = inSeason().find(function (x) { return x.id === matchEl.value; });
   if (!m) { card.innerHTML = '<p class="empty">No matches for this selection. Pick another team or season.</p>'; return; }
@@ -310,7 +358,7 @@ function render() {
   var body = "";
   if (m.forecasts.length) body += '<tr class="group"><td colspan="' + cols + '">TaBet</td></tr>' + m.forecasts.map(function (f) { return row(f, f.kind, m); }).join("");
   if (m.market.length) body += '<tr class="group"><td colspan="' + cols + '">Betting market</td></tr>' + m.market.map(function (f) { return row(f, "market", m); }).join("");
-  var table = body ? '<h3>Every forecast for this match</h3><div class="panel"><div class="scroll"><table><thead><tr><th>Forecast</th>' + head +
+  var table = body ? '<div class="th3"><h3>Every forecast for this match</h3><button type="button" class="notes-btn" aria-pressed="false">Show details</button></div><div class="panel"><div class="scroll"><table><thead><tr><th>Forecast</th>' + head +
       (played ? '<th class="num wide">Log-loss</th>' : "") + "</tr></thead><tbody>" + body + "</tbody></table></div></div>" +
       '<div class="legend wide"><span><i class="k-h"></i>Home win</span><span><i class="k-d"></i>Draw</span><span><i class="k-a"></i>Away win</span>' +
       (played ? "<span>Highlighted column: what happened</span>" : "") + "</div>" : "";
@@ -322,7 +370,7 @@ function render() {
   var callout = notes.length ? '<div class="callout"><p>' + notes.map(esc).join("</p><p>") + "</p></div>" : "";
   card.innerHTML = '<div class="meta">' + status + "<span>" + esc(when(m.kickoff, "long")) + (m.gameweek ? ", gameweek " + m.gameweek : "") + ". Season " + esc(m.season) + ".</span></div>" +
     '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" +
-    summary(m, y) + '<div id="lineups"></div>' + table + callout;
+    summary(m, y) + takeaway(m) + '<div id="lineups"></div>' + table + callout;
   showLineups(m);
 }
 
@@ -442,6 +490,14 @@ function showLineups(m) {   // kept low-key: nothing is shown while loading, or 
     el.innerHTML = lineupHTML(m, L[m.id]);
   }, function () { el.innerHTML = ""; });
 }
+
+card.addEventListener("click", function (e) {
+  var b = e.target.closest(".notes-btn");
+  if (!b) return;
+  var on = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "Hide details" : "Show details";
+  card.classList.toggle("show-notes", on);
+});
 
 /* only the season being shown is downloaded: a match id starts with its season ("2024-25-…"),
    and "fpl-…" ids are the current season */
