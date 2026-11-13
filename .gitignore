@@ -8,3 +8,5 @@ soccer (premier league)/data/raw/
 *.pkl
 .DS_Store
 .claude/
+basketball/data/raw/
+*.db
