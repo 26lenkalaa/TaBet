@@ -2,13 +2,16 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-10, international break after gameweek 10. Since the last version:
-> - Amendments A6 and A7 add a market benchmark taken at the same moment as each logged forecast,
->   and a daily results refresh (§5.24). Odds stay a benchmark only; nothing about the forecasts
->   or the scored contrasts changed.
-> - The results file now runs through gameweek 10 (100 matches).
-> - The fifth review's two offline tests were both null, clean 2018-21 is closed to new ideas, and
->   A5 adds pBP to the live log (§5.23, from the previous version).
+> Last updated 2026-11-14, international break before gameweek 11. Since the last version:
+> - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first
+>   gameweek-11 record (2026-11-20 from 04:30 UTC).
+> - Logging and odds have run cleanly through the break: 30-minute triggers, 10 of 10 gameweek-11
+>   fixtures already have an odds snapshot, and 486 of 500 Odds API credits are left (§5.10, §5.24).
+> - The website shows the gameweek-10 forecasts that were saved before kickoff but never logged,
+>   labelled "Pre-match" and never scored (§5.25).
+> - Infrastructure only (§5.25): the project moved into its own folder, and a Supabase database plus
+>   a read-only API now serve the website. Git stays the official record.
+> - A new question (§8, item 7): the plan to build a multi-league dataset and a general ML model.
 >
 > Questions for you are in §8.
 
@@ -389,6 +392,14 @@ Written before gameweek 10; amended before any record (A2, A3) and before any ga
   From A6 and A7 (§5.24), each run also refreshes the results file once a day and saves
   bookmaker odds. Whenever a record is logged, the same run takes a market snapshot, so every
   record can be compared with the market at its own cutoff.
+
+  **Update, 14 November.**
+  - **Triggers:** the 30-minute external trigger has kept running through the break. It stopped
+    once, for about 48 minutes on 13 November, when the GitHub repository was renamed and the
+    trigger's URL had to be updated. No logging window was open, and a manual run confirmed the fix.
+  - **No records since gameweek 10:** none were due, so the log still holds one record.
+  - **Next window:** the first gameweek-11 window opens on 2026-11-20 at 04:30 UTC (fallback) and
+    10:30 UTC (primary), for Manchester City v Fulham.
 
 ### 5.11 Pooling four more leagues (La Liga, Serie A, Bundesliga, Ligue 1)
 
@@ -808,6 +819,37 @@ Benchmark only: no model, feature or tuning code may read the odds archive, and 
 - **Website.** Each logged match shows "Market at our forecast time", but only if the snapshot is
   within 1 hour of the cutoff. Upcoming matches show the latest odds. Before a record exists, the
   site also shows a preview using predicted lineups, labelled as such and never scored.
+- **Status, 14 November.**
+  - **Snapshots:** The Odds API has been called 6 times since 10 November: the daily snapshot plus
+    test runs. Each call matched all upcoming fixtures, and 486 of 500 monthly credits are left.
+  - **Coverage:** all 10 gameweek-11 fixtures already have a snapshot.
+  - **First real test:** the first snapshot taken at a record's cutoff will be at the first
+    gameweek-11 record.
+
+### 5.25 Infrastructure since the last version (no effect on forecasts)
+
+None of this touches the model, the forecast code, the log or the scored contrasts.
+
+- **Gameweek-10 "Pre-match" forecasts on the site.**
+  - For the 9 gameweek-10 fixtures the logger missed (§5.10), the website now shows the forecast a
+    separate forecast run saved before kickoff (`results/forecasts/`), labelled "Pre-match".
+  - These are **not records**: they had no fixed horizon or cutoff rule, so they are never scored or
+    pooled with the log. They are shown only so the gameweek isn't blank.
+- **Repository layout.**
+  - The Premier League project now lives in its own folder, `soccer (premier league)/`, so other
+    sports can sit beside it.
+  - The files moved but their contents didn't: the log and raw snapshots are byte-identical, and the
+    logger's paths were updated.
+- **Database and API.**
+  - A Supabase (Postgres) database now holds a **read copy** of the site data: matches, every
+    forecast, market odds and lineups.
+  - The logger copies the current season in after each push; that step can never block the log.
+  - **Logged forecasts are append-only in the database too:** a trigger blocks updates and deletes,
+    and a sync that disagrees with a stored logged forecast fails as a whole.
+  - A read-only Express API (`/api/…`) serves the website, which falls back to the static files if
+    the API is down.
+  - Git stays the official, auditable record.
+  - The schema has sport and competition tables, so other leagues can be added later (§8, item 7).
 
 ## 6. Known weaknesses and open questions
 
@@ -909,6 +951,28 @@ before then. Please give me:
 6. **What to run next** while the prospective log accumulates (gameweeks 11–19 fit α; 20–38
    evaluate): at most two experiments, each with the simpler alternative it must beat and the data
    it would be scored on.
+7. **A multi-league dataset and a general model (new).** I would like to build a much larger
+   dataset from football-data's other leagues: about 20 leagues back to the 1990s, roughly
+   150–200k matches, with results, shots, shots on target, corners and cards, but no xG or lineups
+   for most of them. I'd then train a general ML model of a "typical" football match on it.
+
+   Our own evidence so far:
+   - Pooling five leagues did not improve Premier League forecasts once a few PL seasons existed
+     (§5.11).
+   - Bivariate Poisson on four leagues was null (§5.23).
+   - Those were models with only 2–4 shared parameters.
+
+   Please give me:
+   - (a) whether a richer model, such as gradient boosting or a hierarchical model with league
+     effects, is where extra leagues could actually pay off, and for which subgroups (promoted
+     teams, early season, §5.21);
+   - (b) a leakage-safe design for the cross-league dataset: point-in-time features, team identity
+     across promotion and relegation, and league-strength differences;
+   - (c) one pre-registered first test, with the baseline it must beat (Dixon-Coles per league, and
+     V1x for the Premier League) and the seasons and leagues it would be scored on, so it doesn't
+     eat into the Premier League test data (§6.8).
+
+   Odds stay out of the inputs, even though football-data provides them for every league.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices
