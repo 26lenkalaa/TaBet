@@ -60,6 +60,18 @@ export const supabaseRepo = {
     const row = check(await db().from("lineups").select("data").eq("match_id", id).maybeSingle());
     return row?.data ?? null;
   },
+  // [{id, source_id, lineup}] for every match in the season that has one
+  async lineups(competition, season) {
+    const rows = check(
+      await db()
+        .from("lineups")
+        .select("match_id, data, matches!inner(source_id, competition_id, season)")
+        .eq("matches.competition_id", competition)
+        .eq("matches.season", season)
+        .order("match_id"),
+    );
+    return rows.map((r) => ({ id: r.match_id, source_id: r.matches.source_id, lineup: r.data }));
+  },
   async lastSync() {
     const rows = check(
       await db().from("sync_runs").select("competition_id, season, source_built_at, ran_at").order("ran_at", { ascending: false }).limit(1),

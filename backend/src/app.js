@@ -75,6 +75,7 @@ export function createApp({ repo, log = console }) {
         "GET /api/competitions",
         "GET /api/competitions/:competition/seasons",
         "GET /api/competitions/:competition/seasons/:season/matches?gameweek=&status=",
+        "GET /api/competitions/:competition/seasons/:season/lineups",
         "GET /api/matches/:id",
       ],
     });
@@ -100,8 +101,9 @@ export function createApp({ repo, log = console }) {
     const { competition } = req.params;
     if (!SLUG.test(competition)) throw bad("competition must be a lowercase slug, e.g. premier-league");
     if (!(await repo.competition(competition))) throw notFound(`unknown competition ${competition}`);
+    const [seasons, last] = await Promise.all([repo.seasons(competition), repo.lastSync()]);
     cached(res);
-    res.json({ data: await repo.seasons(competition) });
+    res.json({ meta: { built_at: last?.source_built_at ?? null, synced_at: last?.ran_at ?? null }, data: seasons });
   }));
 
   api.get("/competitions/:competition/seasons/:season/matches", wrap(async (req, res) => {
@@ -122,6 +124,16 @@ export function createApp({ repo, log = console }) {
     const rows = await repo.matches(competition, season, filters);
     cached(res);
     res.json({ competition, season, count: rows.length, data: rows.map((r) => toMatch(r)) });
+  }));
+
+  api.get("/competitions/:competition/seasons/:season/lineups", wrap(async (req, res) => {
+    const { competition, season } = req.params;
+    if (!SLUG.test(competition)) throw bad("competition must be a lowercase slug, e.g. premier-league");
+    if (!SEASON.test(season)) throw bad("season must look like 2026-27");
+    if (!(await repo.competition(competition))) throw notFound(`unknown competition ${competition}`);
+    const rows = await repo.lineups(competition, season);
+    cached(res, 300);
+    res.json({ competition, season, count: rows.length, data: rows });
   }));
 
   api.get("/matches/:id", wrap(async (req, res) => {

@@ -11,6 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.resolve(here, "..", "..", "soccer (premier league)", "site", "data");
 const readJSON = async (f) => JSON.parse(await readFile(path.join(DATA, f), "utf8"));
 
+const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql"];
 let db;
 let payload;
 
@@ -26,7 +27,7 @@ before(async () => {
     grant usage on schema public to anon, authenticated, service_role;
     alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
     alter default privileges in schema public grant all on functions to anon, authenticated, service_role;`);
-  await db.exec(await readFile(path.join(here, "..", "supabase", "migrations", "0001_init.sql"), "utf8"));
+  for (const f of MIGRATIONS) await db.exec(await readFile(path.join(here, "..", "supabase", "migrations", f), "utf8"));
   const index = await readJSON("index.json");
   const season = index.seasons.at(-1);
   payload = buildPayload({
@@ -37,8 +38,18 @@ before(async () => {
   await sync(payload);
 });
 
-test("the migration can run twice", async () => {
-  await db.exec(await readFile(path.join(here, "..", "supabase", "migrations", "0001_init.sql"), "utf8"));
+test("the migrations can run twice", async () => {
+  for (const f of MIGRATIONS) await db.exec(await readFile(path.join(here, "..", "supabase", "migrations", f), "utf8"));
+});
+
+test("forecasts and odds keep the site's order", async () => {
+  for (const m of payload.matches) {
+    const want = payload.forecasts.filter((f) => f.match_id === m.id).map((f) => f.key);
+    const wantOdds = payload.market.filter((o) => o.match_id === m.id).map((o) => o.key);
+    const row = await one("select forecasts, market from match_cards where id = $1", [m.id]);
+    assert.deepEqual(row.forecasts.map((f) => f.key), want, m.id);
+    assert.deepEqual(row.market.map((o) => o.key), wantOdds, m.id);
+  }
 });
 
 test("a season syncs completely", async () => {
