@@ -21,3 +21,20 @@ jobs:
       - run: python -m pytest -q
       - name: Validate source data
         run: python -m tabet validate
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend   # Express API + Supabase sync, shared by every sport
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - name: Check every season converts for the database
+        run: node scripts/sync-soccer.mjs --dry-run
