@@ -10,3 +10,4 @@ soccer (premier league)/data/raw/
 .claude/
 basketball/data/raw/
 *.db
+node_modules/

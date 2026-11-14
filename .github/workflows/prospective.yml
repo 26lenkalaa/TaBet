@@ -101,7 +101,7 @@ jobs:
         env:
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |
-          npm ci --omit=dev --no-audit --no-fund
+          npm ci --omit=dev --no-audit --no-fund --prefix ..   # npm workspace root
           node scripts/sync-soccer.mjs --latest
       - name: Heartbeat
         if: always()

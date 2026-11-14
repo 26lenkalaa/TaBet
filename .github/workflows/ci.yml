@@ -33,8 +33,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - run: npm ci
+          cache-dependency-path: package-lock.json
+      - run: npm ci   # npm workspace: installs at the repo root
+        working-directory: .
       - run: npm test
       - name: Check every season converts for the database
         run: node scripts/sync-soccer.mjs --dry-run

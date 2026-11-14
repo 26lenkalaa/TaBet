@@ -52,8 +52,8 @@ Errors look like `{"error": {"code": "bad_request", "message": "..."}}`, with st
 ## Local development
 
 ```sh
+npm install          # from the repo root (npm workspace; Vercel bundles root node_modules)
 cd backend
-npm install
 npm test            # 19 tests: API, data conversion, and the SQL in PGlite
 npm run dev         # http://localhost:3001/api (needs .env)
 npm run sync -- --dry-run
