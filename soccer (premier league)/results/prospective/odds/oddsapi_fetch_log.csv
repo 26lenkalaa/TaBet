@@ -4,3 +4,4 @@ retrieved_utc,status,credits_remaining,credits_used,last_cost,n_events,n_upcomin
 2026-11-12T00:50:42+00:00,ok,492,8,2,20,20,0,,results/prospective/odds/raw/20261112T005042Z_oddsapi.json.gz,
 2026-11-13T00:35:42+00:00,ok,490,10,2,20,20,0,,results/prospective/odds/raw/20261113T003542Z_oddsapi.json.gz,
 2026-11-14T00:01:03+00:00,ok,488,12,2,20,20,0,,results/prospective/odds/raw/20261114T000103Z_oddsapi.json.gz,
+2026-11-14T02:21:55+00:00,ok,486,14,2,20,20,0,,results/prospective/odds/raw/20261114T022155Z_oddsapi.json.gz,
