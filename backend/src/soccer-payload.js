@@ -74,13 +74,14 @@ export function buildPayload({ matchesFile, lineupsFile = null, builtAt = null, 
       note: m.missing ?? null,
     });
 
-    for (const f of m.forecasts ?? []) {
+    // `position` keeps the site's row order (e.g. logged before preview, pre-match before closing odds)
+    (m.forecasts ?? []).forEach((f, position) => {
       if (!KINDS.has(f.kind)) throw new Error(`unknown forecast kind ${f.kind} at ${where}`);
-      forecasts.push({ match_id: id, key: f.key, kind: f.kind, label: f.label, note: f.note ?? null, ...probs(f.p, where) });
-    }
-    for (const o of m.market ?? []) {
-      market.push({ match_id: id, key: o.key, label: o.label, note: o.note ?? null, ...probs(o.p, where) });
-    }
+      forecasts.push({ match_id: id, key: f.key, kind: f.kind, label: f.label, note: f.note ?? null, ...probs(f.p, where), position });
+    });
+    (m.market ?? []).forEach((o, position) => {
+      market.push({ match_id: id, key: o.key, label: o.label, note: o.note ?? null, ...probs(o.p, where), position });
+    });
   }
 
   const lineups = [];

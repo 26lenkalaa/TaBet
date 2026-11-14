@@ -19,7 +19,8 @@ const repo = {
   matches: async (c, s, f) => { calls.push(f); return [row]; },
   match: async (id) => (id === row.id ? row : null),
   lineup: async () => ({ actual: {} }),
-  lastSync: async () => ({ season: "2026-27" }),
+  lineups: async () => [{ id: row.id, source_id: row.source_id, lineup: { actual: {} } }],
+  lastSync: async () => ({ season: "2026-27", source_built_at: "2026-11-14T02:22:00+00:00", ran_at: "2026-11-14T02:22:26+00:00" }),
 };
 
 let server;
@@ -97,4 +98,19 @@ test("database failures do not leak details", async () => {
   broken.close();
   assert.equal(res.status, 500);
   assert.doesNotMatch(JSON.stringify(body), /hunter2/);
+});
+
+test("seasons carry when the data was built", async () => {
+  const r = await get("/api/competitions/premier-league/seasons");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.meta.built_at, "2026-11-14T02:22:00+00:00");
+  assert.equal(r.body.data[0].season, "2026-27");
+});
+
+test("a season's lineups come keyed by both ids", async () => {
+  const r = await get("/api/competitions/premier-league/seasons/2026-27/lineups");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.data[0].source_id, row.source_id);
+  assert.match(r.headers.get("cache-control"), /s-maxage=300/);
+  assert.equal((await get("/api/competitions/premier-league/seasons/26-27/lineups")).status, 400);
 });

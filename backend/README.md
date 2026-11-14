@@ -21,8 +21,9 @@ All endpoints are `GET` and return JSON. Data responses are cached at Vercel's e
 | `/api/health` | `status`, and when the database was last synced |
 | `/api/sports` | sports |
 | `/api/competitions` | competitions, e.g. `premier-league` |
-| `/api/competitions/:competition/seasons` | seasons, with match counts |
+| `/api/competitions/:competition/seasons` | seasons, with match counts, plus `meta.built_at` (when the data was built) |
 | `/api/competitions/:competition/seasons/:season/matches?gameweek=&status=` | matches, with forecasts and odds |
+| `/api/competitions/:competition/seasons/:season/lineups` | every starting XI for the season (cached 5 min) |
 | `/api/matches/:id` | one match plus its lineup; ids look like `premier-league:2026-27:arsenal-v-chelsea` |
 
 Errors look like `{"error": {"code": "bad_request", "message": "..."}}`, with status 400, 404, 405, 502 or 503.
@@ -32,6 +33,7 @@ Errors look like `{"error": {"code": "bad_request", "message": "..."}}`, with st
 | Path | What it is |
 |---|---|
 | `supabase/migrations/0001_init.sql` | tables, views, security rules and the sync function |
+| `supabase/migrations/0002_row_order.sql` | keeps forecasts and odds in the site's order |
 | `src/app.js` | the Express app (routes, validation, errors, caching) |
 | `src/repo/supabase.js` | database reads, using the publishable (read-only) key |
 | `src/soccer-payload.js` | turns a season of site data into database rows |
@@ -43,7 +45,7 @@ Errors look like `{"error": {"code": "bad_request", "message": "..."}}`, with st
 ## Setup (one time)
 
 1. **Create the project.** At supabase.com, make a free project and save the database password.
-2. **Create the tables.** In the dashboard, open **SQL Editor → New query**, paste all of `supabase/migrations/0001_init.sql`, and click **Run**.
+2. **Create the tables.** In the dashboard, open **SQL Editor → New query**, paste all of `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_row_order.sql`.
 3. **Find your keys.** Under **Project Settings → API Keys**, note the **Project URL**, the **Publishable key** and a **Secret key**.
 4. **Add GitHub secrets.** In the repo, go to **Settings → Secrets and variables → Actions** and add `SUPABASE_URL` and `SUPABASE_SECRET_KEY`.
 5. **Add Vercel variables.** In the project, go to **Settings → Environment Variables** and add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Then redeploy.
@@ -57,7 +59,12 @@ cd backend
 npm test            # 19 tests: API, data conversion, and the SQL in PGlite
 npm run dev         # http://localhost:3001/api (needs .env)
 npm run sync -- --dry-run
+npm run site        # the whole site + API on http://localhost:3000, like Vercel (API_DOWN=1 tests the fallback)
 ```
+
+## The website
+
+`soccer (premier league)/site/common.js` loads the seasons, matches and lineups from `/api`. If the API errors or takes longer than 4–6 s, the page quietly uses the static files in `site/data/` instead. The logger still builds those files, and they are also what the sync copies from.
 
 ## Adding a sport or league
 
