@@ -44,6 +44,7 @@ jobs:
     env:
       MODE: ${{ inputs.mode || 'log' }}
       GH_TOKEN: ${{ github.token }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}   # empty until Supabase is set up; the sync step then skips
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,6 +82,7 @@ jobs:
         continue-on-error: true   # the site data must never block the forecast log
         run: python -m tabet site-data --if-stale 20
       - name: Commit log
+        id: commit
         if: env.MODE == 'log' || env.MODE == 'score' || env.MODE == 'odds-api'
         run: |
           git config user.name "github-actions[bot]"
@@ -91,6 +93,16 @@ jobs:
           git pull --rebase origin main
           python -m tabet check-log   # refuse to push if any fixture/kickoff now appears twice
           git push origin HEAD:main
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+      - name: Copy the new season data to the database (read copy for the API; never blocks the log)
+        if: steps.commit.outputs.pushed == 'true' && env.SUPABASE_URL != ''
+        continue-on-error: true
+        working-directory: backend
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          npm ci --omit=dev --no-audit --no-fund
+          node scripts/sync-soccer.mjs --latest
       - name: Heartbeat
         if: always()
         run: |
