@@ -1,7 +1,7 @@
 """Predict one NBA game with the Elo model.
 
 Give the home team first, then the away team, as three-letter abbreviations.
-Run it from the repo root (after fetch_games.py and clean.py):
+Run it from the repo root (after fetch_games.py, clean.py and db.py):
 
     python basketball/src/predict.py BOS NYK
     python basketball/src/predict.py BOS NYK --neutral   # no home-court bonus
@@ -18,7 +18,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # the basketball/ folder
 
-from src.clean import OUTPUT_FILE as GAMES_FILE  # noqa: E402
+from src import db  # noqa: E402
 from src.models.elo import Elo, rate_games  # noqa: E402
 
 
@@ -34,10 +34,9 @@ class Prediction:
     neutral: bool
 
 
-def load_games(games_file: Path = GAMES_FILE) -> pd.DataFrame:
-    if not Path(games_file).exists():
-        raise FileNotFoundError(f"{games_file} not found. Run basketball/src/clean.py first.")
-    return pd.read_csv(games_file, dtype={"game_id": str})
+def load_games(db_file: Path = db.DB_FILE) -> pd.DataFrame:
+    """Every game in the database."""
+    return db.read_games(db.connect(db_file, must_exist=True))
 
 
 def team_ids(games: pd.DataFrame) -> dict[str, int]:
@@ -95,11 +94,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("home", help="home team abbreviation, e.g. BOS")
     parser.add_argument("away", help="away team abbreviation, e.g. NYK")
     parser.add_argument("--neutral", action="store_true", help="neutral court: no home-court bonus")
-    parser.add_argument("--games", type=Path, default=GAMES_FILE, help="cleaned games table")
+    parser.add_argument("--db", type=Path, default=db.DB_FILE, help="database file built by db.py")
     args = parser.parse_args(argv)
 
     try:
-        prediction = predict_game(load_games(args.games), args.home, args.away, args.neutral)
+        prediction = predict_game(load_games(args.db), args.home, args.away, args.neutral)
     except (FileNotFoundError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

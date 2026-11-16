@@ -9,7 +9,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # the basketball/ folder
 
-from src import backtest, market  # noqa: E402
+from src import backtest, db, market  # noqa: E402
 from src.models.elo import rate_games  # noqa: E402
 
 BOS, NYK, LAL, GSW = 1, 2, 3, 4
@@ -178,18 +178,16 @@ def test_a_season_with_no_odds_is_left_out(games, odds):
 
 # --- the command line ----------------------------------------------------------
 
-def write(games, odds, tmp_path):
-    games_file, odds_file = tmp_path / "games.csv", tmp_path / "odds.csv"
-    games.to_csv(games_file, index=False)
-    odds.to_csv(odds_file, index=False)
-    return games_file, odds_file
+def make_db(games, odds, tmp_path):
+    db_file = tmp_path / "basketball.db"
+    db.build(db.connect(db_file), games, odds)
+    return db_file
 
 
 def test_main_prints_scores_per_season_for_model_and_market(games, odds, tmp_path, capsys):
-    games_file, odds_file = write(games, odds, tmp_path)
     output = tmp_path / "out" / "summary.csv"
 
-    assert backtest.main(["--games", str(games_file), "--odds", str(odds_file), "--output", str(output)]) == 0
+    assert backtest.main(["--db", str(make_db(games, odds, tmp_path)), "--output", str(output)]) == 0
 
     printed = capsys.readouterr().out
     assert "Warm-up (replayed, not graded): 2018-19" in printed
@@ -202,16 +200,28 @@ def test_main_prints_scores_per_season_for_model_and_market(games, odds, tmp_pat
     assert len(saved) == 5
 
 
-def test_main_explains_missing_files(games, odds, tmp_path, capsys):
-    games_file, odds_file = write(games, odds, tmp_path)
-    assert backtest.main(["--games", str(tmp_path / "none.csv"), "--odds", str(odds_file)]) == 1
-    assert "clean.py" in capsys.readouterr().err
-    assert backtest.main(["--games", str(games_file), "--odds", str(tmp_path / "none.csv")]) == 1
-    assert "fetch_odds.py" in capsys.readouterr().err
+def test_main_grades_the_database_the_same_as_the_tables_it_was_built_from(games, odds, tmp_path):
+    output = tmp_path / "summary.csv"
+    backtest.main(["--db", str(make_db(games, odds, tmp_path)), "--output", str(output)])
+    expected = backtest.summarize(backtest.build_table(games, odds))
+    pd.testing.assert_frame_equal(pd.read_csv(output), expected, check_dtype=False)
+
+
+def test_main_stores_the_predictions_it_graded(games, odds, tmp_path):
+    db_file = make_db(games, odds, tmp_path)
+    backtest.main(["--db", str(db_file), "--output", str(tmp_path / "summary.csv")])
+    stored = db.read_predictions(db.connect(db_file))
+    rated, _ = rate_games(games)
+    assert len(stored) == len(games)
+    assert list(stored["home_win_prob"]) == pytest.approx(list(rated.sort_values("game_id")["home_win_prob"]))
+
+
+def test_main_explains_a_missing_database(tmp_path, capsys):
+    assert backtest.main(["--db", str(tmp_path / "missing.db")]) == 1
+    assert "db.py" in capsys.readouterr().err
 
 
 def test_main_explains_when_nothing_can_be_graded(games, odds, tmp_path, capsys):
-    games_file, odds_file = write(games, odds.iloc[:2], tmp_path)   # odds only for the warm-up season
-    assert backtest.main(["--games", str(games_file), "--odds", str(odds_file),
-                          "--output", str(tmp_path / "summary.csv")]) == 1
+    db_file = make_db(games, odds.iloc[:2], tmp_path)   # odds only for the warm-up season
+    assert backtest.main(["--db", str(db_file), "--output", str(tmp_path / "summary.csv")]) == 1
     assert "no games left to grade" in capsys.readouterr().err

@@ -9,7 +9,9 @@ then the model and the market are scored on the same games:
 The market's win probability comes from the moneylines with the bookmaker's
 margin removed; its margin comes from the closing spread.
 
-Run from the repo root, after clean.py and fetch_odds.py:
+It reads games and odds from the database and stores the model's predictions there.
+
+Run from the repo root, after clean.py, fetch_odds.py and db.py:
 
     python3 basketball/src/backtest.py
 """
@@ -26,11 +28,9 @@ import pandas as pd
 BASKETBALL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASKETBALL_DIR))
 
-from src import market  # noqa: E402
+from src import db, market  # noqa: E402
 from src.models.elo import Elo, rate_games  # noqa: E402
 
-GAMES_FILE = BASKETBALL_DIR / "data" / "processed" / "games.csv"
-ODDS_FILE = BASKETBALL_DIR / "data" / "processed" / "odds.csv"
 SUMMARY_FILE = BASKETBALL_DIR / "data" / "processed" / "backtest_summary.csv"
 
 WARMUP_SEASONS = 1   # every team starts at 1500, so the first season only teaches the ratings
@@ -125,23 +125,25 @@ def describe(summary: pd.DataFrame) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Grade the Elo model against the betting market.")
-    parser.add_argument("--games", type=Path, default=GAMES_FILE, help="cleaned games table")
-    parser.add_argument("--odds", type=Path, default=ODDS_FILE, help="odds table from fetch_odds.py")
+    parser.add_argument("--db", type=Path, default=db.DB_FILE, help="database file built by db.py")
     parser.add_argument("--output", type=Path, default=SUMMARY_FILE, help="where to write the summary")
     parser.add_argument("--warmup-seasons", type=int, default=WARMUP_SEASONS,
                         help=f"seasons replayed but not graded (default {WARMUP_SEASONS})")
     args = parser.parse_args(argv)
 
-    for file, script in ((args.games, "clean.py"), (args.odds, "ingest/fetch_odds.py")):
-        if not file.exists():
-            print(f"Error: {file} not found. Run basketball/src/{script} first.", file=sys.stderr)
-            return 1
-    games = pd.read_csv(args.games, dtype={"game_id": str})
-    odds = pd.read_csv(args.odds, dtype={"game_id": str})
+    try:
+        engine = db.connect(args.db, must_exist=True)
+    except FileNotFoundError as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+    games = db.read_games(engine)
+    odds = db.read_odds(engine)
 
-    summary = summarize(build_table(games, odds), args.warmup_seasons)
+    table = build_table(games, odds)
+    db.save_predictions(engine, table, db.ELO_VERSION)
+    summary = summarize(table, args.warmup_seasons)
     if summary.empty:
-        print("Error: no games left to grade. Check that odds.csv covers the seasons in games.csv.",
+        print("Error: no games left to grade. Check that the odds table covers the seasons in the games table.",
               file=sys.stderr)
         return 1
 
