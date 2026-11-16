@@ -1,3 +1,5 @@
-# Optional: only for the neural-network prototype (tabet/neural.py). The logger and CI do not install this.
+# Optional: only for the neural-network prototype (tabet/neural.py) and addendum G's boosting test.
+# The logger and CI do not install this.
 -r requirements.txt
 torch==2.15.0
+scikit-learn==1.9.1
