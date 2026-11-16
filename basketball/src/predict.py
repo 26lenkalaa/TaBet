@@ -56,9 +56,24 @@ def team_ids(games: pd.DataFrame) -> dict[str, int]:
     return {str(team): int(team_id) for team, team_id in zip(teams["team"], teams["team_id"])}
 
 
+def fit(games: pd.DataFrame, model: str = DEFAULT_MODEL):
+    """Replay every game in `games` and return the model with its final ratings."""
+    if model not in MODELS:
+        raise ValueError(f"Unknown model: {model}. Choose from: {', '.join(MODELS)}")
+    if model == "elo":
+        return elo.rate_games(games)[1]
+    for column in ("home_possessions", "away_possessions"):
+        if column not in games.columns:
+            games = games.assign(**{column: float("nan")})
+    return ratings.rate_games(games)[1]
+
+
 def predict_game(games: pd.DataFrame, home: str, away: str, neutral: bool = False,
-                 model: str = DEFAULT_MODEL) -> Prediction:
-    """Replay every game in `games`, then predict home vs away with the final ratings."""
+                 model: str = DEFAULT_MODEL, fitted=None) -> Prediction:
+    """Predict home vs away with the ratings after the last game in `games`.
+
+    `fitted` is a model already replayed with fit(); without it the games are replayed here.
+    """
     home, away = home.upper(), away.upper()
     ids = team_ids(games)
     unknown = [team for team in (home, away) if team not in ids]
@@ -66,24 +81,15 @@ def predict_game(games: pd.DataFrame, home: str, away: str, neutral: bool = Fals
         raise ValueError(f"Unknown team: {', '.join(unknown)}. Choose from: {', '.join(sorted(ids))}")
     if home == away:
         raise ValueError("Home and away must be different teams.")
-    if model not in MODELS:
-        raise ValueError(f"Unknown model: {model}. Choose from: {', '.join(MODELS)}")
 
-    common = dict(home=home, away=away, model=model, neutral=neutral, last_game_date=str(games["date"].max()))
-    if model == "elo":
-        _, rated = elo.rate_games(games)
-        home_win_prob, predicted_margin = rated.predict(ids[home], ids[away], neutral)
-        return Prediction(home_rating=rated.rating(ids[home]), away_rating=rated.rating(ids[away]),
-                          home_win_prob=home_win_prob, predicted_margin=predicted_margin, **common)
-
-    for column in ("home_possessions", "away_possessions"):
-        if column not in games.columns:
-            games = games.assign(**{column: float("nan")})
-    _, rated = ratings.rate_games(games)
+    rated = fitted if fitted is not None else fit(games, model)
     home_win_prob, predicted_margin = rated.predict(ids[home], ids[away], neutral)
+    common = dict(home=home, away=away, model=model, neutral=neutral, last_game_date=str(games["date"].max()),
+                  home_win_prob=home_win_prob, predicted_margin=predicted_margin)
+    if model == "elo":
+        return Prediction(home_rating=rated.rating(ids[home]), away_rating=rated.rating(ids[away]), **common)
     home_pts, away_pts = rated.predict_score(ids[home], ids[away], neutral)
     return Prediction(home_rating=rated.net_rating(ids[home]), away_rating=rated.net_rating(ids[away]),
-                      home_win_prob=home_win_prob, predicted_margin=predicted_margin,
                       predicted_home_pts=home_pts, predicted_away_pts=away_pts, **common)
 
 

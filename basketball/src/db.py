@@ -26,7 +26,7 @@ BASKETBALL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASKETBALL_DIR))
 
 from src import market  # noqa: E402
-from src.models.elo import rate_games  # noqa: E402
+from src.models import elo, ratings  # noqa: E402
 
 DB_FILE = BASKETBALL_DIR / "data" / "basketball.db"
 GAMES_FILE = BASKETBALL_DIR / "data" / "processed" / "games.csv"
@@ -186,21 +186,23 @@ def save_predictions(engine: Engine, rated: pd.DataFrame, model_version: str) ->
 
 
 def build(engine: Engine, games_csv: pd.DataFrame, odds_csv: pd.DataFrame | None = None) -> None:
-    """Rebuild the whole database: teams, games, team stats, odds and the Elo predictions."""
+    """Rebuild the whole database: teams, games, team stats, odds and both models' predictions."""
     create_tables(engine)
     load_games(engine, games_csv)
     if odds_csv is not None:
         load_odds(engine, odds_csv)
-    rated, _ = rate_games(read_games(engine))
-    save_predictions(engine, rated, ELO_VERSION)
+    played = read_games(engine, possessions=True)
+    save_predictions(engine, elo.rate_games(played)[0], ELO_VERSION)
+    save_predictions(engine, ratings.rate_games(played)[0], EFFICIENCY_VERSION)
 
 
 # --- reading -----------------------------------------------------------------
 
-def read_games(engine: Engine, possessions: bool = False) -> pd.DataFrame:
+def read_games(engine: Engine, possessions: bool = False, date: str | None = None) -> pd.DataFrame:
     """Every game in date order, in the shape the models expect (the same columns clean.py writes).
 
     With possessions=True, home_possessions and away_possessions are added from team_stats.
+    With date="YYYY-MM-DD", only that day's games are returned.
     """
     home, away = teams.alias("home_team"), teams.alias("away_team")
     columns = [
@@ -221,9 +223,14 @@ def read_games(engine: Engine, possessions: bool = False) -> pd.DataFrame:
                   .outerjoin(away_stats, (away_stats.c.game_id == games.c.id)
                              & (away_stats.c.team_id == games.c.away_team_id)))
     query = select(*columns).select_from(source).order_by(games.c.date, games.c.id)
+    if date is not None:
+        query = query.where(games.c.date == date)
     with engine.connect() as connection:
         table = pd.read_sql(query, connection)
     table["is_playoffs"] = table["is_playoffs"].astype(bool)
+    for column in ("home_possessions", "away_possessions"):
+        if column in table.columns:
+            table[column] = pd.to_numeric(table[column], errors="coerce").astype(float)   # empty -> NaN
     return table
 
 

@@ -72,7 +72,7 @@ def test_the_five_tables_have_the_planned_columns(engine):
 
 
 def test_every_row_is_loaded(engine):
-    assert db.row_counts(engine) == {"teams": 3, "games": 4, "odds": 3, "team_stats": 8, "predictions": 4}
+    assert db.row_counts(engine) == {"teams": 3, "games": 4, "odds": 3, "team_stats": 8, "predictions": 8}
 
 
 def test_teams_get_their_full_names(games):
@@ -102,6 +102,16 @@ def test_possessions_are_empty_when_there_is_no_box_score(games, tmp_path):
     table = db.read_games(engine, possessions=True)
     assert len(table) == len(games)
     assert table["home_possessions"].isna().all()
+
+
+def test_games_can_be_read_for_one_date(engine):
+    assert list(db.read_games(engine, date="2018-10-18")["game_id"]) == ["0021800002"]
+    assert db.read_games(engine, date="2030-01-01").empty
+
+
+def test_both_models_predictions_are_stored(engine, games):
+    assert len(db.read_predictions(engine, db.ELO_VERSION)) == len(games)
+    assert len(db.read_predictions(engine, db.EFFICIENCY_VERSION)) == len(games)
 
 
 def test_game_ids_keep_their_leading_zeros(engine):
@@ -175,14 +185,14 @@ def test_saving_a_model_again_replaces_its_predictions_only(engine, games):
     rated, _ = rate_games(games)
     db.save_predictions(engine, rated.assign(home_win_prob=0.5), "other-model")
     db.save_predictions(engine, rated.assign(home_win_prob=0.6), "other-model")
-    assert db.row_counts(engine)["predictions"] == 8
+    assert db.row_counts(engine)["predictions"] == 12
     assert set(db.read_predictions(engine, "other-model")["home_win_prob"]) == {0.6}
     assert len(db.read_predictions(engine)) == 4   # elo-v1 untouched
 
 
 def test_rebuilding_gives_the_same_database(engine, games, odds):
     db.build(engine, games, odds)
-    assert db.row_counts(engine) == {"teams": 3, "games": 4, "odds": 3, "team_stats": 8, "predictions": 4}
+    assert db.row_counts(engine) == {"teams": 3, "games": 4, "odds": 3, "team_stats": 8, "predictions": 8}
 
 
 def test_connect_can_insist_the_file_exists(tmp_path):
