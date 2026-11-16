@@ -68,6 +68,7 @@ jobs:
       - name: Run
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}   # amendment A7: benchmark odds at each record's cutoff
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}   # A8 item 6: raw odds go to a private bucket
         run: |
           case "$MODE" in
             check-sources) python -m tabet check-sources ;;

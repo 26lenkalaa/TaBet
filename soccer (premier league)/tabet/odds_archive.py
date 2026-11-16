@@ -232,8 +232,112 @@ SAME_RUN = pd.Timedelta(minutes=15)     # a snapshot this soon after a record's 
 API_COLUMNS = ["fpl_fixture", "gameweek", "home_id", "away_id", "home_team_src", "away_team_src", "kickoff_utc",
                "src_kickoff_utc", "retrieved_utc", "hours_before", "book", "book_last_update", "n_books",
                "odds_h", "odds_d", "odds_a", "event_id", "raw_file"]
+# Privacy of the raw data (amendment A8, item 6): The Odds API's terms forbid redistributing its data and
+# the repository is public. So the raw response and every bookmaker's prices go to a private Supabase
+# bucket, and the repository keeps only derived, margin-free probabilities for three summaries, written
+# as fair decimal odds (1/p) so every reader works unchanged:
+#   Avg            the mean of the bookmakers' decimal odds, normalised proportionally (A7's market)
+#   pinnacle_shin  Pinnacle with the margin removed by Shin's method (A8's headline)
+#   median         the per-outcome median of each bookmaker's proportional probabilities, renormalised
+RAW_BUCKET = "odds-archive"
+DERIVED_BOOKS = ("Avg", "pinnacle_shin", "median")
 API_FETCH_COLUMNS = ["retrieved_utc", "status", "credits_remaining", "credits_used", "last_cost", "n_events",
                      "n_upcoming", "n_unmatched", "needed", "raw_file", "error"]
+
+
+def shin(odds) -> np.ndarray:
+    """Shin (1993) probabilities from one set of decimal odds: p_k = (sqrt(z^2 + 4 (1 - z) q_k^2 / B) - z)
+    / (2 (1 - z)), q_k = 1/o_k, B = sum q_k, with z in [0, 1) found by bisection so the p_k sum to 1.
+    With no margin (B <= 1) these are the plain implied probabilities."""
+    q = 1.0 / np.asarray(odds, dtype=float)
+    B = q.sum()
+    if B <= 1.0:
+        return q / B
+
+    def p(z):
+        return (np.sqrt(z * z + 4 * (1 - z) * q * q / B) - z) / (2 * (1 - z))
+
+    lo, hi = 0.0, 0.999
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if p(mid).sum() > 1:
+            lo = mid
+        else:
+            hi = mid
+    out = p((lo + hi) / 2)
+    return out / out.sum()
+
+
+def derive(rows: pd.DataFrame) -> pd.DataFrame:
+    """Per match, the three derived rows (DERIVED_BOOKS) from the full per-bookmaker rows of api_parse.
+    Each is a probability triple written as fair odds 1/p. No bookmaker's own prices are kept."""
+    if rows.empty:
+        return rows
+    out = []
+    for _, g in rows.groupby("event_id", sort=False):
+        books = g[g["book"] != "Avg"]
+        avg = g[g["book"] == "Avg"]
+        if books.empty or avg.empty:
+            continue
+        base = avg.iloc[0].to_dict()
+        o = books[["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+        each = (1 / o) / (1 / o).sum(axis=1, keepdims=True)
+        med = np.median(each, axis=0)
+        a = 1 / avg[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[0]
+        probs = {"Avg": a / a.sum(), "median": med / med.sum()}
+        pin = books[books["book"] == "pinnacle"]
+        if len(pin):
+            probs["pinnacle_shin"] = shin(pin.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float))
+        for book in DERIVED_BOOKS:
+            if book in probs:
+                p = probs[book]
+                out.append({**base, "book": book, "odds_h": round(1 / p[0], 6), "odds_d": round(1 / p[1], 6),
+                            "odds_a": round(1 / p[2], 6),
+                            "book_last_update": pin.iloc[0]["book_last_update"] if book == "pinnacle_shin" else base["book_last_update"]})
+    return pd.DataFrame(out, columns=rows.columns)
+
+
+def _private_store():
+    """put(path, bytes) -> location for the private bucket, or None when Supabase is not configured."""
+    from . import supabase_storage as ss
+    if not ss.configured():
+        return None
+    return lambda path, data, ctype: ss.put(RAW_BUCKET, path, data, ctype)
+
+
+def privatise(out_dir: Path = ODDS_DIR, put=None) -> dict:
+    """Amendment A8, item 6: move any Odds API data still in the repository folder to the private bucket.
+    Raw responses are uploaded and deleted locally; per-bookmaker rows are uploaded per snapshot and the
+    repository log keeps only the derived rows. Idempotent: does nothing once everything is private."""
+    put = put if put is not None else _private_store()
+    if put is None:
+        return {"status": "not configured"}
+    moved = {}
+    for f in sorted((out_dir / "raw").glob("*_oddsapi.json.gz")) if (out_dir / "raw").exists() else []:
+        moved[f.name] = put(f"oddsapi/raw/{f.name.split('_')[0]}.json.gz", f.read_bytes(), "application/gzip")
+        f.unlink()
+    n_books = 0
+    log_path = out_dir / API_LOG
+    if log_path.exists() and log_path.stat().st_size:
+        full = pd.read_csv(log_path)
+        if (~full["book"].isin(DERIVED_BOOKS)).any() or moved:
+            full["raw_file"] = full["raw_file"].map(lambda x: moved.get(Path(x).name, x) if isinstance(x, str) else x)
+            parts = []
+            for when, g in full.groupby("retrieved_utc", sort=True):
+                if (~g["book"].isin(DERIVED_BOOKS)).any():
+                    stamp = pd.Timestamp(when).strftime("%Y%m%dT%H%M%SZ")
+                    put(f"oddsapi/books/{stamp}.csv.gz", gzip.compress(g.to_csv(index=False).encode()), "application/gzip")
+                    parts.append(derive(g))
+                    n_books += 1
+                else:
+                    parts.append(g)
+            pd.concat(parts, ignore_index=True)[API_COLUMNS].to_csv(log_path, index=False)
+    fl_path = out_dir / API_FETCH_LOG
+    if moved and fl_path.exists():
+        fl = pd.read_csv(fl_path, dtype=str)
+        fl["raw_file"] = fl["raw_file"].map(lambda x: moved.get(Path(x).name, x) if isinstance(x, str) else x)
+        fl.to_csv(fl_path, index=False)
+    return {"status": "ok", "raw_moved": len(moved), "snapshots_derived": n_books}
 
 
 def api_key() -> str | None:
@@ -335,14 +439,21 @@ def api_needed(now: pd.Timestamp, records: list[dict], out_dir: Path = ODDS_DIR)
 
 
 def archive_api(now: pd.Timestamp, fixtures: pd.DataFrame | None, records: list[dict], out_dir: Path = ODDS_DIR,
-                key: str | None = None, fetch=None, force: bool = False) -> dict:
+                key: str | None = None, fetch=None, force: bool = False, store="supabase") -> dict:
     """Amendment A7: one Odds API call when a record was just logged (or one logged in the last 6 h still
     lacks a snapshot), plus the first run of each UTC day; at most once per run, never below CREDIT_FLOOR credits. `force` makes one call
-    regardless (manual test). The raw response is always kept (each call costs credits)."""
+    regardless (manual test). The raw response and the per-bookmaker rows go to the private bucket
+    (`store`, A8 item 6); the repository's oddsapi_log.csv gets only the derived rows (`derive`).
+    If the private upload fails, the derived rows are still kept and the failure is logged."""
     now = pd.Timestamp(now).tz_convert("UTC").floor("s")
     key = key if key is not None else api_key()
     if not key:
         return {"status": "disabled", "reason": "no ODDS_API_KEY"}
+    if store == "supabase":           # A8 item 6: anything left from before the move goes private first
+        try:
+            privatise(out_dir)
+        except Exception as e:
+            print(f"odds privatise skipped ({_scrub(str(e), key)[:120]})")
     needed = api_needed(now, records, out_dir)
     log = _api_fetch_log(out_dir)
     ok_today = log[(log["status"] == "ok") & log["retrieved_utc"].str.startswith(f"{now:%Y-%m-%d}")]
@@ -369,25 +480,33 @@ def archive_api(now: pd.Timestamp, fixtures: pd.DataFrame | None, records: list[
         _append(out_dir / API_FETCH_LOG, [{"retrieved_utc": now.isoformat(), "status": "error", "error": err,
                                             "needed": ";".join(map(str, needed))}], API_FETCH_COLUMNS)
         return {"status": "error", "error": err, "needed": needed}
-    raw_dir = _paths(out_dir)[0]
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    dest = raw_dir / f"{now:%Y%m%dT%H%M%SZ}_oddsapi.json.gz"
-    with gzip.open(dest, "wb") as fh:
-        fh.write(body)
-    raw_file = str(dest.relative_to(ROOT)) if dest.is_relative_to(ROOT) else str(dest)
+    put = _private_store() if store == "supabase" else store
+    stamp = f"{now:%Y%m%dT%H%M%SZ}"
+    raw_file, store_err = "", ""
+    try:
+        if put is None:
+            raise RuntimeError("Supabase is not configured; raw response not stored")
+        raw_file = put(f"oddsapi/raw/{stamp}.json.gz", gzip.compress(body), "application/gzip")
+    except Exception as e:
+        store_err = _scrub(str(e), key)[:200]
     try:
         rows, unmatched = api_parse(body, now, fixtures, raw_file)
         n_events = len(json.loads(body.decode("utf-8") or "[]"))
-    except Exception as e:  # keep the raw response and record the problem
+    except Exception as e:  # the raw response is in the private bucket; record the problem
         _append(out_dir / API_FETCH_LOG, [{"retrieved_utc": now.isoformat(), "status": "parse error", "raw_file": raw_file,
-                                            "error": str(e)[:200]}], API_FETCH_COLUMNS)
+                                            "error": (str(e)[:150] + (f"; {store_err}" if store_err else ""))}], API_FETCH_COLUMNS)
         return {"status": "parse error", "error": str(e), "raw_file": raw_file}
+    if len(rows) and put is not None:
+        try:
+            put(f"oddsapi/books/{stamp}.csv.gz", gzip.compress(rows.to_csv(index=False).encode()), "application/gzip")
+        except Exception as e:
+            store_err = store_err or _scrub(str(e), key)[:200]
     if len(rows):
-        _append(out_dir / API_LOG, rows.to_dict("records"), API_COLUMNS)
+        _append(out_dir / API_LOG, derive(rows).to_dict("records"), API_COLUMNS)
     info = {"retrieved_utc": now.isoformat(), "status": "ok", "credits_remaining": headers.get("x-requests-remaining", ""),
             "credits_used": headers.get("x-requests-used", ""), "last_cost": headers.get("x-requests-last", ""),
             "n_events": n_events, "n_upcoming": int((rows["book"] == "Avg").sum()) if len(rows) else 0,
-            "n_unmatched": len(unmatched), "needed": ";".join(map(str, needed)), "raw_file": raw_file, "error": ""}
+            "n_unmatched": len(unmatched), "needed": ";".join(map(str, needed)), "raw_file": raw_file, "error": store_err}
     _append(out_dir / API_FETCH_LOG, [info], API_FETCH_COLUMNS)
     covered = set(pd.to_numeric(rows.loc[rows["book"] == "Avg", "fpl_fixture"], errors="coerce").dropna().astype(int)) if len(rows) else set()
     info.update(unmatched=unmatched.to_dict("records"), missing=[f for f in needed if f not in covered])

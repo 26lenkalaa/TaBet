@@ -307,3 +307,37 @@ def test_results_behind_needs_two_days_in_a_row():
     recovered = log([("2026-11-11 00:10", False, 100, 90), ("2026-11-12 00:10", False, 100, 90),
                      ("2026-11-12 01:10", True, 100, 100)])
     assert not PR.results_behind(now, recovered)["results_behind"]
+
+
+# ---- headline market (amendment A8) -----------------------------------------------------
+
+def test_shin_sums_to_one_and_shades_the_longshot():
+    odds = np.array([1.5, 4.2, 6.5])                      # about a 4.6% margin
+    p = MB.shin(odds)
+    prop = (1 / odds) / (1 / odds).sum()
+    assert p.sum() == pytest.approx(1.0)
+    assert p[0] > prop[0] and p[2] < prop[2]             # Shin moves probability from the longshot to the favourite
+    fair = 1 / np.array([0.6, 0.25, 0.15])
+    assert MB.shin(fair) == pytest.approx([0.6, 0.25, 0.15])   # no margin: unchanged
+
+
+def _books(fixture, when, books):
+    return [{"fpl_fixture": fixture, "source": OA.API_SOURCE, "book": b, "retrieved_utc": pd.Timestamp(when, tz="UTC"),
+             "odds_h": h, "odds_d": d, "odds_a": a} for b, (h, d, a) in books.items()]
+
+
+def test_headline_uses_pinnacle_at_the_matched_time_else_the_median():
+    recs = pd.DataFrame({"fpl_fixture": [1, 2], "logged_utc": ["2026-11-20T11:00:00+00:00"] * 2,
+                         "kickoff_utc": ["2026-11-21T12:30:00+00:00"] * 2})
+    log = pd.DataFrame(
+        _books(1, "2026-11-20 10:00", {"pinnacle": (2.0, 3.6, 4.1), "bet365": (1.9, 3.5, 4.0), "Avg": (1.95, 3.5, 4.0)})
+        + _books(1, "2026-11-20 12:00", {"pinnacle": (1.5, 4.0, 7.0)})          # after the cutoff + 15 min: not used
+        + _books(2, "2026-11-20 10:00", {"a": (2.0, 3.4, 4.0), "b": (2.2, 3.3, 3.6), "c": (2.1, 3.5, 3.8)}))
+    h = MB.headline_snapshots(recs, log).set_index("fpl_fixture")
+    assert h.loc[1, "basis"] == "pinnacle_shin"
+    assert h.loc[1, ["p_home", "p_draw", "p_away"]].to_numpy(float) == pytest.approx(MB.shin([2.0, 3.6, 4.1]))
+    assert h.loc[1, "hours_after_cutoff"] == pytest.approx(-1.0)
+    assert h.loc[2, "basis"] == "median_3_books"
+    each = np.array([(1 / np.array(o)) / (1 / np.array(o)).sum() for o in [(2.0, 3.4, 4.0), (2.2, 3.3, 3.6), (2.1, 3.5, 3.8)]])
+    med = np.median(each, axis=0)
+    assert h.loc[2, ["p_home", "p_draw", "p_away"]].to_numpy(float) == pytest.approx(med / med.sum())

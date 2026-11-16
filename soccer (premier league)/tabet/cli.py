@@ -243,11 +243,11 @@ def _print_benchmark(s: pd.DataFrame) -> None:
         print("\nmarket benchmark (amendment A6): no scored fixtures")
         return
     p = market_benchmark.save(b)
-    print(f"\nMarket benchmark (amendment A6, benchmark only; TaBet - market log-loss, negative = TaBet better; "
+    print(f"\nMarket benchmark (amendments A6-A8, benchmark only; headline = matched_pinnacle; TaBet - market log-loss, negative = TaBet better; "
           f"p_alpha uses alpha = {b['alpha'].iloc[0]:.2f}, provisional until gameweek 19 is complete). Saved {p}:")
     show = [c for c in ("snapshot", "candidate", "n", "coverage", "log_loss_tabet", "log_loss_market",
                         "tabet_minus_market", "se_paired", "se_gameweek_clustered", "agree_rate", "tabet_only_right",
-                        "market_only_right", "both_wrong", "n_later", "median_hours_after_cutoff") if c in b]
+                        "market_only_right", "both_wrong", "n_later", "n_pinnacle", "median_hours_after_cutoff") if c in b]
     print(b[show].round(4).to_string(index=False))
 
 

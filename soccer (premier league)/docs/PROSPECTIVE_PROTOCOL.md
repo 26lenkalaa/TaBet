@@ -422,3 +422,81 @@ contrast. It must be on `main` before 2026-11-20 04:30 UTC.
    V2x with the predicted XIs that Fantasy Football Scout and RotoWire have published, usually for
    the coming gameweek. The preview is labelled as such and is not a record. The logging windows
    (24–26 h primary, 26–32 h fallback) and everything scored are unchanged.
+
+## Amendment A8 (2026-11-16, written before any gameweek-11 record)
+
+From the sixth external review. It changes what is reported and how results are judged. Nothing
+about p0, pE, pBP, α's fitting rule, the record windows or what is logged changes, and no logger code
+changes. This must be on `main` before 2026-11-20 04:30 UTC; after the first gameweek-11 record no
+rule changes.
+
+1. **What pBP − p0 actually tests.** pBP keeps p0's expected goals and replaces the Dixon-Coles grid
+   with a bivariate Poisson grid, which has no ρ correction. On the 2022-26 replay the fitted λ3 is
+   below 0.02 for 86% of matches (median 0 in every season). For those matches, pBP − p0 is mostly
+   a test of *removing ρ*, not of adding a shared goal component. pBP stays logged, but it is
+   demoted to a descriptive secondary. Reported with it: the distribution of the stored λ3
+   (`components.bp_l3`) and pBP − p0 split by λ3 < 0.02 and λ3 ≥ 0.02. A ρ-preserving variant is
+   **not** added (decided 2026-11-16, to avoid changing the logger before the freeze).
+2. **Pooled decision rule for the bivariate model.** Its replay paired SD is about 0.035, so the SE
+   at gameweek 38 (about 280 records) is about 0.002, and no live result alone can be decisive. The
+   bivariate model is adopted only if **both** of these hold:
+   - (a) the inverse-variance pooled estimate is below zero with a 95% interval excluding zero. It
+     pools all pre-registered bivariate estimates:
+     - PL 2018-21 (addendum M): −0.0028, 95% [−0.0051, −0.0005];
+     - four leagues 2022-26 (addendum B): −0.0006, 95% [−0.0017, +0.0004];
+     - the live pBP − p0 at gameweek 38, with its gameweek-clustered SE.
+
+     Each SE is taken as (upper − lower) / 3.92.
+   - (b) the live point estimate is no worse than +0.002.
+
+   Otherwise the idea is retired, apart from at most one more offline test (pre-2015 non-PL leagues),
+   which would need its own addendum.
+3. **Headline market.** The headline benchmark becomes **matched_pinnacle**:
+   - **Snapshot:** the same The Odds API snapshot that item 4 of A7 selects for `matched`.
+   - **Pricing:** Pinnacle's odds in that snapshot, with the margin removed by **Shin's method**
+     (`market_benchmark.shin`).
+   - **Fallback:** if Pinnacle is missing from that snapshot, each bookmaker in it is normalised
+     proportionally, the per-outcome median is taken, and the result is renormalised to sum to 1.
+   - **Records:** which basis was used, and how long after the cutoff the snapshot was taken (in
+     hours), are written for every record to `results/prospective/odds/benchmark_records.csv`.
+
+   A7's `matched` mean of decimal odds is kept as a secondary, for continuity with §5.19. The other
+   snapshots are unchanged. Pinnacle was quoted for all 20 upcoming fixtures in every snapshot from
+   10 to 16 November.
+4. **When α's fit counts as degenerate.** This states what `fit_alpha` already does. The fit is
+   degenerate, and α = 0, only if:
+   - fewer than 20 fixtures (`ALPHA_MIN_FIXTURES`) have both p0 and pE, after A3's results-known
+     filter; or
+   - the summed log-loss is constant across the 0.01 grid on [0, 1] (range below 1e-12).
+
+   **A minimum on the boundary (α = 0 or α = 1) is not degenerate** and is used as fitted. A flat but
+   non-constant likelihood is not degenerate either. Its width shows in A5's likelihood interval,
+   and A5's sensitivity contrasts at α = 0, 0.5 and 1 are reported beside it.
+5. **Gameweek clusters.** A cluster is the FPL gameweek (`event`) id stored in the scored record. A
+   rearranged fixture's scored record is the one matching the kickoff actually played (A4), so it
+   carries the gameweek it was played in. In a double gameweek, every fixture with that id is one
+   cluster, including both of a team's matches. A postponed fixture has no FPL kickoff time until
+   it is rescheduled, and only fixtures with a kickoff time are logged, so it never forms a cluster. α's fitting window
+   (gameweeks ≤ 19) and the evaluation windows use the same id.
+6. **Where the raw odds are kept (correcting A7 item 7).** A7 assumed a private repository, but the
+   repository is public, and The Odds API's terms forbid redistributing its data. So from this
+   amendment:
+   - **Private:** every raw Odds API response (`oddsapi/raw/<stamp>.json.gz`) and every snapshot's
+     per-bookmaker prices (`oddsapi/books/<stamp>.csv.gz`) go to the **private Supabase bucket
+     `odds-archive`**. Only the secret key can read it.
+   - **Repository:** `oddsapi_log.csv` keeps only three derived, margin-free probability rows per match
+     and snapshot, written as fair odds 1/p:
+     - `Avg`: A7's mean of the bookmakers' decimal odds, normalised proportionally;
+     - `pinnacle_shin`: item 3's headline;
+     - `median`: item 3's fallback.
+
+     `raw_file` points at the private copy.
+   - **Existing data:** snapshots taken before this amendment are moved the same way, and the move is
+     idempotent (`odds_archive.privatise`).
+   - **Checks:** on the data to 16 November, every probability the site and the benchmark use is
+     unchanged. The site's "latest market" is identical, and the headline is within 1e-7 (rounding).
+   - **Failures:** if an upload fails, the derived rows are still written and the failure is recorded
+     in `oddsapi_fetch_log.csv`.
+
+   Copies already in the public git history are not rewritten by this amendment. football-data's
+   `fixtures.csv` archive is unaffected.
