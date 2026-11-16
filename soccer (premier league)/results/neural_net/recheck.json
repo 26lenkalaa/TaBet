@@ -1,0 +1,67 @@
+{
+  "note": "exploratory re-check of \u00a75.26; settings chosen on 2022-24 only",
+  "variants": {
+    "V1x": {
+      "linear": 1.0010891458285842,
+      "early_stop_wd_chosen": 0.1,
+      "dev": {
+        "0.01": 0.9609169971275614,
+        "0.1": 0.9607834038953902,
+        "1.0": 0.961158233231451
+      },
+      "early_stop": 1.0043492672102503,
+      "early_stop_minus_linear": [
+        0.0032601213816658902,
+        0.000368450049011495,
+        0.006095795007273602
+      ],
+      "share_of_refits_falling_back_to_DC": null,
+      "original_minus_linear": 0.016167149959113475,
+      "original_by_training_size": {
+        "0-1000": {
+          "n": 240,
+          "orig_minus_linear": 0.025543344496585352
+        },
+        "1000-1300": {
+          "n": 300,
+          "orig_minus_linear": 0.017290650473866454
+        },
+        "1300-1600": {
+          "n": 220,
+          "orig_minus_linear": 0.004406527943571917
+        }
+      }
+    },
+    "V2x": {
+      "linear": 0.9972872002655424,
+      "early_stop_wd_chosen": 0.1,
+      "dev": {
+        "0.01": 0.9612471045406835,
+        "0.1": 0.9612341790591947,
+        "1.0": 0.9624665786946319
+      },
+      "early_stop": 1.0007011501236605,
+      "early_stop_minus_linear": [
+        0.003413949858118125,
+        -0.0009467699074420063,
+        0.007436515886262972
+      ],
+      "share_of_refits_falling_back_to_DC": null,
+      "original_minus_linear": 0.03084155977998138,
+      "original_by_training_size": {
+        "0-1000": {
+          "n": 240,
+          "orig_minus_linear": 0.05403415902912244
+        },
+        "1000-1300": {
+          "n": 300,
+          "orig_minus_linear": 0.019118029334014013
+        },
+        "1300-1600": {
+          "n": 220,
+          "orig_minus_linear": 0.021527174843601195
+        }
+      }
+    }
+  }
+}

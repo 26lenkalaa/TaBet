@@ -37,6 +37,10 @@ class NNParams:
     epochs: int = 300
     lr: float = 1e-2
     seeds: int = 5
+    # early stopping (review 6, item 7e): hold out the most recent `val_frac` of training matches,
+    # train up to `epochs`, and keep the weights with the best held-out loss (checked every 10 epochs).
+    early_stop: bool = False
+    val_frac: float = 0.15
 
 
 def _fit_predict(Xtr: np.ndarray, off: np.ndarray, y: np.ndarray, Xte: np.ndarray, p: NNParams) -> np.ndarray:
@@ -45,6 +49,10 @@ def _fit_predict(Xtr: np.ndarray, off: np.ndarray, y: np.ndarray, Xte: np.ndarra
     from torch import nn
 
     torch.set_num_threads(4)
+    n_val = int(len(Xtr) * p.val_frac) if p.early_stop else 0
+    if n_val:   # rows arrive in time order, so the tail is the most recent matches
+        xv, ov, yv = (torch.tensor(a[-n_val:], dtype=torch.float32) for a in (Xtr, off, y))
+        Xtr, off, y = Xtr[:-n_val], off[:-n_val], y[:-n_val]
     xt = torch.tensor(Xtr, dtype=torch.float32)
     ot = torch.tensor(off, dtype=torch.float32)
     yt = torch.tensor(y, dtype=torch.float32)
@@ -58,12 +66,30 @@ def _fit_predict(Xtr: np.ndarray, off: np.ndarray, y: np.ndarray, Xte: np.ndarra
         nn.init.zeros_(net[-1].weight)
         nn.init.zeros_(net[-1].bias)
         opt = torch.optim.AdamW(net.parameters(), lr=p.lr, weight_decay=p.weight_decay)
-        for _ in range(p.epochs):
+        best, best_state = float("inf"), None
+        for ep in range(p.epochs):
             opt.zero_grad()
             eta = ot + net(xt).squeeze(1)
             loss = (torch.exp(eta) - yt * eta).mean()   # Poisson negative log-likelihood (up to a constant)
             loss.backward()
             opt.step()
+            if n_val and ep % 10 == 0:
+                with torch.no_grad():
+                    ev = ov + net(xv).squeeze(1)
+                    vl = float((torch.exp(ev) - yv * ev).mean())
+                if vl < best:
+                    best, best_state = vl, {k: v.clone() for k, v in net.state_dict().items()}
+        if n_val:   # epoch 0's check is after one step, so an all-zero (Dixon-Coles) start is also compared
+            with torch.no_grad():
+                ev = ov + net(xv).squeeze(1)
+                vl = float((torch.exp(ev) - yv * ev).mean())
+            if best_state is not None and best < vl:
+                net.load_state_dict(best_state), None
+                vl = best
+            dc_only = float((torch.exp(ov) - yv * ov).mean())
+            if dc_only <= vl:   # the network never beat Dixon-Coles on held-out matches: use no adjustment
+                outs.append(np.zeros(len(Xte)))
+                continue
         with torch.no_grad():
             outs.append(net(xe).squeeze(1).numpy())
     return np.mean(outs, axis=0)
