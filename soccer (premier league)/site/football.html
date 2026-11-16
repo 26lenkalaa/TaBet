@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFL Forecasts · TaBet</title>
+<style>
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101b17; color: #f5f7ef; }
+body { margin: 0; }
+main { max-width: 960px; margin: auto; padding: 24px; }
+nav { display: flex; flex-wrap: wrap; gap: 16px; }
+a { color: #f9dc85; }
+h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin-bottom: 0; }
+p { color: #c8d6cc; line-height: 1.5; }
+label { display: grid; gap: 6px; margin: 16px 0; }
+select { font: inherit; padding: 10px; width: 100%; border-radius: 6px; }
+.controls, .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+article, details { background: #192b22; border: 1px solid #3b5545; border-radius: 10px; padding: 16px; }
+article h3, article p { margin: 0 0 8px; }
+progress { width: 100%; accent-color: #84dfa4; }
+summary { cursor: pointer; }
+</style>
+<script src="football.js" defer></script>
+</head>
+<body>
+<main>
+<nav aria-label="Pages">
+<a href="./">Pitch</a><a href="matches">Matches</a><a href="notebook">Notebook</a>
+<a href="football.html" aria-current="page">NFL</a>
+</nav>
+<h1>NFL forecasts</h1>
+<p>Pregame Elo predictions for NFL regular-season games.</p>
+<p id="status" role="status">Loading forecasts…</p>
+<div id="dashboard" hidden>
+<div class="controls">
+<label>View <select id="view"></select></label>
+<label>Team <select id="team"></select></label>
+</div>
+<p id="summary"></p>
+<p id="count" role="status"></p>
+<section class="cards" id="games" aria-label="Games"></section>
+</div>
+<details>
+<summary>How to read the forecasts</summary>
+<p>Elo starts with team ratings, accounts for home advantage, and updates from results. Historical forecasts are replayed using games from earlier dates only. Scheduled forecasts use results available in the snapshot.</p>
+<p>Win probabilities are conditional on no tie. Normalized moneylines are a comparison only and never feed into Elo. The backtest scores both on the same games, excluding ties and missing odds. Lower Brier score is better. Moneyline timestamps are not verified against the model cutoff.</p>
+</details>
+</main>
+</body>
+</html>

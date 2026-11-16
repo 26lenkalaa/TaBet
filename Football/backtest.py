@@ -24,7 +24,7 @@ def market_home_probability(game: Game) -> float | None:
     return home / (home + away)
 
 
-def backtest(games: list[Game], season: int, output: Path) -> dict[str, object]:
+def evaluate(games: list[Game], season: int) -> tuple[list[dict[str, object]], dict[str, object]]:
     if not any(game.season < season for game in games):
         raise ValueError("Include at least one earlier season to warm up Elo.")
     rows: list[dict[str, object]] = []
@@ -50,6 +50,7 @@ def backtest(games: list[Game], season: int, output: Path) -> dict[str, object]:
         rows.append({
             "game_id": game.game_id,
             "game_date": game.game_date.isoformat(),
+            "neutral": game.neutral,
             "home_team": game.home_team,
             "away_team": game.away_team,
             "home_score": game.home_score,
@@ -62,14 +63,8 @@ def backtest(games: list[Game], season: int, output: Path) -> dict[str, object]:
 
     if not rows:
         raise ValueError(f"No completed games for season {season}.")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
-
     count = len(model_losses)
-    return {
+    return rows, {
         "season": season,
         "games": len(rows),
         "scored_games": count,
@@ -77,5 +72,15 @@ def backtest(games: list[Game], season: int, output: Path) -> dict[str, object]:
         "missing_odds": missing_odds,
         "elo_brier": sum(model_losses) / count if count else None,
         "market_brier": sum(market_losses) / count if count else None,
-        "output": str(output),
     }
+
+
+def backtest(games: list[Game], season: int, output: Path) -> dict[str, object]:
+    rows, summary = evaluate(games, season)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return {**summary, "output": str(output)}

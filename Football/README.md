@@ -24,9 +24,24 @@ Use nflverse team codes and an ISO date (`YYYY-MM-DD`). Home team comes first. U
 | 1. Data | `data.py` | Read and validate completed regular-season games; skip playoffs and unplayed games. |
 | 2. Prediction | `model.py`, `cli.py` | Estimate home and away win probabilities from Elo and home advantage. |
 | 3. Evaluation | `backtest.py` | Replay a season and compare against moneylines on the same games. |
-| 4. UI handoff | CLI JSON and CSV | Use `sport`, `league`, `game_date`, `home_team`, `away_team`, and `outcome_probabilities` for a future shared UI. |
+| 4. Site | `export_site.py`, shared site NFL page | Browse scheduled forecasts and season backtests, filter by team and compare with market prices. |
 
-The UI can call `forecast()` or consume the JSON without knowing how Elo works. Keep NFL-specific code here. Add new model inputs in `model.py` and new CSV fields in `data.py` as needed. The soccer deployment still serves the existing soccer site.
+The shared site reads a JSON snapshot. Refresh it from the repo root:
+
+```sh
+curl -fL https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv -o Football/res/games.csv
+python Football/export_site.py 2025 2026
+python -m http.server 8000 --directory "soccer (premier league)/site"
+```
+
+If needed, run `mkdir -p Football/res` before downloading. Open
+[localhost:8000/football.html](http://localhost:8000/football.html). Commit the
+regenerated JSON to update the site on its next normal deployment. The site
+does not fetch live results. To reproduce a snapshot, use the same input CSV
+and pass `--as-of YYYY-MM-DD`. The snapshot uses only results from dates
+strictly before that cutoff; its scheduled list contains fixtures still
+unplayed in the input CSV. The current season report is partial. The CLI
+remains available for hypothetical matchups.
 
 ## How it works
 
@@ -36,4 +51,4 @@ Elo updates a tie as half a win. The forecast shows two probabilities **conditio
 
 With the nflverse snapshot used during development, the 2025 regular-season run scored 271 of 272 games: Elo **0.2295**, moneyline **0.2121**. The remaining game was a tie. This is one retrospective run, not evidence of an edge. The source is updated over time, so keep the exact CSV used when comparing experiments.
 
-Next: evaluate a second untouched season, then test one improvement at a time. Add spreads, exact scores, or player data only after the winner baseline is stable.
+The site also includes a partial 2026 evaluation. Treat it as a retrospective snapshot. Add spreads, exact scores, or player data only after the winner baseline is stable.
