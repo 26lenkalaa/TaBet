@@ -128,3 +128,10 @@ def test_log_never_contains_the_key():
     af.fetch(client(store, FakeAPI()), LEAGUES, seasons=[2023])
     log = json.dumps(store.requests)
     assert KEY not in log and '"id"' in log
+
+
+def test_xgcheck_uses_two_calls_and_reports_expected_goals():
+    api, store = FakeAPI(allowed=(2022,)), af.MemoryStore()
+    out = af.xgcheck(client(store, api), league=39, season=2022)
+    assert out["requests_used"] == 2 and store.list_path(39, 2022)
+    assert out["has_expected_goals"] is False and out["team_stat_names"] == ["Shots on Goal"]

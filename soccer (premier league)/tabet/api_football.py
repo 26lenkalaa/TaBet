@@ -284,6 +284,28 @@ def probe(client: Client) -> dict:
     return out
 
 
+def xgcheck(client: Client, league: int = 39, season: int = 2022) -> dict:
+    """Two calls: does an older season's match data include team expected goals? Keeps the fixture
+    list it downloads (fetch reuses it) and reports the team statistics one finished match returns."""
+    store = client.store
+    out = {"league": league, "season": season}
+    body = client.get("fixtures", league=league, season=season)
+    path = f"fixtures/{league}-{season}.json.gz"
+    store.put(path, body)
+    store.add_list(league, season, path, len(body.get("response", [])))
+    done = [f for f in body.get("response", []) if f["fixture"]["status"]["short"] in FINISHED]
+    out["fixtures"] = len(body.get("response", []))
+    if done:
+        d = client.get("fixtures", id=done[len(done) // 2]["fixture"]["id"])["response"][0]
+        stats = {x["type"]: x.get("value") for x in (d.get("statistics") or [{}])[0].get("statistics", [])}
+        out["sample_match"] = f'{d["teams"]["home"]["name"]} v {d["teams"]["away"]["name"]}, {d["fixture"].get("date", "")[:10]}'
+        out["has_expected_goals"] = "expected_goals" in stats and stats["expected_goals"] is not None
+        out["expected_goals_value"] = stats.get("expected_goals")
+        out["team_stat_names"] = list(stats)
+    out["requests_used"] = client.used
+    return out
+
+
 def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     store = client.store
     used, limit = quota(client)
@@ -332,7 +354,7 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck"])
     ap.add_argument("--budget", type=int, default=50)
     ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
@@ -346,7 +368,7 @@ def main(argv=None) -> int:
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
     client = Client(key, store, a.budget, batch=a.batch)
-    result = probe(client) if a.mode == "probe" else fetch(client)
+    result = {"probe": probe, "fetch": fetch, "xgcheck": xgcheck}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 

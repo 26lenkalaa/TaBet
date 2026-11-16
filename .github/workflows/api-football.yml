@@ -18,7 +18,7 @@ on:
       mode:
         description: "probe (5 calls: plan, allowed seasons, one sample match) | fetch"
         type: choice
-        options: [probe, fetch]
+        options: [probe, fetch, xgcheck]
         default: probe
       budget:
         description: "Most requests this run may use (free plan: 100 a day)"

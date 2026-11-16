@@ -1,0 +1,52 @@
+division,season_from,season_to,family,role,status,quota,reference,note
+E0,2015-16,2017-18,R/D/E/M/S,development,spent,1,PREREGISTRATION addenda R D E M S,burn-in and development for the clean replication set
+E0,2018-19,2020-21,R/D/E/M/S,test,spent,1,PREREGISTRATION addenda R D E M S,closed: five primaries scored; replication of results found elsewhere only
+E0,2021-22,2021-22,core,training,spent,1,brief §4,burn-in for the core models
+E0,2022-23,2023-24,core,development,spent,1,brief §4 and §5,tuning seasons for every core model
+E0,2024-25,2025-26,core,development,spent,1,brief §6.8,first used as test; development since many ideas were scored there
+E0,2026-27,2026-27,live,test,reserved,1,PROSPECTIVE_PROTOCOL A2-A9 and PREREGISTRATION,the live prospective test (gameweek 10 on); gameweeks 1-9 used descriptively
+E0,2000-01,2007-08,P,development,spent,1,PREREGISTRATION addendum P,R6 lambda only
+E0,2008-09,2014-15,P,test,spent,3,PREREGISTRATION addendum P,closed test set with a quota of three primary families; P used the first
+E1,1999-00,2013-14,P,training,spent,1,PREREGISTRATION addendum P,Championship features for promoted teams (not scored)
+E1,2020-21,2025-26,F4,training,spent,1,brief §5.15,Championship features for promoted teams (not scored)
+SP1,2021-22,2026-27,B,test,spent,1,PREREGISTRATION addendum B; brief §5.11,pooling study (training only) and the bivariate Poisson test (2022-26)
+I1,2021-22,2026-27,B,test,spent,1,PREREGISTRATION addendum B; brief §5.11,pooling study (training only) and the bivariate Poisson test (2022-26)
+D1,2021-22,2026-27,B,test,spent,1,PREREGISTRATION addendum B; brief §5.11,pooling study (training only) and the bivariate Poisson test (2022-26)
+F1,2021-22,2026-27,B,test,spent,1,PREREGISTRATION addendum B; brief §5.11,pooling study (training only) and the bivariate Poisson test (2022-26)
+SP1,2017-18,2017-18,wyscout,development,spent,1,brief §5.2,Wyscout event-data prototype
+I1,2017-18,2017-18,wyscout,development,spent,1,brief §5.2,Wyscout event-data prototype
+D1,2017-18,2017-18,wyscout,development,spent,1,brief §5.2,Wyscout event-data prototype
+F1,2017-18,2017-18,wyscout,development,spent,1,brief §5.2,Wyscout event-data prototype
+E1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+E2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+E3,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+EC,2005-06,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SC0,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SC1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SC2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SC3,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+D2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+I2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SP2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+F2,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+N1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+B1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+P1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+T1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+G1,2005-06,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
+SP1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+SP1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+SP1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+SP1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+I1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+I1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+I1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+I1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+D1,2006-07,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+D1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+D1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+D1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+F1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+F1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+F1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+F1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
