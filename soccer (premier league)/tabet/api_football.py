@@ -298,7 +298,7 @@ def xgcheck(client: Client, league: int = 39, season: int = 2022) -> dict:
     if done:
         d = client.get("fixtures", id=done[len(done) // 2]["fixture"]["id"])["response"][0]
         stats = {x["type"]: x.get("value") for x in (d.get("statistics") or [{}])[0].get("statistics", [])}
-        out["sample_match"] = f'{d["teams"]["home"]["name"]} v {d["teams"]["away"]["name"]}, {d["fixture"]["date"][:10]}'
+        out["sample_match"] = f'{d["teams"]["home"]["name"]} v {d["teams"]["away"]["name"]}, {d["fixture"].get("date", "")[:10]}'
         out["has_expected_goals"] = "expected_goals" in stats and stats["expected_goals"] is not None
         out["expected_goals_value"] = stats.get("expected_goals")
         out["team_stat_names"] = list(stats)
