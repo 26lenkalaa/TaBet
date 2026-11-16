@@ -267,6 +267,15 @@ td.num { font-family: var(--sans); font-size: 15px; font-weight: 700; font-varia
 @media (max-width: 860px) { .f-grid { grid-template-columns: 1fr; } }
 .live { background: var(--panel); border: 1px solid var(--chalk); border-left: 4px solid #7dff9c; padding: 20px 22px; margin: 0 0 28px; }
 .live h2 { margin: 8px 0 8px; } .live p { margin: 0; max-width: 72ch; color: var(--muted); }
+/* live-test tracker (descriptive, amendment A9) */
+.tracker { margin-top: 18px; }
+.tk-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 14px; max-width: 900px; }
+.tk-stat { background: var(--deep); border: 1px solid var(--chalk); padding: 10px 14px; }
+.tk-stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.tk-stat span { font-size: 13px; color: var(--muted); }
+.tracker table td.num, .tracker table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tracker tr.tk-total td { font-weight: 700; border-top: 2px solid var(--chalk); }
+.tracker .tk-note { margin-top: 10px; font-size: 13px; color: var(--faint); max-width: 80ch; }
 .ctx { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
 .ctx-live { color: #7dff9c; }
 p.ctx-hist { display: block; color: var(--gold); margin: 6px 0 12px; padding-top: 14px; border-top: 2px dashed var(--chalk); }
@@ -331,6 +340,7 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
     <span class="ctx ctx-live">LIVE TEST · 2026-27</span>
     <h2 id="live-title">Forecasts made before the matches</h2>
     <p>Since gameweek 10, TaBet saves a forecast for every match about a day before kickoff, with the market's prices from the same moment, and never changes it. The question: do predicted lineups make that forecast better? The blend is fixed after gameweek 19, a first read comes after gameweek 29, and the verdict at the end of the season. Every logged forecast is on the <a href="/matches">match pages</a>.</p>
+    <div id="tracker" class="tracker" aria-live="polite"><p class="tk-note">Loading the logged forecasts…</p></div>
   </section>
 
   <section class="sec" id="judged">
@@ -740,6 +750,60 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </section>
 </main>
+<script src="common.js?v=20261114"></script>
+<script>
+/* Live-test tracker: logged forecasts against results, read from the same season data as the match
+   pages, so it updates whenever the logger rebuilds the site data. Descriptive only (amendment A9). */
+(function () {
+  var T = window.TaBet, el = document.getElementById("tracker");
+  if (!T || !el) return;
+  var IDX = { H: 0, D: 1, A: 2 };
+  function ll(p, r) { return -Math.log(Math.max(p[IDX[r]], 1e-15)); }
+  function f3(x) { return x == null ? "–" : x.toFixed(3); }
+  function signed(x) { return x == null ? "–" : (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toFixed(3); }
+  function mean(a) { a = a.filter(function (x) { return x != null; }); return a.length ? a.reduce(function (s, x) { return s + x; }, 0) / a.length : null; }
+  T.load("2026-27").then(function (d) {
+    var rows = [];
+    d.matches.forEach(function (m) {
+      if (m.status !== "played" || !m.result) return;
+      var f = {};
+      m.forecasts.forEach(function (x) { if (x.kind === "logged") f[x.key] = x.p; });
+      if (!f.p0) return;
+      var mk = (m.market || []).filter(function (x) { return x.key === "matched"; })[0];
+      rows.push({ gw: m.gameweek, p0: ll(f.p0, m.result), pE: f.pE ? ll(f.pE, m.result) : null, mk: mk ? ll(mk.p, m.result) : null });
+    });
+    if (!rows.length) {
+      el.innerHTML = '<p class="tk-note">No logged forecast has a result yet. The first gameweek-11 forecasts are logged from 20 November and their results arrive from 21 November; this section then fills in by itself.</p>';
+      return;
+    }
+    var gws = {}, order = [];
+    rows.forEach(function (r) { if (!gws[r.gw]) { gws[r.gw] = []; order.push(r.gw); } gws[r.gw].push(r); });
+    order.sort(function (a, b) { return a - b; });
+    function line(label, rs, cls) {
+      var p0 = mean(rs.map(function (r) { return r.p0; })), pE = mean(rs.map(function (r) { return r.pE; }));
+      var both = rs.filter(function (r) { return r.pE != null; });
+      var lift = both.length ? mean(both.map(function (r) { return r.pE - r.p0; })) : null;
+      var withMk = rs.filter(function (r) { return r.mk != null; });
+      var mk = mean(withMk.map(function (r) { return r.mk; }));
+      return '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td>' + label + '</td><td class="num">' + rs.length + '</td><td class="num">' + f3(p0) +
+        '</td><td class="num">' + f3(pE) + '</td><td class="num">' + signed(lift) + '</td><td class="num">' + (withMk.length ? f3(mk) + " (" + withMk.length + ")" : "–") + "</td></tr>";
+    }
+    var all = rows, withMkAll = all.filter(function (r) { return r.mk != null; });
+    var stats = [
+      ["Logged matches scored", String(all.length)],
+      ["p0 log-loss (no lineups)", f3(mean(all.map(function (r) { return r.p0; })))],
+      ["pE log-loss (predicted lineups)", f3(mean(all.map(function (r) { return r.pE; })))],
+      ["Pinnacle at our forecast time", withMkAll.length ? f3(mean(withMkAll.map(function (r) { return r.mk; }))) : "–"]
+    ];
+    el.innerHTML =
+      '<div class="tk-stats">' + stats.map(function (s) { return '<div class="tk-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("") + "</div>" +
+      '<div class="panel"><div class="scroll"><table><thead><tr><th>Gameweek</th><th class="num">Matches</th><th class="num">p0</th><th class="num">pE</th><th class="num">pE − p0</th><th class="num">Pinnacle (n)</th></tr></thead><tbody>' +
+      order.map(function (g) { return line("GW " + g, gws[g]); }).join("") + line("All so far", all, "tk-total") + "</tbody></table></div></div>" +
+      '<p class="tk-note">Log-loss, lower is better; a negative pE − p0 means the predicted lineups helped. Pinnacle is shown only where a snapshot was taken in the same run as our forecast. ' +
+      "This is a running description, not the verdict: whether predicted lineups help is decided once, after gameweek 38 (pα against p0), and one season cannot settle how we compare with the market.</p>";
+  }).catch(function () { el.innerHTML = '<p class="tk-note">The live results could not be loaded right now.</p>'; });
+})();
+</script>
 
 <footer class="foot">
   <div class="wrap foot-in">
