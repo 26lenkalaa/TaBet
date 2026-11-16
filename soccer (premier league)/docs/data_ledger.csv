@@ -34,19 +34,19 @@ B1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning
 P1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
 T1,2003-04,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
 G1,2005-06,2019-20,NNLC,development,spent,1,brief §5.29,neural-network learning curve (exploratory)
-SP1,2005-06,2013-14,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only
-SP1,2014-15,2016-17,G,development,reserved,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
-SP1,2017-18,2017-18,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
-SP1,2018-19,2020-21,G,test,reserved,1,PREREGISTRATION addendum G,boosted stage 2: scored once
-I1,2005-06,2013-14,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only
-I1,2014-15,2016-17,G,development,reserved,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
-I1,2017-18,2017-18,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
-I1,2018-19,2020-21,G,test,reserved,1,PREREGISTRATION addendum G,boosted stage 2: scored once
-D1,2006-07,2013-14,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only
-D1,2014-15,2016-17,G,development,reserved,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
-D1,2017-18,2017-18,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
-D1,2018-19,2020-21,G,test,reserved,1,PREREGISTRATION addendum G,boosted stage 2: scored once
-F1,2005-06,2013-14,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only
-F1,2014-15,2016-17,G,development,reserved,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
-F1,2017-18,2017-18,G,training,reserved,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
-F1,2018-19,2020-21,G,test,reserved,1,PREREGISTRATION addendum G,boosted stage 2: scored once
+SP1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+SP1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+SP1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+SP1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+I1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+I1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+I1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+I1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+D1,2006-07,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+D1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+D1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+D1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+F1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only
+F1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
+F1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
+F1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)

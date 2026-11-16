@@ -34,6 +34,9 @@
 >
 >     No further neural-network search until 10–20k matches with the required features exist.
 >   - A league × season × experiment ledger is to be enforced in the scripts.
+> - **Experiment G** (pre-registered, big four 2018-21): a boosted stage 2 is **not** better than a
+>   pooled linear one (+0.0005). Both beat Dixon-Coles by about 0.003 (§5.30). A data ledger now
+>   enforces which league-seasons each experiment may use.
 > - A multi-league collector (API-Football, free plan) now runs daily. It gives team xG, lineups and
 >   per-player match stats for 2022-23 to 2024-25 (§3, §5.25), and it feeds §8 item 7.
 > - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first
@@ -1040,6 +1043,40 @@ Review 6, item 7e asked for learning curves on pooled leagues.
 **Storage.** football-data history (307 season files) and this experiment's derived rows live in a
 private Supabase bucket, `football-data`, read through `tabet/fd_cache.py`. Nothing is kept on disk.
 Code: `prototypes/run_nn_learning_curve.py`, `results/nn_learning_curve/results.json`.
+
+### 5.30 Boosted stage 2 on the big four (pre-registered as addendum G): not confirmed
+
+The seventh review's experiment 1. Pre-registered and pushed (`34f4411`) before any code for it
+existed. The data ledger (`docs/data_ledger.csv`, enforced by `tabet/ledger.py`) showed the test
+seasons untouched.
+
+**Design**
+- **Data:** La Liga, Serie A, Bundesliga and Ligue 1 from football-data (through the Supabase
+  cache).
+- **Base:** Dixon-Coles per league, refitted weekly.
+- **Three models on identical inputs:** Dixon-Coles alone; a pooled linear stage 2; a shallow boosted
+  stage 2 (scikit-learn HGB, Poisson with the DC offset). The inputs: shots-on-target and goals form,
+  relative strength, rest days, games played this season, and home.
+- **Fitting:** monthly refits on one global clock.
+- **Periods:** development 2014-17, which chose LIN L2 = 100 and GBM depth 3 / leaf 200. The test
+  was **2018-21 (4,217 matches), scored once**.
+
+| Test, equal-weight mean of the four leagues | Mean | 95% block CI | Rule |
+|---|---|---|---|
+| **C1: GBM − LIN** | **+0.0005** | [−0.0026, +0.0032] | needed ≤ −0.001 and upper bound < 0 ✗ |
+| **C2: GBM − DC** | −0.0030 | [−0.0052, −0.0008] | upper bound < 0 ✓ |
+| LIN − DC (secondary) | −0.0035 | [−0.0065, −0.0003] | |
+
+**Not confirmed.**
+- **Gain over Dixon-Coles:** both adjustments beat plain Dixon-Coles by about 0.003 on fresh data.
+- **Boosting adds nothing over the linear stage 2.**
+- **Secondaries (descriptive):**
+  - C1 by league: Serie A −0.0035, La Liga −0.0013, Bundesliga +0.0022, Ligue 1 +0.0045.
+  - Before stadiums closed (to Feb 2020): −0.0018. The empty-stadium season 2020-21: +0.0037.
+  - Early season: −0.0020.
+  - The boosting rounds chosen ranged from 54 to 341 (median 182).
+- **Ledger:** the big four's 2005-21 seasons are now **spent** for family G.
+- **Code:** `prototypes/run_g_boosted_stage2.py`, `results/g_boosted/`.
 
 ## 6. Known weaknesses and open questions
 

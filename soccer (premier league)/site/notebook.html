@@ -618,11 +618,12 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Returning-team reset<span class="note">Clubs back after a season away start fresh</span></td><td class="num">+0.0008</td><td class="num wide">+0.0011</td><td><span class="tag t-red">Slightly worse</span></td></tr>
               <tr><td class="name">Reset + promoted-team start<span class="note">Fresh start below average for promoted sides</span></td><td class="num">+0.0035</td><td class="num wide">−0.0018</td><td><span class="tag t-red">Worse</span></td></tr>
               <tr><td class="name">Bayesian Dixon-Coles<span class="note">Tracks how sure we are of each rating</span></td><td class="num">+0.0063</td><td class="num wide">−0.0020</td><td><span class="tag t-red">Worse</span></td></tr>
+              <tr><td class="name">Gradient-boosted adjustment<span class="note">Decision trees instead of a straight-line adjustment, same inputs. Tested on La Liga, Serie A, Bundesliga and Ligue 1, 2018-21, written down before it ran</span></td><td class="num">n/a</td><td class="num wide">n/a</td><td><span class="tag t-gray">No better than linear</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
+      <p class="table-note">The gradient-boosted adjustment was scored on 4,217 matches from four other leagues, not the Premier League: it was +0.0005 against a straight-line adjustment on the same inputs (both beat plain Dixon-Coles by about 0.003). Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
 
       <div class="callout">
         <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. It's also logged in the live test, but we found that in recent seasons its shared part is almost always zero, so live it mostly tests removing our low-score fix. It's now a minor check: we'd only switch if all the evidence combined pointed the same way. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
