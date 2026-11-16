@@ -1,0 +1,43 @@
+name: Rugby data
+
+# International rugby data from API-Rugby (v1.rugby.api-sports.io), for the rugby predictor in rugby/.
+# Uses its own key (secret RUGBY_API_KEY), so it never shares a quota with the other sports.
+# Start it by hand: Actions > Rugby data > Run workflow.
+#
+# probe: about 15 requests. Shows the plan, the international competitions and their seasons, which
+#        seasons the free key can read, and whether odds come back for an upcoming game.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe (about 15 requests: what the free key can see)"
+        type: choice
+        options: [probe]
+        default: probe
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rugby-data
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: rugby
+    env:
+      RUGBY_API_KEY: ${{ secrets.RUGBY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run
+        run: |
+          set -o pipefail   # a crash must fail the run, even through tee
+          python fetch.py "${{ inputs.mode }}" | tee result.json
+          { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
