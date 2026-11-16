@@ -337,7 +337,8 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
     </div>
     <div class="sec-body">
       <ul>
-        <li><strong>The yardstick is Pinnacle.</strong> Every logged forecast is compared with the odds from the same moment. The headline comparison uses Pinnacle, the bookmaker generally seen as the sharpest. If Pinnacle has no price for a match, we use the middle (median) price across all the bookmakers instead. The average across bookmakers is still shown, for comparison with earlier seasons.</li>
+        <li><strong>One question decides the live test.</strong> Do predicted lineups make the day-before forecast better (pα against p0, gameweeks 20 to 38)? That is the only result that can count as a success. Everything else, including the market comparison, other forecast variants and splits by source or timing, is reported to describe what happened, never to claim a win.</li>
+        <li><strong>The yardstick is Pinnacle.</strong> Every logged forecast is compared with odds saved in the same run, within about 15 minutes of it. The headline comparison uses Pinnacle, the bookmaker generally seen as the sharpest. If Pinnacle has no price for a match, we use the median price across bookmakers instead, leaving out betting exchanges, whose prices include commission and depend on how much money is trading. The average across bookmakers is still shown, for comparison with earlier seasons.</li>
         <li><strong>Removing the bookmaker's cut.</strong> Bookmakers' prices add up to more than 100%. That extra is their margin. We remove it with Shin's method, which takes a little more off the long shots than off the favourite, because that's where bookmakers tend to load their margin.</li>
         <li><strong>One season can't settle "are we level with the market?"</strong> With about 190 matches, luck alone moves the comparison by around ±0.012. That's more than the whole gap we expect. So the market comparison is reported as a description, not a verdict. The real test is the lineup question, which compares two of our own forecasts on the same matches. That comparison is much less noisy.</li>
         <li><strong>Matches are grouped by gameweek</strong> when we work out the uncertainty, because forecasts made on the same day share the same team news. A postponed match counts in the gameweek it's actually played.</li>
@@ -623,7 +624,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
           </table>
         </div>
       </div>
-      <p class="table-note">The gradient-boosted adjustment was scored on 4,217 matches from four other leagues, not the Premier League: it was +0.0005 against a straight-line adjustment on the same inputs (both beat plain Dixon-Coles by about 0.003). Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
+      <p class="table-note">The gradient-boosted adjustment was scored on 4,217 matches from four other leagues, not the Premier League: it was +0.0005 against a straight-line adjustment on the same inputs. The useful finding: both beat plain Dixon-Coles by about 0.003, so recent shots, rest days and games played add real information. Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
 
       <div class="callout">
         <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. It's also logged in the live test, but we found that in recent seasons its shared part is almost always zero, so live it mostly tests removing our low-score fix. It's now a minor check: we'd only switch if all the evidence combined pointed the same way. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
@@ -731,6 +732,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
         <li><strong>No odds as inputs.</strong> Betting prices and fantasy-football ownership are benchmarks only. Raw bookmaker prices are stored privately, as the data provider's terms require; the site shows only probabilities.</li>
         <li><strong>Past predicts future, never the reverse.</strong> Models are trained on earlier matches and scored on later ones, never on a random shuffle.</li>
         <li><strong>Tests are written down first.</strong> The main comparisons were committed to the project's history before they were run.</li>
+        <li><strong>Every test gets fresh data.</strong> A data ledger records which league-seasons each experiment has used, and the code refuses to score a test on matches an earlier experiment has already looked at.</li>
       </ul>
     </div>
   </section>
@@ -739,7 +741,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
 <footer class="foot">
   <div class="wrap foot-in">
     <a class="brand brand-inv" href="/"><span class="mark" aria-hidden="true"></span>TaBet</a>
-    <p>TaBet is a student software-engineering project. Data comes from football-data.co.uk, the Fantasy Premier League API and its public archive, Fantasy Football Scout and RotoWire. Nothing here is betting advice.</p>
+    <p>TaBet is a student software-engineering project. Every data source, and what it is used for, is listed in <a href="#sources">Where the data comes from</a>. Nothing here is betting advice.</p>
   </div>
 </footer>
 

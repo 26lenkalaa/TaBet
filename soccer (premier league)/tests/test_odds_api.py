@@ -124,7 +124,7 @@ def test_latest_market_for_the_site_is_the_newest_snapshot(tmp_path):
     OA.archive_api(pd.Timestamp("2026-11-19 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
     OA.archive_api(pd.Timestamp("2026-11-20 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
     lm = S._latest_market(108, OA.load(tmp_path))
-    assert lm["key"] == "latest" and "20 Nov 08:00" in lm["note"] and "3 bookmakers" in lm["note"]
+    assert lm["key"] == "latest" and "20 Nov 08:00" in lm["note"] and "Pinnacle" in lm["note"]   # A8: Pinnacle first
     assert S._latest_market(999, OA.load(tmp_path)) is None
 
 

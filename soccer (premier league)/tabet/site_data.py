@@ -80,6 +80,27 @@ def _logged() -> dict[int, dict]:
     return best
 
 
+# Which price the site shows (amendment A8): Pinnacle with its margin removed by Shin's method; if
+# Pinnacle is missing from a snapshot, the median over bookmakers (exchanges excluded, A9); then the
+# bookmaker average (older snapshots, football-data). Display only: nothing here feeds a forecast.
+_PREFERENCE = (("pinnacle_shin", "Pinnacle, margin removed (Shin's method)"),
+               ("median", "median of the bookmakers, margins removed"),
+               ("Avg", "bookmaker average{n}, margin removed"))
+
+
+def _snapshot_price(rows: pd.DataFrame) -> tuple[list[float], str] | None:
+    """The preferred price among one snapshot's rows for one fixture, as probabilities and a note."""
+    from .market_benchmark import _implied
+    for book, text in _PREFERENCE:
+        x = rows[rows["book"] == book]
+        if len(x):
+            x = x.iloc[0]
+            n = f" of {int(x['n_books'])} bookmakers" if "n_books" in x and pd.notna(x.get("n_books")) else ""
+            p = _implied(x[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
+            return [round(float(v), 4) for v in p], text.format(n=n)
+    return None
+
+
 def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
     """The market at a logged record's cutoff, or None if no snapshot was taken by then."""
     from .market_benchmark import select_snapshots
@@ -91,34 +112,34 @@ def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
         s = select_snapshots(rec, odds_log, source=source, with_last=False)
         if len(s) and not bool(s["later"].iloc[0]) and abs(float(s["hours_after_cutoff"].iloc[0])) <= 1.0:
             x = s.iloc[0]
-            row = odds_log[(odds_log["source"] == source) & (odds_log["book"] == "Avg")
-                           & (odds_log["retrieved_utc"] == x["retrieved_utc"])
-                           & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == r["fpl_fixture"])]
-            n = row["n_books"].iloc[0] if "n_books" in row and len(row) and pd.notna(row["n_books"].iloc[0]) else None
+            snap = odds_log[(odds_log["source"] == source) & (odds_log["retrieved_utc"] == x["retrieved_utc"])
+                            & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == r["fpl_fixture"])]
+            price = _snapshot_price(snap)
+            if price is None:
+                continue
+            p, what = price
             hrs = (pd.Timestamp(r["kickoff_utc"]) - x["retrieved_utc"]).total_seconds() / 3600
-            note = (f"bookmaker average{f' of {int(n)} bookmakers' if n else ''}, margin removed; {label}, "
-                    f"retrieved {x['retrieved_utc']:%d %b %H:%M} UTC, {hrs:.1f} h before kickoff")
-            return {"key": "matched", "label": "Market at our forecast time", "note": note,
-                    "p": [round(float(x[c]), 4) for c in ("p_home", "p_draw", "p_away")]}
+            note = f"{what}; {label}, retrieved {x['retrieved_utc']:%d %b %H:%M} UTC, {hrs:.1f} h before kickoff"
+            return {"key": "matched", "label": "Market at our forecast time", "note": note, "p": p}
     return None
 
 
 def _latest_market(fixture: int, odds_log: pd.DataFrame) -> dict | None:
-    """The newest The Odds API bookmaker average for an upcoming fixture (refreshed at least daily)."""
-    from .market_benchmark import _implied
+    """The newest The Odds API snapshot for an upcoming fixture (refreshed at least daily), priced by the
+    same preference as the matched market: Pinnacle (Shin), else the median, else the average."""
     from .odds_archive import API_SOURCE
     if odds_log is None or odds_log.empty or "source" not in odds_log:
         return None
-    o = odds_log[(odds_log["source"] == API_SOURCE) & (odds_log["book"] == "Avg")
-                 & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == fixture)]
+    o = odds_log[(odds_log["source"] == API_SOURCE) & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == fixture)]
     if o.empty:
         return None
-    x = o.sort_values("retrieved_utc").iloc[-1]
-    p = _implied(x[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
-    n = f" of {int(x['n_books'])} bookmakers" if pd.notna(x.get("n_books")) else ""
+    last = o["retrieved_utc"].max()
+    price = _snapshot_price(o[o["retrieved_utc"] == last])
+    if price is None:
+        return None
+    p, what = price
     return {"key": "latest", "label": "Latest market odds",
-            "note": f"bookmaker average{n}, margin removed; The Odds API, retrieved {x['retrieved_utc']:%d %b %H:%M} UTC",
-            "p": [round(float(v), 4) for v in p]}
+            "note": f"{what}; The Odds API, retrieved {last:%d %b %H:%M} UTC", "p": p}
 
 
 def _odds_log() -> pd.DataFrame:
