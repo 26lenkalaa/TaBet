@@ -46,27 +46,7 @@ def _implied(o: np.ndarray) -> np.ndarray:
     return inv / inv.sum(axis=1, keepdims=True)
 
 
-def shin(odds) -> np.ndarray:
-    """Shin (1993) probabilities from one set of decimal odds: p_k = (sqrt(z^2 + 4 (1 - z) q_k^2 / B) - z)
-    / (2 (1 - z)), q_k = 1/o_k, B = sum q_k, with z in [0, 1) found by bisection so the p_k sum to 1.
-    With no margin (B = 1) z = 0 and this equals the plain implied probabilities."""
-    q = 1.0 / np.asarray(odds, dtype=float)
-    B = q.sum()
-    if B <= 1.0:
-        return q / B
-
-    def p(z):
-        return (np.sqrt(z * z + 4 * (1 - z) * q * q / B) - z) / (2 * (1 - z))
-
-    lo, hi = 0.0, 0.999
-    for _ in range(100):
-        mid = (lo + hi) / 2
-        if p(mid).sum() > 1:
-            lo = mid
-        else:
-            hi = mid
-    out = p((lo + hi) / 2)
-    return out / out.sum()
+shin = odds_archive.shin   # Shin margin removal lives with the archiver, which stores the derived rows
 
 
 def headline_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, tolerance: pd.Timedelta = SAME_RUN) -> pd.DataFrame:
@@ -75,7 +55,7 @@ def headline_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, tolerance:
     o = odds_log.copy()
     if "source" in o:
         o = o[o["source"] == odds_archive.API_SOURCE]
-    o = o[o["book"] != "Avg"]
+    o = o[o["book"] != "Avg"].copy()
     o["fpl_fixture"] = pd.to_numeric(o["fpl_fixture"], errors="coerce")
     o = o.dropna(subset=["fpl_fixture", "odds_h", "odds_d", "odds_a"]).sort_values("retrieved_utc")
     out = []
@@ -88,13 +68,22 @@ def headline_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, tolerance:
         before = times[times <= cut + tolerance]
         when, later = (before.iloc[-1], False) if len(before) else (times.iloc[0], True)
         snap = s[s["retrieved_utc"] == when]
-        pin = snap[snap["book"] == HEADLINE_BOOK]
+        pin = snap[snap["book"] == "pinnacle_shin"]          # derived rows (A8 item 6): already margin-free
+        raw_pin = snap[snap["book"] == HEADLINE_BOOK]        # full rows (older archives, tests)
+        med = snap[snap["book"] == "median"]
         if len(pin):
-            p, basis = shin(pin.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float)), "pinnacle_shin"
+            p, basis = _implied(pin.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0], "pinnacle_shin"
+        elif len(raw_pin):
+            p, basis = shin(raw_pin.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float)), "pinnacle_shin"
+        elif len(med):
+            p, basis = _implied(med.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0], "median"
         else:
-            each = _implied(snap[["odds_h", "odds_d", "odds_a"]].to_numpy(float))
-            med = np.median(each, axis=0)
-            p, basis = med / med.sum(), f"median_{len(snap)}_books"
+            raw = snap[~snap["book"].isin(odds_archive.DERIVED_BOOKS)]
+            if raw.empty:
+                continue
+            each = _implied(raw[["odds_h", "odds_d", "odds_a"]].to_numpy(float))
+            m = np.median(each, axis=0)
+            p, basis = m / m.sum(), f"median_{len(raw)}_books"
         out.append({"fpl_fixture": int(r.fpl_fixture), "snapshot": "matched_pinnacle", "retrieved_utc": when,
                     "later": later, "hours_after_cutoff": (when - cut).total_seconds() / 3600, "basis": basis,
                     "p_home": p[0], "p_draw": p[1], "p_away": p[2]})

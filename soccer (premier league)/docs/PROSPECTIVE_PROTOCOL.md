@@ -478,3 +478,25 @@ rule changes.
    cluster, including both of a team's matches. A postponed fixture has no FPL kickoff time until
    it is rescheduled, and only fixtures with a kickoff time are logged, so it never forms a cluster. α's fitting window
    (gameweeks ≤ 19) and the evaluation windows use the same id.
+6. **Where the raw odds are kept (correcting A7 item 7).** A7 assumed a private repository, but the
+   repository is public, and The Odds API's terms forbid redistributing its data. So from this
+   amendment:
+   - **Private:** every raw Odds API response (`oddsapi/raw/<stamp>.json.gz`) and every snapshot's
+     per-bookmaker prices (`oddsapi/books/<stamp>.csv.gz`) go to the **private Supabase bucket
+     `odds-archive`**. Only the secret key can read it.
+   - **Repository:** `oddsapi_log.csv` keeps only three derived, margin-free probability rows per match
+     and snapshot, written as fair odds 1/p:
+     - `Avg`: A7's mean of the bookmakers' decimal odds, normalised proportionally;
+     - `pinnacle_shin`: item 3's headline;
+     - `median`: item 3's fallback.
+
+     `raw_file` points at the private copy.
+   - **Existing data:** snapshots taken before this amendment are moved the same way, and the move is
+     idempotent (`odds_archive.privatise`).
+   - **Checks:** on the data to 16 November, every probability the site and the benchmark use is
+     unchanged. The site's "latest market" is identical, and the headline is within 1e-7 (rounding).
+   - **Failures:** if an upload fails, the derived rows are still written and the failure is recorded
+     in `oddsapi_fetch_log.csv`.
+
+   Copies already in the public git history are not rewritten by this amendment. football-data's
+   `fixtures.csv` archive is unaffected.
