@@ -11,13 +11,14 @@ repository secrets, and everything collected goes straight to the backend:
 
 Nothing is written to git or to anyone's laptop.
 
-    python -m tabet.api_football probe                # plan, allowed seasons, one sample match (~5 calls)
+    python -m tabet.api_football probe                # plan, allowed seasons, one sample match (5 calls)
     python -m tabet.api_football fetch --budget 50
 
 Budget (kept deliberately modest): the free plan allows 100 requests a day and about 10 a minute.
 A run uses at most `--budget` requests (default 50, counting the /status check), never goes within
-`RESERVE` of the daily limit, and waits 6.5 s between calls. Fixture details come 20 at a time from
-/fixtures?ids=..., which returns events, lineups, team statistics and player statistics together.
+`RESERVE` of the daily limit, and waits 6.5 s between calls. Each match's details (events, lineups,
+team statistics, player statistics) come from /fixtures?id=..., one match a request: the free plan
+refuses the 20-a-request ids parameter (`--batch` turns it on for a paid plan).
 Everything is resumable: a fixture already stored is never requested again.
 """
 from __future__ import annotations
@@ -175,8 +176,10 @@ class SupabaseStore:
 # ---------------------------------------------------------------- the API client
 
 class Client:
-    def __init__(self, key: str, store, budget: int, opener=None, pause: float = PAUSE_S):
-        self.key, self.store, self.budget, self.pause = key, store, budget, pause
+    def __init__(self, key: str, store, budget: int, opener=None, pause: float = PAUSE_S, batch: bool = False):
+        # batch=True uses /fixtures?ids= (20 matches a request). The free plan refuses that parameter
+        # ("Free plans do not have access to the Ids parameter"), so the default is one match a request.
+        self.key, self.store, self.budget, self.pause, self.batch = key, store, budget, pause, batch
         self.used = 0
         self._last = 0.0
         self._open = opener or _default_opener()
@@ -230,42 +233,49 @@ def quota(client: Client) -> tuple[int, int]:
 # ---------------------------------------------------------------- modes
 
 def probe(client: Client) -> dict:
-    """About 5 requests that show what the plan allows. Returns a summary, never the key."""
-    out = {}
+    """Five requests that show what the plan allows. Returns a summary, never the key.
+
+    status; Premier League coverage by season; the current season's fixture list (its error message
+    names the plan's allowed seasons if it is refused); the 2023 list (kept, so fetch never asks again);
+    and one match by id, to check that a single request returns lineups and team and player stats."""
+    out, store = {}, client.store
     s = client.get("status")["response"]
     out["plan"] = (s.get("subscription") or {}).get("plan") if isinstance(s, dict) else None
     out["requests_today"] = (s.get("requests") or {}) if isinstance(s, dict) else {}
     lg = client.get("leagues", id=39)["response"]
-    out["premier_league_seasons"] = [
-        {"season": x["year"], "lineups": x["coverage"]["fixtures"].get("lineups"),
-         "team_stats": x["coverage"]["fixtures"].get("statistics_fixtures"),
-         "player_stats": x["coverage"]["fixtures"].get("statistics_players")}
-        for x in (lg[0]["seasons"] if lg else [])]
-    allowed = []
-    for season in (2023, 2021):        # at most 2 season lists + 1 sample match
-        if allowed:
-            break
+    out["premier_league_coverage"] = {
+        x["year"]: {k: x["coverage"]["fixtures"].get(v) for k, v in
+                    (("lineups", "lineups"), ("team_stats", "statistics_fixtures"), ("player_stats", "statistics_players"))}
+        for x in (lg[0]["seasons"] if lg else []) if x["year"] >= 2015}
+    out["seasons"] = {}
+    listing = None
+    for season in (2025, 2023):
         try:
-            fx = client.get("fixtures", league=39, season=season)
+            body = client.get("fixtures", league=39, season=season)
+            out["seasons"][season] = f"allowed ({body.get('results')} fixtures)"
+            if listing is None:
+                listing = body
+                path = f"fixtures/39-{season}.json.gz"
+                store.put(path, body)
+                store.add_list(39, season, path, len(body.get("response", [])))
         except PlanLimit as e:
-            out.setdefault("blocked", {})[season] = str(e)[:200]
-            continue
-        allowed.append(season)
-        out["sample"] = {"season": season, "fixtures": fx.get("results")}
-        done = [f for f in fx["response"] if f["fixture"]["status"]["short"] in FINISHED]
-        if done:
-            d = client.get("fixtures", ids=str(done[0]["fixture"]["id"]))["response"][0]
-            try:
-                players = ((d.get("players") or [{}])[0].get("players") or [{}])[0]
-                out["sample_fixture"] = {
-                    "match": f'{d["teams"]["home"]["name"]} v {d["teams"]["away"]["name"]}',
-                    "has_lineups": bool(d.get("lineups")),
-                    "team_stat_names": [x["type"] for x in (d.get("statistics") or [{}])[0].get("statistics", [])],
-                    "player_stat_groups": list(players.get("statistics", [{}])[0].keys()),
-                }
-            except (IndexError, KeyError, AttributeError) as e:
-                out["sample_fixture"] = {"unexpected_shape": str(e)[:200], "keys": list(d)}
-    out["allowed_seasons_tried"] = allowed
+            out["seasons"][season] = f"blocked: {e}"[:250]
+            store.block(39, season, str(e))
+    done = [f for f in (listing or {}).get("response", []) if f["fixture"]["status"]["short"] in FINISHED]
+    if done:
+        try:
+            d = client.get("fixtures", id=done[0]["fixture"]["id"])["response"][0]
+            players = ((d.get("players") or [{}])[0].get("players") or [{}])[0]
+            out["sample_match"] = {
+                "match": f'{d["teams"]["home"]["name"]} v {d["teams"]["away"]["name"]}',
+                "has_lineups": bool(d.get("lineups")),
+                "team_stats": [x["type"] for x in (d.get("statistics") or [{}])[0].get("statistics", [])],
+                "player_stat_groups": list(players.get("statistics", [{}])[0].keys()),
+            }
+        except PlanLimit as e:
+            out["sample_match"] = f"blocked: {e}"[:250]
+        except (IndexError, KeyError, AttributeError) as e:
+            out["sample_match"] = {"unexpected_shape": str(e)[:200]}
     out["requests_used_by_probe"] = client.used
     return out
 
@@ -298,17 +308,19 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
                     listing = store.get(path)
                 todo = [f["fixture"]["id"] for f in listing["response"]
                         if f["fixture"]["status"]["short"] in FINISHED and f["fixture"]["id"] not in fetched]
-                for i in range(0, len(todo), BATCH):
-                    ids = todo[i:i + BATCH]
-                    body = client.get("fixtures", ids="-".join(map(str, ids)))
+                group = BATCH if client.batch else 1
+                for i in range(0, len(todo), group):
+                    ids = todo[i:i + group]
+                    body = (client.get("fixtures", ids="-".join(map(str, ids))) if client.batch
+                            else client.get("fixtures", id=ids[0]))
                     got = [f["fixture"]["id"] for f in body.get("response", [])]
                     obj = f"details/{league}-{season}/{ids[0]}.json.gz"
                     store.put(obj, body)
                     store.add_fixtures(league, season, obj, got)
                     fetched.update(got)
                     summary["new_fixtures"] += len(got)
-    except DailyLimit as e:
-        summary["stopped"] = str(e)[:200]
+    except (DailyLimit, PlanLimit) as e:
+        summary["stopped"] = f"{type(e).__name__}: {e}"[:250]
     summary["requests_used"] = client.used
     summary["fixtures_total"] = len(fetched)
     return summary
@@ -318,6 +330,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("mode", choices=["probe", "fetch"])
     ap.add_argument("--budget", type=int, default=50)
+    ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
     key = os.environ.get("API_FOOTBALL_KEY", "").strip()
     url, skey = os.environ.get("SUPABASE_URL", "").strip(), os.environ.get("SUPABASE_SECRET_KEY", "").strip()
@@ -328,7 +341,7 @@ def main(argv=None) -> int:
         print("SUPABASE_URL / SUPABASE_SECRET_KEY are not set; fetch stores everything in Supabase, so it stops here.")
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
-    client = Client(key, store, a.budget)
+    client = Client(key, store, a.budget, batch=a.batch)
     result = probe(client) if a.mode == "probe" else fetch(client)
     print(json.dumps(result, indent=1))
     return 0

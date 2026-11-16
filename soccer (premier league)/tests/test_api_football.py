@@ -13,8 +13,8 @@ KEY = "secret-key-123"
 class FakeAPI:
     """Serves /status, /fixtures?league&season (lists) and /fixtures?ids (details)."""
 
-    def __init__(self, n_fixtures=45, allowed=(2023,), used=0, limit=100):
-        self.calls = []
+    def __init__(self, n_fixtures=45, allowed=(2023,), used=0, limit=100, free=True):
+        self.calls, self.free = [], free
         self.allowed, self.used, self.limit = set(allowed), used, limit
         self.fixtures = [{"fixture": {"id": 1000 + i, "status": {"short": "FT" if i < n_fixtures - 2 else "NS"}},
                           "teams": {"home": {"name": "A"}, "away": {"name": "B"}}} for i in range(n_fixtures)]
@@ -28,6 +28,17 @@ class FakeAPI:
         if endpoint == "status":
             body = {"errors": [], "response": {"subscription": {"plan": "Free"},
                                                "requests": {"current": self.used, "limit_day": self.limit}}}
+        elif endpoint == "fixtures" and "ids" in q and self.free:
+            body = {"errors": {"plan": "Free plans do not have access to the Ids parameter."}, "response": []}
+        elif endpoint == "fixtures" and "id" in q:
+            i = int(q["id"])
+            body = {"errors": [], "results": 1, "response": [
+                {"fixture": {"id": i}, "teams": {"home": {"name": "A"}, "away": {"name": "B"}},
+                 "lineups": [{"startXI": []}], "statistics": [{"statistics": [{"type": "Shots on Goal"}]}],
+                 "players": [{"players": [{"statistics": [{"games": {}, "shots": {}}]}]}]}]}
+        elif endpoint == "leagues":
+            body = {"errors": [], "results": 1, "response": [{"seasons": [
+                {"year": 2023, "coverage": {"fixtures": {"lineups": True, "statistics_fixtures": True, "statistics_players": True}}}]}]}
         elif endpoint == "fixtures" and "ids" in q:
             ids = [int(x) for x in q["ids"].split("-")]
             assert len(ids) <= af.BATCH
@@ -54,8 +65,8 @@ class FakeAPI:
         return R(json.dumps(body).encode())
 
 
-def client(store, api, budget=50):
-    return af.Client(KEY, store, budget, opener=api, pause=0)
+def client(store, api, budget=50, batch=False):
+    return af.Client(KEY, store, budget, opener=api, pause=0, batch=batch)
 
 
 LEAGUES = [(39, "Premier League")]
@@ -73,8 +84,8 @@ def test_fetch_batches_skips_unfinished_and_blocked_seasons():
     s = af.fetch(client(store, api), LEAGUES, seasons=[2024, 2023])
     assert s["new_fixtures"] == 43                      # 2 unfinished fixtures are left for later
     assert (39, 2024) in store.blocked()
-    detail_calls = [q for e, q in api.calls if "ids" in q]
-    assert len(detail_calls) == 3                       # 43 fixtures in batches of 20
+    detail_calls = [q for e, q in api.calls if "id" in q]
+    assert len(detail_calls) == 43                      # free plan: one match a request
     assert len(store.fetched_ids()) == 43
     assert {p.split("/")[0] for p in store.objects} == {"fixtures", "details"}
 
@@ -88,10 +99,25 @@ def test_resume_never_refetches():
     assert [e for e, q in api2.calls] == ["status"]     # list cached, nothing left to fetch, blocked season remembered
 
 
+def test_batches_of_20_on_a_paid_plan():
+    api, store = FakeAPI(n_fixtures=45, free=False), af.MemoryStore()
+    af.fetch(client(store, api, batch=True), LEAGUES, seasons=[2023])
+    assert len([q for e, q in api.calls if "ids" in q]) == 3 and len(store.fetched_ids()) == 43
+
+
+def test_probe_uses_five_calls_and_keeps_the_list():
+    api, store = FakeAPI(allowed=(2023,)), af.MemoryStore()
+    out = af.probe(client(store, api))
+    assert out["requests_used_by_probe"] == 5
+    assert out["seasons"][2025].startswith("blocked") and out["seasons"][2023].startswith("allowed")
+    assert out["sample_match"]["has_lineups"] and out["sample_match"]["team_stats"] == ["Shots on Goal"]
+    assert store.list_path(39, 2023) and (39, 2025) in store.blocked()   # fetch will not ask again
+
+
 def test_run_budget_and_daily_reserve():
     api = FakeAPI(n_fixtures=400)
     s = af.fetch(client(af.MemoryStore(), api, budget=4), LEAGUES, seasons=[2023])
-    assert len(api.calls) == 4 and s["requests_used"] == 4   # status + list + 2 batches
+    assert len(api.calls) == 4 and s["requests_used"] == 4   # status + list + 2 matches
     api2 = FakeAPI(n_fixtures=400, used=88, limit=100)        # 12 left today, 10 kept in reserve
     s2 = af.fetch(client(af.MemoryStore(), api2, budget=50), LEAGUES, seasons=[2023])
     assert s2["requests_used"] <= 3
@@ -101,4 +127,4 @@ def test_log_never_contains_the_key():
     store = af.MemoryStore()
     af.fetch(client(store, FakeAPI()), LEAGUES, seasons=[2023])
     log = json.dumps(store.requests)
-    assert KEY not in log and "ids" in log
+    assert KEY not in log and '"id"' in log
