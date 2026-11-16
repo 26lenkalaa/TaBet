@@ -1,8 +1,10 @@
 name: API-Football data (training only)
 
-# Collects multi-league match data (lineups, team and player statistics) for model training.
-# It is separate from the forecast logger, never touches main's data, and never calls the odds or
-# predictions endpoints. Files are committed to the `api-football-data` branch.
+# Collects multi-league match data (lineups, team and player statistics) for model training and
+# stores it in the backend: raw responses in Supabase Storage (private bucket `api-football`) and
+# bookkeeping in private tables (backend/supabase/migrations/0003_api_football.sql). Nothing is
+# committed to git. It is separate from the forecast logger and never calls the odds or predictions
+# endpoints.
 #
 # Budget: the free plan allows 100 requests a day. A run uses at most `budget` requests (default 50,
 # including the status check), always leaves 10 unused, and waits 6.5 s between calls.
@@ -21,7 +23,7 @@ on:
         default: "50"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: api-football
@@ -31,40 +33,22 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: "soccer (premier league)"
     env:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       MODE: ${{ inputs.mode }}
       BUDGET: ${{ inputs.budget }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
-      - name: Check out the data branch (created on the first fetch)
-        run: |
-          if git ls-remote --exit-code --heads origin api-football-data >/dev/null; then
-            git fetch --depth 1 origin api-football-data:api-football-data
-            git worktree add apif-data api-football-data
-          else
-            git worktree add --orphan -b api-football-data apif-data
-          fi
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install certifi
       - name: Run
-        working-directory: "soccer (premier league)"
         run: |
-          python -m tabet.api_football "$MODE" --data ../apif-data/apif --budget "$BUDGET" | tee ../result.json
-          { echo '```json'; cat ../result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Save to the data branch
-        if: env.MODE == 'fetch'
-        working-directory: apif-data
-        run: |
-          if [ ! -f README.md ]; then
-            printf '# API-Football data (training only)\n\nCollected by `.github/workflows/api-football.yml` on main. Raw API responses, gzipped.\nNever used for live forecasts; no odds or predictions are ever requested.\n' > README.md
-          fi
-          git add -A
-          if git diff --cached --quiet; then echo "Nothing new."; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -m "API-Football: fetch at $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push origin HEAD:api-football-data
+          python -m tabet.api_football "$MODE" --budget "$BUDGET" | tee result.json
+          { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
