@@ -5,7 +5,8 @@ used as the promoted prior mean in Dixon-Coles (D3), against no prior (D0) and t
 (D1). Development: PL 2000-01 -> 2007-08 (ridge lambda only). Scored once: PL 2008-09 -> 2014-15.
 
     python prototypes/run_r6_promoted_mapping.py [check]   # check = data and timing only, no scoring
-Needs the cleaned football-data files in data/raw/fd_history_clean (see addendum P).
+Reads football-data's E0/E1 files through tabet.fd_cache (cached in Supabase, cleaned as addendum P
+describes), so nothing is kept on disk.
 """
 from __future__ import annotations
 
@@ -20,13 +21,13 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from tabet.ingest import LOCAL_TZ  # noqa: E402
-from tabet.leagues import _slug, load_league_season  # noqa: E402
+from tabet import fd_cache  # noqa: E402
 from tabet.model import DixonColes, Hyperparams  # noqa: E402
 from tabet.multileague import _sot_sides  # noqa: E402
 from tabet.store import MatchStore  # noqa: E402
 from tabet.xg_strength import fit_xg_strength  # noqa: E402
 
-DATA = ROOT / "data" / "raw" / "fd_history_clean"
+CODES = [f"{y % 100:02d}{(y + 1) % 100:02d}" for y in range(1999, 2015)]   # 1999-00 .. 2014-15
 OUT = ROOT / "results" / "r6_promoted_mapping"
 DEV_COHORTS = [f"{y}-{(y + 1) % 100:02d}" for y in range(2001, 2008)]      # 2001-02 .. 2007-08
 TEST_SEASONS = [f"{y}-{(y + 1) % 100:02d}" for y in range(2008, 2015)]     # 2008-09 .. 2014-15
@@ -42,9 +43,8 @@ def prev(s: str) -> str:
 
 
 def load():
-    e0 = pd.concat([load_league_season(p) for p in sorted(DATA.glob("E0_*.csv"))], ignore_index=True)
-    e1 = {s: g for s, g in pd.concat([load_league_season(p) for p in sorted(DATA.glob("E1_*.csv"))],
-                                     ignore_index=True).groupby("season")}
+    e0 = fd_cache.seasons(["E0"], CODES)
+    e1 = {s: g for s, g in fd_cache.seasons(["E1"], CODES).groupby("season")}
     e0 = e0.sort_values(["kickoff_utc", "match_id"]).reset_index(drop=True)
     return e0, e1
 
