@@ -634,6 +634,34 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </section>
 
+  <section class="sec" id="neural">
+    <div class="sec-head">
+      <h2>Can a neural network do better?</h2>
+      <p>Not yet. With the right training it comes close, but it doesn't beat our current model.</p>
+    </div>
+    <div class="sec-body">
+      <p>Our lineup model starts from each team's strength (Dixon-Coles), then makes a small <em>straight-line</em> adjustment using chance quality and the starting XI. We replaced that adjustment with a small neural network, which can learn curved and combined effects the straight line can't. Everything else stayed the same: the same inputs, the same matches, and the same rule that a forecast only uses information from before kickoff. The network starts out as exactly Dixon-Coles and only learns corrections, so it can't do worse simply by starting badly.</p>
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>2024-26</th><th class="num">No XI</th><th class="num">With XI</th></tr></thead>
+            <tbody>
+              <tr><td class="name">Current model<span class="note">Straight-line adjustment (V1x, V2x)</span></td><td class="num">1.0011</td><td class="num">0.9973</td></tr>
+              <tr><td class="name">Neural network, first try<span class="note">Trained for a fixed time</span></td><td class="num">1.0173</td><td class="num">1.0281</td></tr>
+              <tr><td class="name">Neural network, early stopping<span class="note">Stops once it stops improving on recent matches it hasn't seen</span></td><td class="num">1.0043</td><td class="num">1.0007</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">Log-loss on 760 matches, lower is better. "No XI" is before team news; "With XI" uses the starting lineups. The early-stopped network is 0.003 behind the current model in both columns.</p>
+      <ul>
+        <li><strong>The first try overfitted.</strong> It memorised quirks of the matches it was trained on, and did worst when it had the fewest matches to learn from. An outside reviewer spotted that the training setup was part of the problem.</li>
+        <li><strong>Early stopping fixed most of it.</strong> It closed about 80–90% of the gap, but the network still isn't better than the straight line.</li>
+        <li><strong>What's next.</strong> A network should shine with much more data. Once we've collected a few thousand matches from other leagues (see below), we'll rerun this fairly, with early stopping built in.</li>
+      </ul>
+    </div>
+  </section>
+
   <section class="sec" id="data">
     <div class="sec-head">
       <h2>More data on the way</h2>
