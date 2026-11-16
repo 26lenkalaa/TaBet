@@ -170,11 +170,16 @@ def _logged() -> set[tuple[int, float, str]]:
 
 def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
     """Once per UTC day, re-download the live data of the most recent finished
-    gameweeks and keep player xG/xA/xGC as published at that moment."""
+    gameweeks and keep player xG/xA/xGC as published at that moment. A new file is
+    written only if the content (everything but retrieved_utc) differs from the most
+    recent snapshot; otherwise nothing is written and None is returned."""
     dest = XG_SNAP_DIR / f"{now:%Y-%m-%d}.csv.gz"
-    if dest.exists():
-        return None
     tmp = RAW_DIR / "xg_snapshots"
+    # "checked today" marker in the git-ignored download folder (kept between Actions runs by its
+    # cache), so an unchanged day is still downloaded once, not on every 30-minute run
+    marker = tmp / "last_checked_utc_date.txt"
+    if dest.exists() or (marker.exists() and marker.read_text().strip() == f"{now:%Y-%m-%d}"):
+        return None
     boot = json.loads(_get(f"{API}/bootstrap-static/", tmp / "bootstrap.json", refresh=True).read_text())
     code = {e["id"]: e["code"] for e in boot["elements"]}
     rows = []
@@ -189,9 +194,34 @@ def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
                          "expected_goals": s["expected_goals"], "expected_assists": s["expected_assists"],
                          "expected_goals_conceded": s["expected_goals_conceded"], "goals_scored": s["goals_scored"],
                          "assists": s["assists"]})
+    new = pd.DataFrame(rows)
     XG_SNAP_DIR.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).assign(retrieved_utc=now.isoformat()).to_csv(dest, index=False, compression="gzip")
+    tmp.mkdir(parents=True, exist_ok=True)
+    marker.write_text(f"{now:%Y-%m-%d}")
+    previous = sorted(XG_SNAP_DIR.glob("*.csv.gz"))
+    if previous and _same_xg(new, previous[-1]):
+        return None   # unchanged since the last snapshot: the earlier file already holds this content
+    new.assign(retrieved_utc=now.isoformat()).to_csv(dest, index=False, compression="gzip")
     return dest
+
+
+def _same_xg(new: pd.DataFrame, prev_path: Path) -> bool:
+    """True if `new` equals the gzipped snapshot at prev_path in every column except retrieved_utc.
+    Both go through the same CSV round trip; rows are sorted on all columns, because the order of
+    FPL's live elements is not guaranteed and reordering alone carries no new information."""
+    import io
+
+    def norm(df: pd.DataFrame) -> pd.DataFrame:
+        df = df.drop(columns=["retrieved_utc"], errors="ignore")
+        return df.sort_values(list(df.columns)).reset_index(drop=True) if len(df.columns) else df
+
+    try:
+        prev = pd.read_csv(prev_path, compression="gzip")
+    except (pd.errors.EmptyDataError, OSError, EOFError):
+        return False
+    cur = pd.read_csv(io.StringIO(new.to_csv(index=False))) if len(new.columns) else pd.DataFrame()
+    a, b = norm(cur), norm(prev)
+    return list(a.columns) == list(b.columns) and a.equals(b)
 
 
 def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,

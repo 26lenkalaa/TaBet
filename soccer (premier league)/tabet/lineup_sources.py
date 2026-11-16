@@ -112,8 +112,31 @@ def _match_name(full: str, team: str, fp: pd.DataFrame) -> int | None:
     return None
 
 
+def _same_content(new: pd.DataFrame, prev_path: Path) -> bool:
+    """True if `new` equals the snapshot file at prev_path in every column except retrieved_utc.
+    Both sides go through the same CSV round trip, so dtypes compare alike. Rows are sorted on all
+    columns first: the sources' page order is not guaranteed to be stable, and the same set of rows
+    in a different order carries no new information."""
+    import io
+
+    def norm(df: pd.DataFrame) -> pd.DataFrame:
+        df = df.drop(columns=["retrieved_utc"], errors="ignore")
+        df = df.sort_values(list(df.columns)).reset_index(drop=True) if len(df.columns) else df
+        return df
+
+    try:
+        prev = pd.read_csv(prev_path)
+    except (pd.errors.EmptyDataError, OSError):
+        prev = pd.DataFrame()
+    cur = pd.read_csv(io.StringIO(new.to_csv(index=False))) if len(new.columns) else pd.DataFrame()
+    a, b = norm(cur), norm(prev)
+    return list(a.columns) == list(b.columns) and a.equals(b)
+
+
 def snapshot(fpl_players: pd.DataFrame, stamp: str | None = None) -> pd.DataFrame:
-    """Fetch and parse every source; save a combined snapshot CSV."""
+    """Fetch and parse every source; save a combined snapshot CSV, unless its content (ignoring
+    retrieved_utc) is identical to the most recent snapshot, in which case nothing new is written.
+    The parsed DataFrame is returned either way: forecasting uses it."""
     stamp = stamp or pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%MZ")
     parts = []
     for src in URLS:
@@ -126,6 +149,9 @@ def snapshot(fpl_players: pd.DataFrame, stamp: str | None = None) -> pd.DataFram
         parts.append(df.assign(source=src, retrieved_utc=stamp))
     out = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
     SNAP.mkdir(parents=True, exist_ok=True)
+    previous = sorted(SNAP.glob("lineups_*.csv"))
+    if previous and _same_content(out, previous[-1]):
+        return out   # unchanged since the last snapshot: the earlier file already holds this content
     out.to_csv(SNAP / f"lineups_{stamp}.csv", index=False)
     return out
 
