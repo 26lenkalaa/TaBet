@@ -14,6 +14,15 @@
 /* fonts served from this site (no Google round trips); licences in fonts/OFL-*.txt */
 @font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); }
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
+/* data sources: on phones, tags sit under each source so the explanation gets the full width */
+@media (max-width: 640px) {
+  #sources thead { display: none; }
+  #sources tr, #sources td { display: block; }
+  #sources td:first-child { border-bottom: 0; padding-bottom: 8px; }
+  #sources td:last-child { padding-top: 0; }
+  #sources td:last-child .tag { display: inline-block; margin: 0 6px 6px 0; }
+  #sources td:last-child br { display: none; }
+}
 </style>
 <script type="speculationrules">
 {"prerender": [{"where": {"href_matches": ["/", "/matches", "/notebook"]}, "eagerness": "moderate"}]}
@@ -682,6 +691,32 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
       <p><strong>Log-loss</strong> scores the probability a model gave to what actually happened. If the model said 50% and the home team won, the score is −log(0.5) ≈ 0.69. If it said 20% and the home team won, the score is −log(0.2) ≈ 1.61. Confident wrong answers cost the most. Lower is better.</p>
       <p>Differences look tiny because football is mostly luck. Giving each outcome a one-in-three chance scores 1.10. The whole gap between our simplest model and the betting market is 0.015, so a change of 0.003 is a fifth of that gap.</p>
       <blockquote>We judge models on probabilities, not on picking winners. A model that says 60% should be right about six times in ten, no more and no less.</blockquote>
+    </div>
+  </section>
+
+  <section class="sec" id="sources">
+    <div class="sec-head">
+      <h2>Where the data comes from</h2>
+      <p>Everything TaBet uses, what we use it for, and what each source is allowed to do. Only the sources marked "Model input" or "Live-test input" ever change a forecast.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Source</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td class="name"><a href="https://www.football-data.co.uk/">football-data.co.uk</a><span class="note">Match results, shots on target, corners and cards for the Premier League since 2000 and 20+ other leagues. <strong>Used for:</strong> the team-strength ratings every forecast starts from (Dixon-Coles), scoring every forecast against what happened, and testing ideas on other leagues and older seasons. Its betting odds are only ever the yardstick in the scoreboard, never an input.</span></td><td><span class="tag t-green">Model input</span><br><span class="tag t-gray">Odds: benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://fantasy.premierleague.com/">Fantasy Premier League</a> and the <a href="https://github.com/vaastav/Fantasy-Premier-League">vaastav FPL archive</a><span class="note">Every player's minutes, starts, expected goals (xG) and expected assists (xA), match by match since 2021, plus injury and suspension flags. <strong>Used for:</strong> rating each player's attacking threat, so the lineup model (V2x) can tell how strong a particular starting XI is compared with the team's usual one; each team's chance-quality strength (V1x); and dropping unavailable players from our own projected lineups.</span></td><td><span class="tag t-green">Model input</span></td></tr>
+              <tr><td class="name"><a href="https://www.fantasyfootballscout.co.uk/">Fantasy Football Scout</a> and <a href="https://www.rotowire.com/soccer/lineups.php">RotoWire</a><span class="note">Experts' predicted starting XIs, published a day or more before official team news. <strong>Used for:</strong> the live test. Each logged forecast plugs both predicted XIs into the lineup model, so we can measure whether knowing the likely lineup a day early makes forecasts better.</span></td><td><span class="tag t-blue">Live-test input</span></td></tr>
+              <tr><td class="name"><a href="https://the-odds-api.com/">The Odds API</a><span class="note">Odds from about 40 bookmakers, including Pinnacle, fetched when each forecast is logged and once a day. <strong>Used for:</strong> the fair comparison with the market at the same moment ("Market at our forecast time" on the match pages) and the "Latest market odds" shown for upcoming matches. Never a model input.</span></td><td><span class="tag t-gray">Benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://www.api-football.com/">API-Football</a><span class="note">Lineups, team xG and per-player stats (shots, passes, tackles, duels) for other leagues, 2022-25, collected a little each day. <strong>Used for:</strong> testing whether new player stats improve the lineup model, and retrying the neural network on many more matches. Not used in live forecasts.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name"><a href="https://huggingface.co/datasets/eatpizzanot/soccer-dataset">Hugging Face soccer dataset</a><span class="note">Player match stats for the top five European leagues, 2021-25. <strong>Used for:</strong> two finished studies: rating new signings from their previous league, and testing whether recent dribbles, duels and passing predict results. Neither earned a place in the model.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name">Wyscout public dataset<span class="note">Every pass, shot and tackle for five leagues in 2017-18. <strong>Used for:</strong> our first prototype of rating lineups from player actions, before FPL's xG data replaced it. Pappalardo et al. (2019), <em>Scientific Data</em>, CC BY 4.0.</span></td><td><span class="tag t-gray">Early prototype</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">We only use sources whose terms allow it and never get around a site's blocking. Raw bookmaker prices and the API-Football data are stored privately; the site shows only probabilities.</p>
     </div>
   </section>
 
