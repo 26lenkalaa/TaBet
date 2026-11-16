@@ -685,6 +685,32 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </section>
 
+  <section class="sec" id="sources">
+    <div class="sec-head">
+      <h2>Where the data comes from</h2>
+      <p>Everything TaBet uses, and what each source is allowed to do in the model.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Source</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td class="name"><a href="https://www.football-data.co.uk/">football-data.co.uk</a><span class="note">Premier League results, shots, corners and cards since 2000, the same for 20+ other leagues, and historical betting odds</span></td><td><span class="tag t-green">Model input</span><br><span class="tag t-gray">Odds: benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://fantasy.premierleague.com/">Fantasy Premier League</a> and the <a href="https://github.com/vaastav/Fantasy-Premier-League">vaastav FPL archive</a><span class="note">Players' minutes, starts, xG, xA and injury flags, which power the lineup model</span></td><td><span class="tag t-green">Model input</span></td></tr>
+              <tr><td class="name"><a href="https://www.fantasyfootballscout.co.uk/">Fantasy Football Scout</a> and <a href="https://www.rotowire.com/soccer/lineups.php">RotoWire</a><span class="note">Predicted lineups, published before official team news</span></td><td><span class="tag t-blue">Live-test input</span></td></tr>
+              <tr><td class="name"><a href="https://the-odds-api.com/">The Odds API</a><span class="note">Bookmakers' odds, including Pinnacle, at the moment each forecast is logged</span></td><td><span class="tag t-gray">Benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://www.api-football.com/">API-Football</a><span class="note">Lineups, team xG and player stats for other leagues, 2022-25</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name"><a href="https://huggingface.co/datasets/eatpizzanot/soccer-dataset">Hugging Face soccer dataset</a><span class="note">Player match stats for the top five leagues, 2021-25, used to study new signings and match stats</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name">Wyscout public dataset<span class="note">Event data for five leagues, 2017-18. Pappalardo et al. (2019), <em>Scientific Data</em>, CC BY 4.0</span></td><td><span class="tag t-gray">Early prototype</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">We only use sources whose terms allow it and never get around a site's blocking. Raw bookmaker prices and the API-Football data are stored privately; the site shows only probabilities.</p>
+    </div>
+  </section>
+
   <section class="sec" id="rules">
     <div class="sec-head">
       <h2>Rules every model follows</h2>
