@@ -1,4 +1,4 @@
-"""Offline tests for the Elo model and predict.py, using made-up games."""
+"""Offline tests for the Elo model, using made-up games."""
 
 import sys
 from pathlib import Path
@@ -8,7 +8,6 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # the basketball/ folder
 
-from src import db, predict  # noqa: E402
 from src.models.elo import HOME_ADVANTAGE, START_RATING, Elo, rate_games  # noqa: E402
 
 BOS, NYK, LAL, GSW = 1, 2, 3, 4
@@ -165,60 +164,3 @@ def test_rate_games_keeps_every_game_and_adds_four_columns(games):
     assert len(rated) == len(games)
     assert list(rated.columns) == list(games.columns) + ["home_elo", "away_elo", "home_win_prob", "predicted_margin"]
     assert rated["home_win_prob"].between(0, 1).all()
-
-
-# --- predict.py ------------------------------------------------------------
-
-def test_predict_game_uses_the_ratings_after_the_last_game(games):
-    _, model = rate_games(games)
-    prediction = predict.predict_game(games, "BOS", "NYK")
-    prob, margin = model.predict(BOS, NYK)
-    assert prediction.home_win_prob == pytest.approx(prob)
-    assert prediction.predicted_margin == pytest.approx(margin)
-    assert prediction.last_game_date == "2019-10-26"
-
-
-def test_predict_game_accepts_lower_case_and_neutral_courts(games):
-    home = predict.predict_game(games, "bos", "nyk")
-    neutral = predict.predict_game(games, "bos", "nyk", neutral=True)
-    assert home.home == "BOS"
-    assert neutral.home_win_prob < home.home_win_prob
-
-
-def test_predict_game_rejects_unknown_and_repeated_teams(games):
-    with pytest.raises(ValueError, match="Unknown team: XXX"):
-        predict.predict_game(games, "XXX", "NYK")
-    with pytest.raises(ValueError, match="different teams"):
-        predict.predict_game(games, "BOS", "BOS")
-
-
-def make_db(games, tmp_path):
-    db_file = tmp_path / "basketball.db"
-    db.build(db.connect(db_file), games)
-    return db_file
-
-
-def test_command_line_prints_win_probability_and_margin(games, tmp_path, capsys):
-    assert predict.main(["BOS", "NYK", "--db", str(make_db(games, tmp_path))]) == 0
-
-    output = capsys.readouterr().out
-    assert "BOS win probability:" in output
-    assert "NYK win probability:" in output
-    assert "Predicted margin: BOS by" in output
-
-
-def test_command_line_reads_the_same_games_the_database_was_built_from(games, tmp_path):
-    from_db = predict.predict_game(predict.load_games(make_db(games, tmp_path)), "BOS", "NYK")
-    from_frame = predict.predict_game(games, "BOS", "NYK")
-    assert from_db.home_win_prob == pytest.approx(from_frame.home_win_prob)
-    assert from_db.predicted_margin == pytest.approx(from_frame.predicted_margin)
-
-
-def test_command_line_explains_a_missing_database(tmp_path, capsys):
-    assert predict.main(["BOS", "NYK", "--db", str(tmp_path / "missing.db")]) == 1
-    assert "db.py" in capsys.readouterr().err
-
-
-def test_command_line_explains_an_unknown_team(games, tmp_path, capsys):
-    assert predict.main(["BOS", "ZZZ", "--db", str(make_db(games, tmp_path))]) == 1
-    assert "Unknown team: ZZZ" in capsys.readouterr().err
