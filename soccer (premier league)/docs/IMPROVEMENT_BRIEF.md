@@ -7,8 +7,13 @@
 >   - A neural-network stage 2 on our existing inputs is clearly worse than the linear stage 2
 >     (+0.016 to +0.031 log-loss on 2024-26) (§5.26).
 >   - Tuning the player model's three never-tuned settings changes nothing (0.0000 on 2024-26) (§5.27).
+> - **Sixth review acted on before the freeze (amendment A8, `docs/PROSPECTIVE_PROTOCOL.md`):**
+>   - pBP is demoted, because λ3 < 0.02 in 86% of 2022-26 matches, so it mostly tests dropping ρ.
+>     A pooled decision rule replaces a live threshold.
+>   - The headline market is now Pinnacle (Shin), with a median-of-books fallback.
+>   - The α-degenerate rule and the gameweek clusters are written out. No logger code changed.
 > - A multi-league collector (API-Football, free plan) now runs daily. It gives team xG, lineups and
->   per-player match stats for 2022-24 (§3, §5.25), and it feeds §8 item 7.
+>   per-player match stats for 2022-23 to 2024-25 (§3, §5.25), and it feeds §8 item 7.
 > - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first
 >   gameweek-11 record (2026-11-20 from 04:30 UTC).
 > - Logging and odds have run cleanly through the break: 30-minute triggers, 10 of 10 gameweek-11
@@ -920,7 +925,7 @@ Do better values exist?
 
 **Result: flat.**
 - All 27 combinations fall within 0.9608–0.9612 on dev.
-- The dev winner (team half-life 60 days, L2 30; same player settings) against the current V2x:
+- The dev winner (usual-XI half-life 60 days, L2 30; same player settings) against the current V2x:
   - 2024-26: **−0.0000 [−0.0009, +0.0009]**;
   - 2026-27 GW1-9: −0.0019 [−0.0047, +0.0002] (n = 90).
 - Lighter L2 values (1, 3, 10) are also flat: 2024-26 is 0.9970 against 0.9973 at 100.
@@ -1059,7 +1064,7 @@ before then. Please give me:
    *Update, 2026-11-16:*
    - **New data:** API-Football is now collecting matches from other leagues (§3, §5.25). Each has
      team xG, lineups and per-player match stats (shots, passes, tackles, duels, dribbles, no player
-     xG), for 2022-24 only, at about 45 matches a day.
+     xG), for 2022-23 to 2024-25 only, at about 45 matches a day.
    - **What we've ruled out:** a neural network on PL data alone is clearly worse (§5.26), and
      re-tuning the XI layer is flat (§5.27).
    - **So two more things to answer:**

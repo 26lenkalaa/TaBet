@@ -5,7 +5,11 @@ Compares the scored TaBet records with bookmaker odds on identical fixtures. Its
 feeds alpha, model choice or any forecast: nothing in tabet/ outside this module, the archiver and
 the CLI may import it (tests/test_odds_archive.py).
 
-Snapshots per fixture (amendment A6, item 2; amendment A7):
+Snapshots per fixture (amendment A6, item 2; amendment A7; amendment A8):
+  matched_pinnacle HEADLINE (A8). The same Odds API snapshot as `matched`, priced by Pinnacle with the
+                   margin removed by Shin's method; if Pinnacle is missing from that snapshot, the
+                   per-outcome median over the snapshot's bookmakers (each normalised proportionally),
+                   renormalised to sum to 1. Each row records which basis was used.
   matched          The Odds API: the last snapshot retrieved at or before the scored record's cutoff
                    (logged_utc), counting one taken in the same run (up to 15 min after the cutoff);
                    if none, the first one after that and before kickoff, flagged `later`
@@ -30,7 +34,8 @@ from .forecast import LIVE_SEASON
 from .ingest import implied_probabilities, load_all
 from .prospective import ROOT, fit_alpha, select_records
 
-SNAPSHOTS = ("matched", "matched_fd", "last_pre_kickoff", "fd_pre_closing", "fd_closing")
+SNAPSHOTS = ("matched_pinnacle", "matched", "matched_fd", "last_pre_kickoff", "fd_pre_closing", "fd_closing")
+HEADLINE_BOOK = "pinnacle"
 SAME_RUN = odds_archive.SAME_RUN
 COLS = ["p_home", "p_draw", "p_away"]
 OUT = {"H": 0, "D": 1, "A": 2}
@@ -39,6 +44,62 @@ OUT = {"H": 0, "D": 1, "A": 2}
 def _implied(o: np.ndarray) -> np.ndarray:
     inv = 1.0 / o
     return inv / inv.sum(axis=1, keepdims=True)
+
+
+def shin(odds) -> np.ndarray:
+    """Shin (1993) probabilities from one set of decimal odds: p_k = (sqrt(z^2 + 4 (1 - z) q_k^2 / B) - z)
+    / (2 (1 - z)), q_k = 1/o_k, B = sum q_k, with z in [0, 1) found by bisection so the p_k sum to 1.
+    With no margin (B = 1) z = 0 and this equals the plain implied probabilities."""
+    q = 1.0 / np.asarray(odds, dtype=float)
+    B = q.sum()
+    if B <= 1.0:
+        return q / B
+
+    def p(z):
+        return (np.sqrt(z * z + 4 * (1 - z) * q * q / B) - z) / (2 * (1 - z))
+
+    lo, hi = 0.0, 0.999
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if p(mid).sum() > 1:
+            lo = mid
+        else:
+            hi = mid
+    out = p((lo + hi) / 2)
+    return out / out.sum()
+
+
+def headline_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, tolerance: pd.Timedelta = SAME_RUN) -> pd.DataFrame:
+    """Amendment A8 headline market: for each record, the Odds API snapshot chosen by the `matched`
+    rule, priced by Pinnacle (Shin), else the median over that snapshot's bookmakers."""
+    o = odds_log.copy()
+    if "source" in o:
+        o = o[o["source"] == odds_archive.API_SOURCE]
+    o = o[o["book"] != "Avg"]
+    o["fpl_fixture"] = pd.to_numeric(o["fpl_fixture"], errors="coerce")
+    o = o.dropna(subset=["fpl_fixture", "odds_h", "odds_d", "odds_a"]).sort_values("retrieved_utc")
+    out = []
+    for r in records.itertuples():
+        cut, ko = pd.Timestamp(r.logged_utc), pd.Timestamp(r.kickoff_utc)
+        s = o[(o["fpl_fixture"] == r.fpl_fixture) & (o["retrieved_utc"] < ko)]
+        if s.empty:
+            continue
+        times = s["retrieved_utc"].drop_duplicates()
+        before = times[times <= cut + tolerance]
+        when, later = (before.iloc[-1], False) if len(before) else (times.iloc[0], True)
+        snap = s[s["retrieved_utc"] == when]
+        pin = snap[snap["book"] == HEADLINE_BOOK]
+        if len(pin):
+            p, basis = shin(pin.iloc[0][["odds_h", "odds_d", "odds_a"]].to_numpy(float)), "pinnacle_shin"
+        else:
+            each = _implied(snap[["odds_h", "odds_d", "odds_a"]].to_numpy(float))
+            med = np.median(each, axis=0)
+            p, basis = med / med.sum(), f"median_{len(snap)}_books"
+        out.append({"fpl_fixture": int(r.fpl_fixture), "snapshot": "matched_pinnacle", "retrieved_utc": when,
+                    "later": later, "hours_after_cutoff": (when - cut).total_seconds() / 3600, "basis": basis,
+                    "p_home": p[0], "p_draw": p[1], "p_away": p[2]})
+    return pd.DataFrame(out, columns=["fpl_fixture", "snapshot", "retrieved_utc", "later", "hours_after_cutoff",
+                                      "basis", *COLS])
 
 
 def select_snapshots(records: pd.DataFrame, odds_log: pd.DataFrame, book: str = "Avg", source: str = "football-data",
@@ -129,7 +190,8 @@ def benchmark(scores: pd.DataFrame, odds_log: pd.DataFrame | None = None, market
     if {"home_id", "away_id"} <= set(hid.columns):
         recs = recs.assign(home_id=recs["fpl_fixture"].map(hid["home_id"]), away_id=recs["fpl_fixture"].map(hid["away_id"]))
     odds_log = odds_archive.load() if odds_log is None else odds_log
-    snaps = [select_snapshots(recs, odds_log, source=odds_archive.API_SOURCE, with_last=False),
+    snaps = [headline_snapshots(recs, odds_log),
+             select_snapshots(recs, odds_log, source=odds_archive.API_SOURCE, with_last=False),
              select_snapshots(recs, odds_log, source="football-data", matched_name="matched_fd")]
     if market is not None:
         snaps.append(market)
@@ -137,6 +199,7 @@ def benchmark(scores: pd.DataFrame, odds_log: pd.DataFrame | None = None, market
         snaps.append(results_file_odds(recs))
     snaps = pd.concat([s for s in snaps if len(s)], ignore_index=True) if any(len(s) for s in snaps) else pd.DataFrame()
     n_fix = recs["fpl_fixture"].nunique()
+    per_record = snaps.copy() if len(snaps) else pd.DataFrame()
     out = []
     for snap in SNAPSHOTS:
         m = snaps[snaps["snapshot"] == snap].set_index("fpl_fixture") if len(snaps) else pd.DataFrame()
@@ -160,14 +223,20 @@ def benchmark(scores: pd.DataFrame, odds_log: pd.DataFrame | None = None, market
                             "tabet_only_right": int((dis & (kt == y)).sum()), "market_only_right": int((dis & (km == y)).sum()),
                             "both_wrong": int((dis & (kt != y) & (km != y)).sum()),
                             "n_later": int(m.loc[ids, "later"].astype(bool).sum()),
+                            "n_pinnacle": int((m.loc[ids, "basis"] == "pinnacle_shin").sum()) if "basis" in m else np.nan,
                             "median_hours_after_cutoff": float(hrs.median()) if hrs.notna().any() else np.nan,
                             "max_abs_hours_from_cutoff": float(hrs.abs().max()) if hrs.notna().any() else np.nan})
             out.append(row)
-    return pd.DataFrame(out).assign(alpha=float(t["alpha"].iloc[0]))
+    b = pd.DataFrame(out).assign(alpha=float(t["alpha"].iloc[0]))
+    b.attrs["records"] = per_record   # every record's snapshot, delay after the cutoff and basis (A8)
+    return b
 
 
 def save(b: pd.DataFrame, out_dir: Path = odds_archive.ODDS_DIR) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     p = out_dir / "benchmark.csv"
     b.to_csv(p, index=False)
+    rec = b.attrs.get("records")
+    if rec is not None and len(rec):
+        rec.to_csv(out_dir / "benchmark_records.csv", index=False)   # per-record delay and basis (A8)
     return p
