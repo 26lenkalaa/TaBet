@@ -1,3 +1,4 @@
+import numpy as np
 """Amendment A7: The Odds API snapshot at each forecast record's cutoff (benchmark only)."""
 
 import gzip
@@ -205,3 +206,14 @@ def test_privatise_moves_old_raw_files_and_bookmaker_rows_once(tmp_path):
     assert set(log["book"]) <= set(OA.DERIVED_BOOKS) and log["raw_file"].str.startswith("supabase:").all()
     assert not list((tmp_path / "raw").glob("*oddsapi*"))
     assert "oddsapi/raw/20261120T103100Z.json.gz" in STORED and any(k.startswith("oddsapi/books/") for k in STORED)
+
+
+def test_median_fallback_leaves_out_exchanges():
+    rows, _ = OA.api_parse(BODY, NOW, _fx())
+    g = rows[rows.event_id == "e1"]
+    med = OA.derive(g).set_index("book").loc["median", ["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+    books = g[~g.book.isin(("Avg",) + OA.EXCHANGES)][["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+    each = (1 / books) / (1 / books).sum(1, keepdims=True)
+    m = np.median(each, 0)
+    assert 1 / med == pytest.approx(m / m.sum(), abs=1e-5)
+    assert "betfair_ex_uk" in set(g.book)   # the fixture really had an exchange to leave out

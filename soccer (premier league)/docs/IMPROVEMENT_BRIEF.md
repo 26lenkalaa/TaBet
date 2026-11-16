@@ -19,6 +19,21 @@
 >     promoted-team line (§5.28).
 > - A football-data learning curve: with about 36,000 matches a network only draws level with the
 >   linear stage 2 on shots and goals form (§5.29). More data helps less than better inputs.
+> - **Seventh review (amendment A9, before the freeze).**
+>   - It confirms the one primary claim (pα − p0, gameweeks 20–38); every split is diagnostic.
+>   - It defines the fitting and evaluation populations.
+>   - It adds a wild-cluster bootstrap check and a gameweek-bootstrap α interval.
+>   - Betting exchanges are dropped from the market fallback, and the benchmark is called "within
+>     15 minutes".
+>   - pBP must also not just gain from dropping ρ.
+>   - **The reviewer's next cycle:** at most two experiments, each against per-league Dixon-Coles
+>     **and** a pooled linear model on identical inputs:
+>     - (1) a shallow gradient-boosted stage 2 on an untouched big-four holdout (2018-21);
+>     - (2) a fixed defensive-XI block (tackles plus interceptions, shrunk duel success) on API-Football
+>       data.
+>
+>     No further neural-network search until 10–20k matches with the required features exist.
+>   - A league × season × experiment ledger is to be enforced in the scripts.
 > - A multi-league collector (API-Football, free plan) now runs daily. It gives team xG, lineups and
 >   per-player match stats for 2022-23 to 2024-25 (§3, §5.25), and it feeds §8 item 7.
 > - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first

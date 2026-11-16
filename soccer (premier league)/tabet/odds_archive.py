@@ -239,7 +239,11 @@ API_COLUMNS = ["fpl_fixture", "gameweek", "home_id", "away_id", "home_team_src",
 #   Avg            the mean of the bookmakers' decimal odds, normalised proportionally (A7's market)
 #   pinnacle_shin  Pinnacle with the margin removed by Shin's method (A8's headline)
 #   median         the per-outcome median of each bookmaker's proportional probabilities, renormalised
+#                  (exchanges excluded from amendment A9 on)
 RAW_BUCKET = "odds-archive"
+# Betting exchanges (amendment A9): excluded from the headline's median fallback, because their prices
+# carry commission and depend on liquidity. They stay in A7's Avg secondary, for continuity.
+EXCHANGES = ("betfair_ex_uk", "betfair_ex_eu", "betfair_ex_au", "matchbook", "smarkets")
 DERIVED_BOOKS = ("Avg", "pinnacle_shin", "median")
 API_FETCH_COLUMNS = ["retrieved_utc", "status", "credits_remaining", "credits_used", "last_cost", "n_events",
                      "n_upcoming", "n_unmatched", "needed", "raw_file", "error"]
@@ -277,11 +281,12 @@ def derive(rows: pd.DataFrame) -> pd.DataFrame:
     for _, g in rows.groupby("event_id", sort=False):
         books = g[g["book"] != "Avg"]
         avg = g[g["book"] == "Avg"]
+        fixed = books[~books["book"].isin(EXCHANGES)]   # A9: the median fallback uses bookmakers only
         if books.empty or avg.empty:
             continue
         base = avg.iloc[0].to_dict()
-        o = books[["odds_h", "odds_d", "odds_a"]].to_numpy(float)
-        each = (1 / o) / (1 / o).sum(axis=1, keepdims=True)
+        o = (fixed if len(fixed) else books)[["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+        each = (1 / o) / (1 / o).sum(axis=1, keepdims=True)   # each bookmaker's margin removed first
         med = np.median(each, axis=0)
         a = 1 / avg[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[0]
         probs = {"Avg": a / a.sum(), "median": med / med.sum()}
