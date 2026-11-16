@@ -2,7 +2,13 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-14, international break before gameweek 11. Since the last version:
+> Last updated 2026-11-16, international break before gameweek 11. Since the last version:
+> - **Two exploratory experiments, both negative (nothing adopted):**
+>   - A neural-network stage 2 on our existing inputs is clearly worse than the linear stage 2
+>     (+0.016 to +0.031 log-loss on 2024-26) (§5.26).
+>   - Tuning the player model's three never-tuned settings changes nothing (0.0000 on 2024-26) (§5.27).
+> - A multi-league collector (API-Football, free plan) now runs daily. It gives team xG, lineups and
+>   per-player match stats for 2022-24 (§3, §5.25), and it feeds §8 item 7.
 > - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first
 >   gameweek-11 record (2026-11-20 from 04:30 UTC).
 > - Logging and odds have run cleanly through the break: 30-minute triggers, 10 of 10 gameweek-11
@@ -50,6 +56,7 @@ scipy). Success is judged on **probability quality**, not on picking winners:
 | Hugging Face `eatpizzanot/soccer-dataset` (tagged CC BY 4.0; provenance API-Football, so republication rights are unclear) | top-5 leagues, full 2021-22 → 2024-25, 50–66% of 2025-26, **none for 2026-27** | player × match | lineups, minutes, dribbles, duels, tackles, interceptions, passes, key passes, fouls. Validated against FPL (starters 100%, minutes within 1 min 94.7%) and football-data (team fouls 98.8% and shots on target 99.4% exact). Player shots undercounted; no player xG. **Historical only: cannot feed live forecasts.** |
 | Predicted lineups: Fantasy Football Scout team-news page, RotoWire lineups page | the **next gameweek only**; no history | team × predicted XI | Plain HTTP, and robots.txt allows both pages. Scout's player photos use Premier League ids that equal FPL `code` (100% join). RotoWire names are matched to FPL by name within the team (98.6%). Each fetch is saved with its retrieval time so it can be scored later against confirmed XIs. |
 | FPL live availability | current only | player | `status`, `chance_of_playing_next_round`, injury/suspension `news`. No historical archive. |
+| API-Football (api-sports.io), free plan, **collecting since 2026-11-16** | seasons 2022-23 to 2024-25 only (free plan); La Liga, Serie A, Bundesliga, Ligue 1 first, then the Championship and smaller leagues | match, team × match, player × match | Official API with a key. Each match has lineups; team stats including **expected goals**, shots (on/off target, inside/outside the box), corners, possession, passes and saves; and player stats (minutes, rating, shots, goals, passes, tackles, duels, dribbles, fouls, cards). **No player xG.** The free plan allows one match a request, so about 45 matches a day: roughly 3 months for the four big leagues. Its odds and predictions endpoints are refused in code. Training data only, stored privately in Supabase. |
 
 **FPL data caveats found during validation**
 
@@ -96,6 +103,8 @@ Tested and not kept (no gain over a simpler alternative on identical fixtures):
 - **Model-form ideas:** faster-adapting league scoring and home advantage, a multinomial
   outcome-level second stage, temperature/draw calibration, dynamic score-driven ratings (§5.18),
   a results-only Elo blend (§5.20), and shorter half-lives for team ratings and xG.
+- **Since 2026-11-15:** a neural-network stage 2 (§5.26: clearly worse), and tuning the player
+  model's half-lives and shrinkage (§5.27: flat).
 
 The score grid runs 0–15 goals per side and is renormalised to sum to 1.
 
@@ -850,6 +859,76 @@ None of this touches the model, the forecast code, the log or the scored contras
     the API is down.
   - Git stays the official, auditable record.
   - The schema has sport and competition tables, so other leagues can be added later (§8, item 7).
+- **Multi-league collector (2026-11-16).**
+  - What it is: API-Football (§3), run once a day by its own GitHub workflow, separate from the logger.
+  - Budget: 50 requests a day, leaving 10 of the free 100 unused.
+  - Storage: raw responses go to a private Supabase bucket; what has been collected is tracked in
+    private tables. Nothing is written to git.
+  - The first run stored 48 La Liga 2024-25 matches.
+  - Training data only: it never feeds the live forecast, and the odds endpoints are refused in code.
+
+### 5.26 A neural-network stage 2 (exploratory, not pre-registered)
+
+Question: does a small neural network beat the linear stage 2 on the same inputs and the same
+fixtures?
+
+**Design**
+- The neural network replaces `b0 + b·x` in `log(rate) = log(DC rate) + b0 + b·x`, so Dixon-Coles
+  stays as the offset.
+- Its last layer starts at zero, so an untrained network is exactly Dixon-Coles.
+- Network: two hidden layers, Poisson loss on goals, AdamW with weight decay, averaged over 5 seeds.
+- Walk-forward refits at every cutoff, exactly as stage 2.
+- Size (8/16 units) and weight decay (0.01/0.1) were chosen on 2022-24 only.
+- Three input sets:
+  - V1x's two xG-strength features;
+  - V2x's four (adding the two lineup features);
+  - a "rich" set that adds raw xG form and shot, corner, foul and shot-quality profiles.
+
+| 2024-26 (n = 760) | Log-loss | NN − linear, 14-day block CI |
+|---|---|---|
+| V0 Dixon-Coles | 1.0042 | |
+| V1x (linear) | 1.0011 | |
+| NN on V1x inputs | 1.0173 | **+0.0162 [+0.0068, +0.0252]** |
+| V2x (linear) | **0.9973** | |
+| NN on V2x inputs | 1.0281 | **+0.0308 [+0.0175, +0.0453]** |
+| NN on the rich inputs | 1.0328 | +0.0323 vs linear-rich [+0.0106, +0.0550] |
+
+On 2026-27 GW1-9 (n = 90) every interval includes 0.
+
+**Reading.** All three networks are clearly worse, and worse than Dixon-Coles alone. Adding inputs
+makes it worse. Tuning chose the most regularised setting in the grid, so stronger regularisation
+might lose by less, but nothing suggests a network can beat the linear stage 2 on about 1,600
+Premier League matches. This is consistent with §6.9. Code: `tabet/neural.py`,
+`prototypes/run_neural_net.py`, `results/neural_net/`. PyTorch is in `requirements-ml.txt` only;
+the logger never installs it.
+
+### 5.27 Tuning the player model's settings (exploratory)
+
+Question: three V2x settings were fixed in the original pre-registration and never tuned:
+- the player-rating half-life, 365 days;
+- the shrinkage to the position prior, 900 minutes;
+- the usual-XI / back-line half-life, 120 days.
+
+Do better values exist?
+
+**Design**
+- Grid: 180/365/730 days, 300/900/2,700 minutes and 60/120/240 days (27 combinations), each with a
+  stage-2 L2 of 30, 100 or 300.
+- Chosen on 2022-24 only. Dixon-Coles offsets and xG features were reused from the cached rows, and
+  only the two lineup features were recomputed.
+- With the current settings the rebuilt features match the cache to about 1e-15.
+
+**Result: flat.**
+- All 27 combinations fall within 0.9608–0.9612 on dev.
+- The dev winner (team half-life 60 days, L2 30; same player settings) against the current V2x:
+  - 2024-26: **−0.0000 [−0.0009, +0.0009]**;
+  - 2026-27 GW1-9: −0.0019 [−0.0047, +0.0002] (n = 90).
+- Lighter L2 values (1, 3, 10) are also flat: 2024-26 is 0.9970 against 0.9973 at 100.
+
+**Reading.** The hand-picked settings were already about as good as these choices allow. The XI
+layer seems limited by the information in its single input, decayed xG + xA per 90, not by how that
+input is weighted. Code: `prototypes/run_player_tuning.py`, `results/player_tuning/`. Nothing changes
+in the live model, which is frozen this season.
 
 ## 6. Known weaknesses and open questions
 
@@ -886,6 +965,9 @@ None of this touches the model, the forecast code, the log or the scored contras
    which are not Premier League evidence (item 1).
 9. **Model class.** Would a gradient-boosted model on the same point-in-time features, or a
    hierarchical Bayesian version of Dixon-Coles, be a better second stage at this sample size?
+   *(Update: a small neural network was clearly worse, §5.26, so a flexible learner on about 1,600
+   matches looks unpromising. The open question is whether multi-league data changes that, §8
+   item 7.)*
 
 ## 7. Candidate factors not yet tested
 
@@ -973,6 +1055,17 @@ before then. Please give me:
      eat into the Premier League test data (§6.8).
 
    Odds stay out of the inputs, even though football-data provides them for every league.
+
+   *Update, 2026-11-16:*
+   - **New data:** API-Football is now collecting matches from other leagues (§3, §5.25). Each has
+     team xG, lineups and per-player match stats (shots, passes, tackles, duels, dribbles, no player
+     xG), for 2022-24 only, at about 45 matches a day.
+   - **What we've ruled out:** a neural network on PL data alone is clearly worse (§5.26), and
+     re-tuning the XI layer is flat (§5.27).
+   - **So two more things to answer:**
+     - (d) which one or two of the new per-player stats are most likely to add information beyond
+       xG + xA per 90 in the XI rating, to be fixed in advance and tested on the other leagues;
+     - (e) how many cross-league matches you would want before re-running §5.26 as a fair test.
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices

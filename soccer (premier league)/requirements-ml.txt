@@ -1,0 +1,3 @@
+# Optional: only for the neural-network prototype (tabet/neural.py). The logger and CI do not install this.
+-r requirements.txt
+torch==2.15.0
