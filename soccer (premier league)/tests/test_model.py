@@ -76,3 +76,21 @@ def test_promoted_features_learn_a_slope_and_round_trip(real, tmp_path):
     again = DixonColes.load(tmp_path / "m.json")
     t, s = sorted(promo)[0]
     assert again.expected_goals(t, "arsenal", s) == fx.expected_goals(t, "arsenal", s)
+
+
+def test_fixed_promoted_offsets_act_as_given_prior_means(real):
+    # addendum P (R6): mapped offsets are added as given, slopes 1 and no shared offset
+    m = real[0]
+    train = MatchStore(m).completed_before(CUT)
+    promo = promoted_team_seasons(m)
+    mapped = {k: (0.3, -0.2) for k in promo if k[1] == "2023-24"}
+    dc = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, mapped, fixed_promo=True)
+    assert dc.promo_b_att == pytest.approx(1.0) and dc.promo_b_def == pytest.approx(1.0)
+    assert dc.promo_att == 0.0 and dc.promo_def == 0.0
+    a, d = dc._rating("luton", "2023-24")
+    assert a == pytest.approx(dc.attack.get("luton", 0.0) + 0.3)
+    assert d == pytest.approx(dc.defence.get("luton", 0.0) - 0.2)
+    # the default (learned) prior is unchanged by the new option
+    base = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo)
+    again = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, fixed_promo=True)
+    assert base.promo_att == pytest.approx(again.promo_att)

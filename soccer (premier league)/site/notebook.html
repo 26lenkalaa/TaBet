@@ -563,16 +563,17 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Four more leagues<span class="note">Learn shared settings from La Liga, Serie A, Bundesliga, Ligue 1</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Match stats<span class="note">Recent dribbles, duels, passing, tackles, key passes</span></td><td class="num">−0.0028</td><td><span class="tag t-yellow">Promising, not proven</span></td></tr>
               <tr><td class="name">Promoted-team ratings<span class="note">Start promoted sides from their Championship stats</span></td><td class="num">−0.0008</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Promoted teams, 13 seasons of history<span class="note">The same idea learned from every promotion since 2001, tested once on 2008-15</span></td><td class="num">−0.0031</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">New-signing ratings<span class="note">Rate arrivals from their previous league's output</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Ratings that move every week<span class="note">Score-driven ratings with a summer reset</span></td><td class="num">+0.0009</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Shorter memory<span class="note">Team ratings with a 116-day half-life instead of 173</span></td><td class="num">+0.0056</td><td><span class="tag t-red">Worse</span></td></tr>
-              <tr><td class="name">A neural network<span class="note">Replaces the lineup model's linear adjustment with a small neural net, same inputs</span></td><td class="num">+0.0308</td><td><span class="tag t-red">Worse</span></td></tr>
+              <tr><td class="name">A neural network<span class="note">Replaces the lineup model's linear adjustment with a small neural net, same inputs, trained with early stopping</span></td><td class="num">+0.0034</td><td><span class="tag t-gray">No better</span></td></tr>
               <tr><td class="name">Re-tuning the lineup model<span class="note">27 combinations of how fast player form fades and how much to trust low-minute players</span></td><td class="num">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x; on V1x's inputs it was +0.0162 against V1x.</p>
+      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran.</p>
 
       <details class="acc">
         <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
@@ -582,7 +583,8 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
             <li><strong>A star signing shows up in the results anyway.</strong> The new-signing ratings did pick out the big names, such as Wirtz, Cherki and Ekitiké. But a regular starter is part of the team's usual lineup, so the lineup comparison barely moves. The team's own xG catches the improvement within a few matches.</li>
             <li><strong>Stats from the same match describe the game, not the teams.</strong> Teams that are winning stop passing and start defending, so possession looks bad and tackles look good. Only stats from earlier matches can predict anything.</li>
             <li><strong>Three promoted teams a year is too few</strong> to learn how Championship form carries over.</li>
-            <li><strong>A neural network needs far more matches than one league has.</strong> With about 1,600 Premier League matches it learned noise and did worse than even our simplest model. Giving it more inputs made it worse again. We may retest it once the multi-league data below is in, with better training safeguards.</li>
+            <li><strong>A neural network needs careful training and more matches.</strong> Our first version, trained without early stopping, was far worse than even our simplest model. With early stopping (training stops once it stops improving on recent matches it hasn't seen), it came within 0.003 of the current model but still didn't beat it. We'll retest it on the multi-league data below.</li>
+            <li><strong>Championship form says little about Premier League survival.</strong> Even learned from 13 seasons of promotions and tested on data we'd never used, it didn't reliably help. The market probably knows what results can't show: signings, managers and pre-season form.</li>
             <li><strong>The lineup model is limited by what it knows, not how it's tuned.</strong> All 27 settings scored within 0.0004 of each other. To improve it, it needs new information about players, not new settings.</li>
           </ul>
         </div>
