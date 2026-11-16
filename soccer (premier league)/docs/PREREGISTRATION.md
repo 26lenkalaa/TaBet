@@ -172,3 +172,71 @@ From the fifth external review. Results only, so it can be tested on the clean 2
   primaries that replicate a result found elsewhere, and 2024-26 counts as development data.
 - **Secondary, not decisive:** 2017-18; 2018-21 excluding matches played behind closed doors
   (from 2020-06-01); the share of settled sides; the two fitted coefficients over time.
+
+## Addendum P (2026-11-16, committed before the run): promoted-team mapping on 2000-15 (R6)
+
+From the sixth external review (brief §8 item 2, R6). §5.15 learned the Championship → Premier League
+mapping inside the decay-weighted Dixon-Coles fit, so in effect it saw only the last few cohorts.
+Here the mapping is learned separately, from every earlier promotion, on data never used before.
+
+- **Data (fresh: never scored for any earlier decision).** football-data's E0 (Premier League)
+  files for 1999-00 → 2014-15 and E1 (Championship) files for 1999-00 → 2013-14, downloaded
+  2026-11-16.
+  - **Cleaning:** five files had stray extra fields or a non-UTF-8 byte, so each line is cut to its
+    header's width and the file re-encoded. Every season has its full fixture list (380 / 552
+    matches).
+  - **Shots on target:** 100% from 2000-01.
+  - **Kickoff times:** none, so a match's results count only from the next date.
+  - **Team ids:** division-prefixed name slugs, linked across divisions by the name slug.
+- **Promoted team-season:** a team in E0 season *s* that was in E1 season *s − 1*. There are 3 per
+  season, 42 for 2001-02 → 2014-15.
+- **Features**, from the team's whole Championship season (known before its PL season):
+  - x1, x2: opponent-adjusted shots-on-target attack and defence. Same quasi-Poisson model as §5.15
+    (`fit_xg_strength` on `_sot_sides`, half-life 90 days, cutoff one day after the last E1 match).
+  - x3: goal difference per match.
+- **Mapping (stage 1).**
+  - **Targets:** for each earlier promoted team-season, its first-PL-season attack and defence. These
+    are the Dixon-Coles ratings (`Hyperparams()` defaults, no promoted prior) fitted one day after the
+    last PL match of that season.
+  - **Model:** two ridge regressions on standardised features with unpenalised intercepts: attack on
+    [x1, x3] and defence on [x2, x3].
+  - **Ridge λ:** chosen from {0.1, 1, 10, 100} by leave-one-cohort-out squared error on the
+    2001-02 → 2007-08 cohorts only (21 team-seasons).
+- **Model D3.**
+  - **Mapping refit:** at every match date, refitted with that λ on all cohorts whose PL season had
+    ended before the date.
+  - **Offsets:** each team promoted this season gets fixed offsets (m_att, m_def) = the mapping's
+    prediction. They are added to its attack and defence in its promoted season. The team's own
+    ratings are still L2-shrunk to 0, so the mapped value acts as the prior mean.
+  - **Implementation:** `DixonColes.fit` with the promoted prior on, `promo_x` = the mapped values,
+    slopes fixed at 1 and shared offsets fixed at 0. Otherwise `Hyperparams()` defaults.
+- **Comparators** (same walk-forward, same fixtures):
+  - **D0:** `Hyperparams()`, no promoted prior.
+  - **D1:** the shared promoted offset learned inside the fit (`Hyperparams(promoted_prior=True)`,
+    no features), as in §5.15.
+- **Walk-forward.**
+  - **Fitting:** every model is refitted at each match date, on PL matches completed on earlier
+    dates from 1999-00 on.
+  - **Scoring:** **2008-09 → 2014-15** (2,660 matches), once.
+  - 2000-01 → 2007-08 is development: λ only, and nothing else is looked at.
+- **Primaries** (one family; Bonferroni over three, so **98.33%** 14-day calendar-block bootstrap
+  intervals, 2,000 resamples, seed 0):
+  - **P1:** D3 − D0 mean log-loss on early-promoted matches (a promoted side within its first 10 PL
+    matches of the season; about 210).
+  - **P2:** D3 − D1 on the same matches.
+  - **P3:** D3 − D0 on all matches.
+- **Decision.**
+  - **Confirmed** if P1 and P2 are both below 0 with intervals excluding 0, **and** P3's mean is
+    ≤ 0. If confirmed, D3 becomes a candidate for next season's live model, under its own amendment.
+    Nothing changes this season.
+  - **Stop rule:** the line is closed until squad-level data exists live if:
+    - P1's interval includes 0; and
+    - the final mapping's slopes (fitted on all cohorts to 2013-14, 2,000 bootstrap resamples of
+      team-seasons) all have 95% intervals including 0.
+  - **R3:** run only if the slopes are clearly non-zero.
+- **Secondary, not decisive:** each season separately; D1 − D0; the mapping's coefficients over
+  time; λ's leave-one-cohort-out curve.
+- **Data ledger.**
+  - **PL 2000-01 → 2007-08:** development for this line.
+  - **PL 2008-09 → 2014-15:** a closed test set with a quota of **three primary families**. This
+    addendum uses the first. The other two must be declared in their own addenda before they run.
