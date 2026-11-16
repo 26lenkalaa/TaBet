@@ -120,13 +120,14 @@ def rate_games(games: pd.DataFrame, model: Efficiency | None = None) -> tuple[pd
     `games` needs the columns clean.py writes plus home_possessions and
     away_possessions. Returns (rated, model): `rated` is `games` in date order
     with what the model predicted BEFORE each game (home_win_prob,
-    predicted_margin, predicted_home_pts, predicted_away_pts), and `model`
-    holds the ratings after the last game.
+    predicted_margin, predicted_home_pts, predicted_away_pts, and margin_sd,
+    the width of the bell curve it used), and `model` holds the ratings after
+    the last game.
     """
     model = model or Efficiency()
     ordered = games.sort_values(["date", "game_id"]).reset_index(drop=True)
 
-    before: list[tuple[float, float, float, float]] = []
+    before: list[tuple[float, float, float, float, float]] = []
     season = None
     for game in ordered.itertuples(index=False):
         if season is not None and game.season != season:
@@ -135,10 +136,10 @@ def rate_games(games: pd.DataFrame, model: Efficiency | None = None) -> tuple[pd
 
         home_win_prob, predicted_margin = model.predict(game.home_team_id, game.away_team_id)
         predicted_home_pts, predicted_away_pts = model.predict_score(game.home_team_id, game.away_team_id)
-        before.append((home_win_prob, predicted_margin, predicted_home_pts, predicted_away_pts))
+        before.append((home_win_prob, predicted_margin, predicted_home_pts, predicted_away_pts, model.margin_sd))
         model.update(game.home_team_id, game.away_team_id, game.home_pts, game.away_pts,
                      game.home_possessions, game.away_possessions)
 
-    columns = ["home_win_prob", "predicted_margin", "predicted_home_pts", "predicted_away_pts"]
+    columns = ["home_win_prob", "predicted_margin", "predicted_home_pts", "predicted_away_pts", "margin_sd"]
     rated = pd.concat([ordered, pd.DataFrame(before, columns=columns, index=ordered.index)], axis=1)
     return rated, model

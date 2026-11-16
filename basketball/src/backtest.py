@@ -15,7 +15,8 @@ Run from the repo root, after clean.py, fetch_odds.py and db.py:
 
     python3 basketball/src/backtest.py                      # Elo (v1) against the market
     python3 basketball/src/backtest.py --model efficiency   # efficiency ratings (v2) against the market
-    python3 basketball/src/backtest.py --compare            # both models and the market side by side
+    python3 basketball/src/backtest.py --model situational  # v2 plus rest and travel (v3)
+    python3 basketball/src/backtest.py --compare            # every model and the market side by side
 """
 
 from __future__ import annotations
@@ -31,14 +32,17 @@ BASKETBALL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASKETBALL_DIR))
 
 from src import db, market  # noqa: E402
-from src.models import elo, ratings  # noqa: E402
+from src.models import elo, ratings, situational  # noqa: E402
 
 SUMMARY_FILE = BASKETBALL_DIR / "data" / "processed" / "backtest_summary.csv"
+
+SITUATIONAL_VERSION = "sit-v3"
 
 # name on the command line -> (version stored in the database, function that replays the games)
 MODELS = {
     "elo": (db.ELO_VERSION, elo.rate_games),
     "efficiency": (db.EFFICIENCY_VERSION, ratings.rate_games),
+    "situational": (SITUATIONAL_VERSION, situational.rate_games),
 }
 
 WARMUP_SEASONS = 1   # every team starts at 1500, so the first season only teaches the ratings
@@ -72,7 +76,7 @@ def build_table(games: pd.DataFrame, odds: pd.DataFrame, model: str = "elo") -> 
     Model columns: home_win_prob, predicted_margin (made before each game).
     Market columns: market_home_win_prob, market_margin (empty where a game has no odds).
     """
-    rated, _ = MODELS[model][1](games)
+    rated, fitted = MODELS[model][1](games)
     keep = ["game_id"] + [column for column in ODDS_COLUMNS if column in odds.columns]
     table = rated.merge(odds[keep].drop_duplicates("game_id"), on="game_id", how="left")
 
@@ -81,6 +85,7 @@ def build_table(games: pd.DataFrame, odds: pd.DataFrame, model: str = "elo") -> 
     table["home_won"] = (table["home_pts"] > table["away_pts"]).astype(int)
     table["margin"] = table["home_pts"] - table["away_pts"]
     table["part"] = np.where(table["game_type"] == "regular", "regular", "playoffs")
+    table.attrs["fitted"] = fitted   # the model after the last game, for anyone who wants to look inside
     return table
 
 
@@ -166,6 +171,16 @@ def verdict(comparison: pd.DataFrame, new: str = db.EFFICIENCY_VERSION, old: str
             f"not a clear win, so {old} stays.")
 
 
+def describe_effects(fitted: situational.Situational) -> str:
+    """The situation effects the v3 model has learned, in points of home margin."""
+    labels = {"back_to_back": "playing the second night of a back-to-back",
+              "long_rest": f"having {situational.LONG_REST_DAYS}+ days of rest",
+              "travel_1000km": "each 1,000 km travelled since the last game"}
+    lines = ["What sit-v3 has learned, in points of margin for the team it applies to:"]
+    lines += [f"  {fitted.effects[name]:+.2f}  {labels[name]}" for name in situational.FEATURES]
+    return "\n".join(lines)
+
+
 def describe_comparison(comparison: pd.DataFrame) -> str:
     titles = {"regular": "Regular season", "playoffs": "Playoffs (including play-in)"}
     blocks = []
@@ -224,9 +239,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.compare:
         print(describe_comparison(result))
         print(f"\nVerdict: {verdict(result)}")
+        print(f"Verdict: {verdict(result, SITUATIONAL_VERSION, db.EFFICIENCY_VERSION)}")
     else:
         print(f"Model: {MODELS[args.model][0]}\n")
         print(describe(result))
+    if "situational" in tables:
+        print("\n" + describe_effects(tables["situational"].attrs["fitted"]))
     print(f"\nSaved to {output}")
     return 0
 

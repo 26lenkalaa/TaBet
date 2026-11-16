@@ -255,9 +255,9 @@ def test_both_models_are_compared_on_the_same_games_against_the_same_market(box_
     tables = {name: backtest.build_table(games, odds, name) for name in backtest.MODELS}
     comparison = backtest.compare(tables)
     assert list(zip(comparison["part"], comparison["model"])) == [
-        ("regular", "elo-v1"), ("regular", "eff-v2"), ("regular", "market"),
-        ("playoffs", "elo-v1"), ("playoffs", "eff-v2"), ("playoffs", "market")]
-    assert list(comparison["games"]) == [5, 5, 5, 2, 2, 2]
+        ("regular", "elo-v1"), ("regular", "eff-v2"), ("regular", "sit-v3"), ("regular", "market"),
+        ("playoffs", "elo-v1"), ("playoffs", "eff-v2"), ("playoffs", "sit-v3"), ("playoffs", "market")]
+    assert list(comparison["games"]) == [5, 5, 5, 5, 2, 2, 2, 2]
     regular = comparison[comparison["part"] == "regular"].set_index("model")
     assert regular.loc["elo-v1", "brier"] == pytest.approx(
         backtest.summarize(tables["elo"]).set_index(["part", "season"]).loc[("regular", "all"), "brier_model"])
@@ -291,13 +291,25 @@ def test_main_can_grade_the_efficiency_model(box_games, odds, tmp_path, capsys):
     assert len(pd.read_csv(output)) == 5
 
 
+def test_main_can_grade_the_situational_model(box_games, odds, tmp_path, capsys):
+    db_file = make_db(box_games, odds, tmp_path)
+    assert backtest.main(["--model", "situational", "--db", str(db_file),
+                          "--output", str(tmp_path / "summary.csv")]) == 0
+    printed = capsys.readouterr().out
+    assert "Model: sit-v3" in printed
+    assert "back-to-back" in printed
+    assert len(db.read_predictions(db.connect(db_file), "sit-v3")) == 9
+
+
 def test_main_compare_prints_both_models_the_market_and_a_verdict(box_games, odds, tmp_path, capsys):
     db_file = make_db(box_games, odds, tmp_path)
     output = tmp_path / "comparison.csv"
     assert backtest.main(["--compare", "--db", str(db_file), "--output", str(output)]) == 0
     printed = capsys.readouterr().out
-    for name in ("elo-v1", "eff-v2", "market", "Regular season, 5 games", "Verdict:"):
+    for name in ("elo-v1", "eff-v2", "sit-v3", "market", "Regular season, 5 games", "Verdict:",
+                 "What sit-v3 has learned"):
         assert name in printed
-    assert len(pd.read_csv(output)) == 6
+    assert printed.count("Verdict:") == 2
+    assert len(pd.read_csv(output)) == 8
     engine = db.connect(db_file)
     assert len(db.read_predictions(engine, "elo-v1")) == len(db.read_predictions(engine, "eff-v2")) == 9
