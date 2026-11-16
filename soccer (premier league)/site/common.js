@@ -34,8 +34,8 @@
       (p[1] * 100) + '%"></span><span class="a" style="width:' + (p[2] * 100) + '%"></span></div>';
   }
   /* Data comes from the TaBet API (/api, backed by Supabase). If the API is slow or down, the page falls
-     back to the static files in data/, which the logger still builds: split by season (data/index.json
-     lists the files), or the single data/matches.json if the index is missing. */
+     back to the static files in data/, which the logger still builds: data/index.json lists one file
+     per season. */
   var API = "/api/competitions/premier-league";
   function getJSON(u, ms) {
     var ctl = ms && window.AbortController ? new AbortController() : null;
@@ -61,21 +61,13 @@
     return o;
   }
 
-  var files = null, legacy = null;
+  var files = null;
   function fileIndex() {
-    if (!files) files = getJSON("data/index.json").catch(function () {
-      return getJSON("data/matches.json").then(function (d) {
-        legacy = d;
-        return { built_utc: d.built_utc, n_log_records: d.n_log_records, seasons: d.seasons, files: null };
-      });
-    });
+    if (!files) files = getJSON("data/index.json");
     return files;
   }
   function fileSeason(s) {
-    return fileIndex().then(function (ix) {
-      if (!ix.files) return { season: s, matches: legacy.matches.filter(function (m) { return m.season === s; }) };
-      return getJSON("data/" + ix.files[s]);
-    });
+    return fileIndex().then(function (ix) { return getJSON("data/" + ix.files[s]); });
   }
   function fileLineups(s) {
     return fileIndex().then(function (ix) {

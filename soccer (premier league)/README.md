@@ -176,7 +176,7 @@ A GitHub Action (`.github/workflows/prospective.yml`) runs every 30 minutes. cro
      the same moment as TaBet's forecast, shown on the site as "Market at our forecast time".
    - Plus one call a day, for the site's "Latest market odds". Each call costs 2 credits; about 160
      of the free plan's 500 a month are used.
-4. **Rebuilds the website's data** (`site/data/matches.json`) at least daily. Vercel redeploys the
+4. **Rebuilds the website's data** (`site/data/`: `index.json` plus one file per season) at least daily. Vercel redeploys the
    site from `main`.
 5. **Writes a heartbeat** to the run summary: the next fixture, when its logging window opens, the
    results file's freshness and odds coverage.
@@ -201,8 +201,9 @@ The bot commits to `main`, so **pull before you start work**.
 | **Closing odds** | The market at kickoff, with the margin removed |
 | **Log-loss** (played matches) | How each forecast scored on that match; lower is better |
 
-The site is plain HTML, CSS and JavaScript with no build step (`site/`). Only `site/data/matches.json`
-is generated, by `python -m tabet site-data`.
+The site is plain HTML, CSS and JavaScript with no build step (`site/`). Only `site/data/` is
+generated, by `python -m tabet site-data`: `index.json` plus `matches-<season>.json` and
+`lineups-<season>.json` for each season.
 
 ## 7. What's in the repo
 

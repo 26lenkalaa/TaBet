@@ -5,6 +5,12 @@ import pandas as pd
 import tabet.site_data as S
 
 
+def _matches(index_path):
+    """All matches, read back from the per-season files that index.json lists."""
+    ix = json.loads(index_path.read_text())
+    return [m for f in ix["files"].values() for m in json.loads((index_path.parent / f).read_text())["matches"]]
+
+
 def test_logged_prefers_the_primary_record(tmp_path, monkeypatch):
     log = tmp_path / "log.jsonl"
     log.write_text("\n".join(json.dumps(r) for r in (
@@ -17,27 +23,31 @@ def test_logged_prefers_the_primary_record(tmp_path, monkeypatch):
 
 
 def test_rebuild_when_old_or_when_the_log_grows(tmp_path, monkeypatch):
-    log, out = tmp_path / "log.jsonl", tmp_path / "matches.json"
+    log, out = tmp_path / "log.jsonl", tmp_path / "index.json"
     monkeypatch.setattr(S, "LOG", log)
-    assert S.stale(out=out)  # missing file
+    assert S.stale(out=out)  # missing index
+    out.write_text("{}")
+    assert S.stale(out=out)  # unreadable index (no build time)
     log.write_text('{"x": 1}\n')
     now = pd.Timestamp.now(tz="UTC")
-    out.write_text(json.dumps({"built_utc": now.isoformat(), "n_log_records": 1, "matches": []}))
-    (tmp_path / "index.json").write_text("{}")  # the per-season index must exist too
+    out.write_text(json.dumps({"built_utc": now.isoformat(), "n_log_records": 1, "files": {}}))
     monkeypatch.setattr(S, "_newer_odds", lambda built: False)
     assert not S.stale(20, out=out)
     log.write_text('{"x": 1}\n{"x": 2}\n')  # a forecast was logged since the build
     assert S.stale(20, out=out)
-    out.write_text(json.dumps({"built_utc": (now - pd.Timedelta(hours=21)).isoformat(), "n_log_records": 2, "matches": []}))
+    out.write_text(json.dumps({"built_utc": (now - pd.Timedelta(hours=21)).isoformat(), "n_log_records": 2, "files": {}}))
+    assert S.stale(20, out=out)
+    out.write_text(json.dumps({"built_utc": now.isoformat(), "n_log_records": 2, "files": {}}))
+    monkeypatch.setattr(S, "_newer_odds", lambda built: True)  # The Odds API has a newer snapshot
     assert S.stale(20, out=out)
 
 
 def test_a_logged_forecast_stays_after_the_match_reaches_the_results_file(tmp_path):
     """Regression: once gameweek 10 was in the results file, the site dropped Leeds v Tottenham's logged
     p0/pE, because logged records were attached only to fixtures not yet in that file."""
-    out = tmp_path / "matches.json"
+    out = tmp_path / "index.json"
     S.build(preview=False, out=out)
-    d = json.loads(out.read_text())
+    d = {"matches": _matches(out)}
     m = [e for e in d["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham"]
     assert len(m) == 1 and m[0]["status"] == "played"
     assert [f["key"] for f in m[0]["forecasts"] if f["kind"] == "logged"] == ["p0", "pE"]
@@ -53,26 +63,25 @@ def test_market_at_our_forecast_time_comes_from_the_same_run_only(tmp_path, monk
     def log(t):
         return pd.DataFrame([{"fpl_fixture": 97, "book": "Avg", "source": "the-odds-api", "n_books": 12,
                               "retrieved_utc": pd.Timestamp(t, tz="UTC"), "odds_h": 2.7, "odds_d": 3.4, "odds_a": 2.6}])
-    out = tmp_path / "m.json"
+    out = tmp_path / "index.json"
     monkeypatch.setattr(S, "_odds_log", lambda: log("2026-11-06 11:11"))
     S.build(preview=False, out=out)
-    m = next(e for e in json.loads(out.read_text())["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham")
+    m = next(e for e in _matches(out) if e["id"] == "2026-27-20261107-leeds-tottenham")
     mk = m["market"][0]
     assert mk["key"] == "matched" and "12 bookmakers" in mk["note"] and abs(sum(mk["p"]) - 1) < 1e-3
     monkeypatch.setattr(S, "_odds_log", lambda: log("2026-11-06 13:00"))  # a later run: not time-matched
     S.build(preview=False, out=out)
-    m = next(e for e in json.loads(out.read_text())["matches"] if e["id"] == "2026-27-20261107-leeds-tottenham")
+    m = next(e for e in _matches(out) if e["id"] == "2026-27-20261107-leeds-tottenham")
     assert all(x["key"] != "matched" for x in m["market"])
 
 
 def test_build_writes_one_file_per_season_and_lineups_for_logged_matches(tmp_path):
-    out = tmp_path / "matches.json"
-    S.build(preview=False, out=out)
-    ix = json.loads((tmp_path / "index.json").read_text())
+    out = tmp_path / "index.json"
+    d = S.build(preview=False, out=out)
+    ix = json.loads(out.read_text())
     assert ix["seasons"][-1] == "2026-27" and set(ix["files"]) == set(ix["seasons"])
-    full = json.loads(out.read_text())["matches"]
-    per = sum(len(json.loads((tmp_path / f).read_text())["matches"]) for f in ix["files"].values())
-    assert per == len(full)  # the split loses nothing
+    assert not (tmp_path / "matches.json").exists()  # no combined file any more
+    assert sorted(m["id"] for m in _matches(out)) == sorted(m["id"] for m in d["matches"])  # the split loses nothing
     lu = json.loads((tmp_path / ix["lineup_files"]["2026-27"]).read_text())["lineups"]
     lt = lu["2026-27-20261107-leeds-tottenham"]
     assert set(lt["pred"]) <= {"ffs", "rotowire"} and lt["pred"]

@@ -1,4 +1,8 @@
-"""Data for the site's match explorer (site/matches.html): one JSON file, site/data/matches.json.
+"""Data for the site (pitch, match explorer), written to site/data/:
+  index.json                built time, log record count, seasons and the per-season file names
+  matches-<season>.json     every match of that season with its forecasts and market odds
+  lineups-<season>.json     starting XIs (actual and predicted), loaded only by the match page
+These files are canonical; there is no combined matches.json.
 
 Every match from 2022-23 onward gets the forecasts that exist for it, each labelled by kind:
   backtest  frozen walk-forward forecasts (results/xg_strength/ledger.csv): V0, V1x, V2x. Made with
@@ -32,8 +36,8 @@ from .ingest import implied_probabilities, load_all
 from .teams import TEAMS, try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "site" / "data" / "matches.json"
-INDEX = OUT.with_name("index.json")   # seasons, build time and per-season file names
+SITE_DATA = ROOT / "site" / "data"
+INDEX = SITE_DATA / "index.json"   # seasons, build time and per-season file names; the other files sit beside it
 LIVE_SEASON = "2026-27"
 LEDGER = ROOT / "results" / "xg_strength" / "ledger.csv"
 LOG = ROOT / "results" / "prospective" / "log.jsonl"
@@ -225,7 +229,9 @@ def _logged_forecasts(r: dict) -> list[dict]:
             if key in r["candidates"]]
 
 
-def build(preview: bool = True, out: Path = OUT) -> dict:
+def build(preview: bool = True, out: Path = INDEX) -> dict:
+    """Build the site data. `out` is the index.json path; the per-season files are written beside it.
+    Returns the full data dict (built_utc, n_log_records, seasons, matches)."""
     matches, odds = load_all(ROOT / "res")
     pre = implied_probabilities(odds, "Avg").set_index("match_id")
     close = implied_probabilities(odds, "AvgC").set_index("match_id")
@@ -343,11 +349,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     data = {"built_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat(), "n_log_records": n_log,
             "seasons": sorted({e["season"] for e in entries}), "matches": entries}
     out.parent.mkdir(parents=True, exist_ok=True)
-    # one match per line, so the daily rebuild commits a small diff instead of rewriting the file
     head = {k: v for k, v in data.items() if k != "matches"}
-    body = ",\n".join(json.dumps(e, separators=(",", ":")) for e in entries)
-    out.write_text(json.dumps(head, separators=(",", ":"))[:-1] + ',"matches":[\n' + body + "\n]}\n")
-    # one small file per season plus an index, so a page loads only the season it shows
+    # one small file per season plus an index, so a page loads only the season it shows; one match per
+    # line, so the daily rebuild commits a small diff instead of rewriting the file
     files = {}
     for season in data["seasons"]:
         name = f"matches-{season}.json"
@@ -380,18 +384,20 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         name = f"lineups-{season}.json"
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
         lfiles[season] = name
-    (out.parent / INDEX.name).write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
+    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
     return data
 
 
-def stale(max_age_h: float = 20.0, out: Path = OUT) -> bool:
-    """Rebuild if the file is missing, older than max_age_h, the log has records it has not seen, or
-    The Odds API has a snapshot newer than the build (so new odds reach the site the same day)."""
-    if not out.exists() or not out.with_name(INDEX.name).exists():
+def stale(max_age_h: float = 20.0, out: Path = INDEX) -> bool:
+    """Rebuild if index.json (`out`) is missing or unreadable, older than max_age_h, the log has records
+    it has not seen, or The Odds API has a snapshot newer than the build (so new odds reach the site the
+    same day)."""
+    if not out.exists():
         return True
     try:
         head = json.loads(out.read_text())
-    except ValueError:
+        pd.Timestamp(head["built_utc"])
+    except (ValueError, KeyError, TypeError):
         return True
     age = (pd.Timestamp.now(tz="UTC") - pd.Timestamp(head["built_utc"])).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0

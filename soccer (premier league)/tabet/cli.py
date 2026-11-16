@@ -309,7 +309,7 @@ def cmd_site_data(args: argparse.Namespace) -> int:
         print("site data is fresh; not rebuilt")
         return 0
     d = build(preview=not args.no_preview)
-    print(f"site data: {len(d['matches'])} matches written to site/data/matches.json")
+    print(f"site data: {len(d['matches'])} matches written to site/data/ (index.json and one file per season)")
     return 0
 
 
@@ -391,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
     hb = sub.add_parser("heartbeat", help="print logger status as Markdown (for the Actions job summary)")
     hb.add_argument("--json", action="store_true", help="also print the status as JSON")
     sub.add_parser("check-log", help="fail if any fixture/kickoff appears twice in the prospective log")
-    sd = sub.add_parser("site-data", help="rebuild site/data/matches.json for the match explorer")
+    sd = sub.add_parser("site-data", help="rebuild site/data/ (index.json and per-season files) for the site")
     sd.add_argument("--if-stale", type=float, default=None, metavar="HOURS",
                     help="only rebuild if older than HOURS or the forecast log has new records")
     sd.add_argument("--no-preview", action="store_true", help="skip the live preview forecasts (no network)")
