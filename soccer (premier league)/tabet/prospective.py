@@ -170,11 +170,16 @@ def _logged() -> set[tuple[int, float, str]]:
 
 def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
     """Once per UTC day, re-download the live data of the most recent finished
-    gameweeks and keep player xG/xA/xGC as published at that moment."""
+    gameweeks and keep player xG/xA/xGC as published at that moment. A new file is
+    written only if the content (everything but retrieved_utc) differs from the most
+    recent snapshot; otherwise nothing is written and None is returned."""
     dest = XG_SNAP_DIR / f"{now:%Y-%m-%d}.csv.gz"
-    if dest.exists():
-        return None
     tmp = RAW_DIR / "xg_snapshots"
+    # "checked today" marker in the git-ignored download folder (kept between Actions runs by its
+    # cache), so an unchanged day is still downloaded once, not on every 30-minute run
+    marker = tmp / "last_checked_utc_date.txt"
+    if dest.exists() or (marker.exists() and marker.read_text().strip() == f"{now:%Y-%m-%d}"):
+        return None
     boot = json.loads(_get(f"{API}/bootstrap-static/", tmp / "bootstrap.json", refresh=True).read_text())
     code = {e["id"]: e["code"] for e in boot["elements"]}
     rows = []
@@ -189,9 +194,34 @@ def snapshot_live_xg(now: pd.Timestamp, n_recent: int = 4) -> Path | None:
                          "expected_goals": s["expected_goals"], "expected_assists": s["expected_assists"],
                          "expected_goals_conceded": s["expected_goals_conceded"], "goals_scored": s["goals_scored"],
                          "assists": s["assists"]})
+    new = pd.DataFrame(rows)
     XG_SNAP_DIR.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).assign(retrieved_utc=now.isoformat()).to_csv(dest, index=False, compression="gzip")
+    tmp.mkdir(parents=True, exist_ok=True)
+    marker.write_text(f"{now:%Y-%m-%d}")
+    previous = sorted(XG_SNAP_DIR.glob("*.csv.gz"))
+    if previous and _same_xg(new, previous[-1]):
+        return None   # unchanged since the last snapshot: the earlier file already holds this content
+    new.assign(retrieved_utc=now.isoformat()).to_csv(dest, index=False, compression="gzip")
     return dest
+
+
+def _same_xg(new: pd.DataFrame, prev_path: Path) -> bool:
+    """True if `new` equals the gzipped snapshot at prev_path in every column except retrieved_utc.
+    Both go through the same CSV round trip; rows are sorted on all columns, because the order of
+    FPL's live elements is not guaranteed and reordering alone carries no new information."""
+    import io
+
+    def norm(df: pd.DataFrame) -> pd.DataFrame:
+        df = df.drop(columns=["retrieved_utc"], errors="ignore")
+        return df.sort_values(list(df.columns)).reset_index(drop=True) if len(df.columns) else df
+
+    try:
+        prev = pd.read_csv(prev_path, compression="gzip")
+    except (pd.errors.EmptyDataError, OSError, EOFError):
+        return False
+    cur = pd.read_csv(io.StringIO(new.to_csv(index=False))) if len(new.columns) else pd.DataFrame()
+    a, b = norm(cur), norm(prev)
+    return list(a.columns) == list(b.columns) and a.equals(b)
 
 
 def due_fixtures(now: pd.Timestamp, horizon_h: float = HORIZON_H, window_h: float = WINDOW_H,
@@ -543,6 +573,7 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
         out["sign_flip_p_gameweek"] = float((1 + (null >= abs(sums.sum()) - 1e-12).sum()) / (1 + len(null)))
         out.update({"se_gameweek_clustered": se_c, "ci_gameweek_clustered": [float(d.mean() - q * se_c), float(d.mean() + q * se_c)],
                     "n_gameweeks": int(G)})
+        out["wild_cluster_p_gameweek"] = wild_cluster_p(d.to_numpy(), gw.to_numpy())   # amendment A9
     return out
 
 
@@ -583,6 +614,31 @@ def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> p
         out.append({"source": src, "n_fixtures": len(g), "feature_capture": cap, "feature_mae": np.mean(np.abs(pred - conf)),
                     "confirmed_gain": conf_gain, "implied_gain": cap * conf_gain, "observed_gain": obs})
     return pd.DataFrame(out)
+
+
+def _clustered_t(d: np.ndarray, g: np.ndarray) -> float:
+    ids, inv = np.unique(g, return_inverse=True)
+    G = len(ids)
+    sums, sizes = np.bincount(inv, d, G), np.bincount(inv, minlength=G)
+    resid = sums - sizes * d.mean()
+    se = np.sqrt(G / (G - 1) * (resid ** 2).sum()) / len(d)
+    return float(d.mean() / se) if se > 0 else 0.0
+
+
+def wild_cluster_p(d: np.ndarray, g: np.ndarray, reps: int = 9_999, seed: int = 0) -> float | None:
+    """Amendment A9: null-imposed wild-cluster bootstrap p-value for mean(d) = 0, Rademacher weights
+    per gameweek, studentised with the clustered SE (an additional check beside the t on G - 1 df)."""
+    d, g = np.asarray(d, float), np.asarray(g)
+    ids, inv = np.unique(g, return_inverse=True)
+    if len(ids) < 2:
+        return None
+    t0 = abs(_clustered_t(d, g))
+    rng = np.random.default_rng(seed)
+    hits = 0
+    for _ in range(reps):
+        v = rng.choice([-1.0, 1.0], size=len(ids))[inv]
+        hits += abs(_clustered_t(d * v, g)) >= t0 - 1e-12   # null imposed: the mean is 0, so d itself is the residual
+    return float((1 + hits) / (1 + reps))
 
 
 def fit_alpha(scores: pd.DataFrame, through_gameweek: int, known_before: pd.Timestamp | None = None) -> float:
@@ -645,20 +701,30 @@ def alpha_report(scores: pd.DataFrame, through_gameweek: int = 19, known_before:
         fit = fit[pd.to_datetime(fit["kickoff_utc"], utc=True) + RESULT_LAG <= known_before]
     col = {"H": "p_home", "D": "p_draw", "A": "p_away"}
 
-    def probs(df):
-        w = df[df["candidate"].isin(["p0", "pE"])].pivot_table(index=["fpl_fixture", "result"], columns="candidate",
+    def probs(df, with_gw=False):
+        w = df[df["candidate"].isin(["p0", "pE"])].pivot_table(index=["fpl_fixture", "result", "gameweek"], columns="candidate",
                                                                 values=["p_home", "p_draw", "p_away"]).dropna()
         y = w.index.get_level_values("result")
-        return (np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)]),
-                np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)]))
+        p = (np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)]),
+             np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)]))
+        return (*p, w.index.get_level_values("gameweek").to_numpy()) if with_gw else p
 
     out = {"alpha": a}
-    p0, pe = probs(fit[fit["gameweek"] <= through_gameweek])
+    p0, pe, gws = probs(fit[fit["gameweek"] <= through_gameweek], with_gw=True)
     if len(p0) >= ALPHA_MIN_FIXTURES:
         grid = np.linspace(0, 1, 101)
-        tot = np.array([-np.log((1 - g) * p0 + g * pe).sum() for g in grid])
+        ll = -np.log((1 - grid[:, None]) * p0[None, :] + grid[:, None] * pe[None, :])   # grid x fixtures
+        tot = ll.sum(1)
         ok = grid[tot <= tot.min() + 1.92]
-        out.update({"n_fit": int(len(p0)), "interval": [float(ok.min()), float(ok.max())]})
+        # A9: the likelihood interval is model-based (it treats fixtures as independent); beside it, a
+        # descriptive interval from resampling the fitting gameweeks and refitting alpha
+        ids, inv = np.unique(gws, return_inverse=True)
+        per_gw = np.stack([ll[:, inv == k].sum(1) for k in range(len(ids))], axis=1)   # grid x gameweeks
+        rng = np.random.default_rng(0)
+        boot = [grid[per_gw[:, rng.integers(0, len(ids), len(ids))].sum(1).argmin()] for _ in range(2000)]
+        out.update({"n_fit": int(len(p0)), "interval": [float(ok.min()), float(ok.max())],
+                    "interval_model_based": [float(ok.min()), float(ok.max())],
+                    "interval_gameweek_bootstrap": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]})
     lo, hi = eval_gameweeks
     e0, ee = probs(s[(s["gameweek"] >= lo) & (s["gameweek"] <= hi)])
     if len(e0):

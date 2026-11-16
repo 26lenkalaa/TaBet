@@ -172,3 +172,149 @@ From the fifth external review. Results only, so it can be tested on the clean 2
   primaries that replicate a result found elsewhere, and 2024-26 counts as development data.
 - **Secondary, not decisive:** 2017-18; 2018-21 excluding matches played behind closed doors
   (from 2020-06-01); the share of settled sides; the two fitted coefficients over time.
+
+## Addendum P (2026-11-16, committed before the run): promoted-team mapping on 2000-15 (R6)
+
+From the sixth external review (brief §8 item 2, R6). §5.15 learned the Championship → Premier League
+mapping inside the decay-weighted Dixon-Coles fit, so in effect it saw only the last few cohorts.
+Here the mapping is learned separately, from every earlier promotion, on data never used before.
+
+- **Data (fresh: never scored for any earlier decision).** football-data's E0 (Premier League)
+  files for 1999-00 → 2014-15 and E1 (Championship) files for 1999-00 → 2013-14, downloaded
+  2026-11-16.
+  - **Cleaning:** five files had stray extra fields or a non-UTF-8 byte, so each line is cut to its
+    header's width and the file re-encoded. Every season has its full fixture list (380 / 552
+    matches).
+  - **Shots on target:** 100% from 2000-01.
+  - **Kickoff times:** none, so a match's results count only from the next date.
+  - **Team ids:** division-prefixed name slugs, linked across divisions by the name slug.
+- **Promoted team-season:** a team in E0 season *s* that was in E1 season *s − 1*. There are 3 per
+  season, 42 for 2001-02 → 2014-15.
+- **Features**, from the team's whole Championship season (known before its PL season):
+  - x1, x2: opponent-adjusted shots-on-target attack and defence. Same quasi-Poisson model as §5.15
+    (`fit_xg_strength` on `_sot_sides`, half-life 90 days, cutoff one day after the last E1 match).
+  - x3: goal difference per match.
+- **Mapping (stage 1).**
+  - **Targets:** for each earlier promoted team-season, its first-PL-season attack and defence. These
+    are the Dixon-Coles ratings (`Hyperparams()` defaults, no promoted prior) fitted one day after the
+    last PL match of that season.
+  - **Model:** two ridge regressions on standardised features with unpenalised intercepts: attack on
+    [x1, x3] and defence on [x2, x3].
+  - **Ridge λ:** chosen from {0.1, 1, 10, 100} by leave-one-cohort-out squared error on the
+    2001-02 → 2007-08 cohorts only (21 team-seasons).
+- **Model D3.**
+  - **Mapping refit:** at every match date, refitted with that λ on all cohorts whose PL season had
+    ended before the date.
+  - **Offsets:** each team promoted this season gets fixed offsets (m_att, m_def) = the mapping's
+    prediction. They are added to its attack and defence in its promoted season. The team's own
+    ratings are still L2-shrunk to 0, so the mapped value acts as the prior mean.
+  - **Implementation:** `DixonColes.fit` with the promoted prior on, `promo_x` = the mapped values,
+    slopes fixed at 1 and shared offsets fixed at 0. Otherwise `Hyperparams()` defaults.
+- **Comparators** (same walk-forward, same fixtures):
+  - **D0:** `Hyperparams()`, no promoted prior.
+  - **D1:** the shared promoted offset learned inside the fit (`Hyperparams(promoted_prior=True)`,
+    no features), as in §5.15.
+- **Walk-forward.**
+  - **Fitting:** every model is refitted at each match date, on PL matches completed on earlier
+    dates from 1999-00 on.
+  - **Scoring:** **2008-09 → 2014-15** (2,660 matches), once.
+  - 2000-01 → 2007-08 is development: λ only, and nothing else is looked at.
+- **Primaries** (one family; Bonferroni over three, so **98.33%** 14-day calendar-block bootstrap
+  intervals, 2,000 resamples, seed 0):
+  - **P1:** D3 − D0 mean log-loss on early-promoted matches (a promoted side within its first 10 PL
+    matches of the season; about 210).
+  - **P2:** D3 − D1 on the same matches.
+  - **P3:** D3 − D0 on all matches.
+- **Decision.**
+  - **Confirmed** if P1 and P2 are both below 0 with intervals excluding 0, **and** P3's mean is
+    ≤ 0. If confirmed, D3 becomes a candidate for next season's live model, under its own amendment.
+    Nothing changes this season.
+  - **Stop rule:** the line is closed until squad-level data exists live if:
+    - P1's interval includes 0; and
+    - the final mapping's slopes (fitted on all cohorts to 2013-14, 2,000 bootstrap resamples of
+      team-seasons) all have 95% intervals including 0.
+  - **R3:** run only if the slopes are clearly non-zero.
+- **Secondary, not decisive:** each season separately; D1 − D0; the mapping's coefficients over
+  time; λ's leave-one-cohort-out curve.
+- **Data ledger.**
+  - **PL 2000-01 → 2007-08:** development for this line.
+  - **PL 2008-09 → 2014-15:** a closed test set with a quota of **three primary families**. This
+    addendum uses the first. The other two must be declared in their own addenda before they run.
+
+## Addendum G (2026-11-16, committed before any code for it exists): boosted stage 2 on the big four
+
+From the seventh external review (its item 7c and experiment 1). Question: does a shallow
+gradient-boosted adjustment to Dixon-Coles goal rates beat a pooled linear adjustment on identical
+inputs, on league-seasons no TaBet experiment has ever used?
+
+- **Data.**
+  - **Source:** football-data's La Liga (SP1), Serie A (I1), Bundesliga (D1) and Ligue 1 (F1) files,
+    read through `tabet.fd_cache` (Supabase).
+  - **Seasons:** 2005-06 → 2020-21. D1 starts in 2006-07, its first season with shots on target. These
+    four leagues' shots on target are ≥ 90% complete in every season used (checked 2026-11-16).
+  - **Untouched:** the ledger (`docs/data_ledger.csv`) shows no earlier use of these four leagues'
+    2018-19 → 2020-21 seasons. 2017-18 was used once, in a Wyscout prototype, and is used here only as
+    training data.
+  - **Usable rows:** both teams have at least 5 earlier league matches with shots on target.
+- **Base model.** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on matches
+  completed before that week's first kickoff date, over the previous 3 years. Results count only from
+  the next date. Ratings never cross leagues.
+- **Inputs per side-row** (identical for both stage-2 models; earlier dates only, same league):
+  - f1: own shots-on-target-for form.
+  - f2: the opponent's shots-on-target-against form.
+  - f3: own goals-for form.
+  - f4: the opponent's goals-against form.
+
+    f1–f4 are time-decayed (half-life 120 days), as a log ratio to the league's 365-day average, as
+    in §5.29.
+  - f5: relative strength, log DC rate (own) − log DC rate (opponent's).
+  - f6, f7: own and the opponent's rest days since their previous league match: log(1 + min(days,
+    21)).
+  - f8, f9: own and the opponent's matches played this season, min(n, 10) / 10.
+  - f10: home indicator.
+
+  Inputs are standardised on each fit's training rows only.
+- **Models** (stage 2 on Poisson goals, with the log DC rate as offset):
+  - **DC:** no adjustment.
+  - **LIN:** pooled penalised Poisson regression (`tabet.experiments._fit_poisson`).
+    L2 ∈ {0.1, 1, 10, 100}.
+  - **GBM:** scikit-learn 1.9.1 `HistGradientBoostingRegressor(loss="poisson")`, fitted to goals ÷
+    DC rate with sample weight = DC rate. This has the same likelihood as a Poisson model with offset.
+    - **Tuned settings:** `max_depth` ∈ {2, 3}; `min_samples_leaf` ∈ {50, 200}.
+    - **Fixed settings:** `learning_rate` 0.05, `l2_regularization` 1.0, `random_state` 0.
+    - **Boosting rounds:** chosen at each refit by chronological early stopping. Up to 1,000 rounds;
+      stop when the Poisson deviance on the most recent 15% of that fit's training rows has not
+      improved for 50 rounds. scikit-learn's own random validation split is not used.
+- **Refits and timing.**
+  - Both stage-2 models refit at the start of each calendar month, on all four leagues' side-rows
+    from dates before the refit date (one global clock). They then forecast that month's matches.
+  - **Probabilities:** the Dixon-Coles score grid with that week's ρ.
+- **Periods.**
+  - **Training:** from 2005-06.
+  - **Development:** 2014-15 → 2016-17. These choose LIN's L2 and GBM's settings, by mean log-loss.
+    Nothing else is chosen.
+  - **2017-18:** training only.
+  - **Test:** **2018-19 → 2020-21**, scored once with the frozen settings.
+- **Primary** (two co-primaries, both required). For each league, take the mean paired log-loss
+  difference on the test seasons, then average the four leagues with equal weight:
+  - **C1:** GBM − LIN.
+  - **C2:** GBM − DC.
+- **Inference.** 14-day calendar-block bootstrap, with blocks spanning all four leagues together,
+  2,000 resamples, seed 0, 95% intervals.
+- **Decision.** **Confirmed** only if **C1 ≤ −0.001** with its upper bound below 0, **and** C2's upper
+  bound is below 0.
+  - 0.001, about a fifteenth of our Dixon-Coles-to-market gap, is fixed now as the smallest gain
+    worth the added complexity.
+  - Anything else is not confirmed.
+- **Secondary, never decisive:**
+  - LIN − DC;
+  - each league; each season;
+  - excluding matches played behind closed doors (from 2020-03-01);
+  - early-season matches (either side within its first 10 league matches);
+  - GBM's choices over time.
+- **Not done here:** no Premier League scoring. A Premier League improvement claim would need its own
+  frozen prospective comparison in a later season.
+- **Dependency:** scikit-learn==1.9.1 is added to `requirements-ml.txt` only. The logger never
+  installs it.
+- **Ledger:** the rows for family G are added to `docs/data_ledger.csv` in this commit. The test
+  seasons are **reserved**, and the script must call `tabet.ledger.claim` before scoring them.

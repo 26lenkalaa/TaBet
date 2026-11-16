@@ -1,3 +1,4 @@
+import numpy as np
 """Amendment A7: The Odds API snapshot at each forecast record's cutoff (benchmark only)."""
 
 import gzip
@@ -59,6 +60,21 @@ def test_parse_builds_a_bookmaker_average_and_keeps_unmatched():
     assert rows.loc[rows.event_id == "e3", "fpl_fixture"].isna().all()
 
 
+STORED = {}
+
+
+@pytest.fixture(autouse=True)
+def private_bucket(monkeypatch):
+    """Tests never touch the real Supabase: the private bucket is an in-memory dict."""
+    STORED.clear()
+
+    def put(path, data, ctype):
+        STORED[path] = data
+        return f"supabase:{OA.RAW_BUCKET}/{path}"
+    monkeypatch.setattr(OA, "_private_store", lambda: put)
+    return STORED
+
+
 def test_disabled_without_a_key(tmp_path, monkeypatch):
     monkeypatch.setattr(OA, "api_key", lambda: None)
     assert OA.archive_api(NOW, _fx(), [_rec()], out_dir=tmp_path)["status"] == "disabled"
@@ -77,8 +93,30 @@ def test_calls_once_a_day_and_whenever_a_record_is_logged(tmp_path):
     assert OA.archive_api(NOW + pd.Timedelta(minutes=30), _fx(), [_rec()], out_dir=tmp_path, key=KEY,
                           fetch=_fetch(calls))["status"] == "not needed"
     assert len(calls) == 2
-    raw = sorted((tmp_path / "raw").glob("*_oddsapi.json.gz"))
-    assert len(raw) == 2 and gzip.decompress(raw[0].read_bytes()) == BODY
+    # raw responses and per-bookmaker prices go to the private bucket, never into the repository folder
+    raws = sorted(k for k in STORED if k.startswith("oddsapi/raw/"))
+    assert len(raws) == 2 and gzip.decompress(STORED[raws[0]]) == BODY
+    assert len([k for k in STORED if k.startswith("oddsapi/books/")]) == 2
+    assert not (tmp_path / "raw").exists()
+
+
+def test_the_repository_log_holds_only_derived_probabilities(tmp_path):
+    OA.archive_api(NOW, _fx(), [_rec()], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
+    log = pd.read_csv(tmp_path / OA.API_LOG)
+    assert set(log["book"]) <= set(OA.DERIVED_BOOKS) and "Avg" in set(log["book"])
+    assert "pinnacle" not in set(log["book"]) and "williamhill" not in set(log["book"])
+    for _, r in log.iterrows():                       # fair odds: implied probabilities sum to 1
+        assert 1 / r.odds_h + 1 / r.odds_d + 1 / r.odds_a == pytest.approx(1.0, abs=1e-5)
+    assert log["raw_file"].str.startswith("supabase:odds-archive/oddsapi/raw/").all()
+
+
+def test_a_failed_private_upload_still_keeps_the_derived_rows(tmp_path, monkeypatch):
+    def broken(path, data, ctype):
+        raise RuntimeError("HTTP 503")
+    monkeypatch.setattr(OA, "_private_store", lambda: broken)
+    r = OA.archive_api(NOW, _fx(), [_rec()], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
+    assert r["status"] == "ok" and "503" in r["error"]
+    assert len(pd.read_csv(tmp_path / OA.API_LOG)) > 0
 
 
 def test_latest_market_for_the_site_is_the_newest_snapshot(tmp_path):
@@ -86,7 +124,7 @@ def test_latest_market_for_the_site_is_the_newest_snapshot(tmp_path):
     OA.archive_api(pd.Timestamp("2026-11-19 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
     OA.archive_api(pd.Timestamp("2026-11-20 08:00", tz="UTC"), _fx(), [], out_dir=tmp_path, key=KEY, fetch=_fetch([]))
     lm = S._latest_market(108, OA.load(tmp_path))
-    assert lm["key"] == "latest" and "20 Nov 08:00" in lm["note"] and "3 bookmakers" in lm["note"]
+    assert lm["key"] == "latest" and "20 Nov 08:00" in lm["note"] and "Pinnacle" in lm["note"]   # A8: Pinnacle first
     assert S._latest_market(999, OA.load(tmp_path)) is None
 
 
@@ -150,3 +188,32 @@ def test_status_reports_credits_and_low_flag(tmp_path, monkeypatch):
                    fetch=_fetch([], headers=dict(HEADERS, **{"x-requests-remaining": "12"})), force=True)
     st = OA.api_status(tmp_path)
     assert st["odds_api_enabled"] and st["odds_api_credits"]["remaining"] == 12 and st["odds_api_low"]
+
+
+def test_privatise_moves_old_raw_files_and_bookmaker_rows_once(tmp_path):
+    # an archive written the old way: raw file in the folder and every bookmaker's row in the log
+    def keep_local(path, data, ctype):
+        raise RuntimeError("offline")
+    OA.archive_api(NOW, _fx(), [_rec()], out_dir=tmp_path, key=KEY, fetch=_fetch([]), store=None)
+    rows, _ = OA.api_parse(BODY, NOW, _fx(), "results/prospective/odds/raw/20261120T103100Z_oddsapi.json.gz")
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "raw" / "20261120T103100Z_oddsapi.json.gz").write_bytes(gzip.compress(BODY))
+    rows.to_csv(tmp_path / OA.API_LOG, index=False)
+    first = OA.privatise(tmp_path, OA._private_store())
+    assert first == {"status": "ok", "raw_moved": 1, "snapshots_derived": 1}
+    assert OA.privatise(tmp_path, OA._private_store())["raw_moved"] == 0          # idempotent
+    log = pd.read_csv(tmp_path / OA.API_LOG)
+    assert set(log["book"]) <= set(OA.DERIVED_BOOKS) and log["raw_file"].str.startswith("supabase:").all()
+    assert not list((tmp_path / "raw").glob("*oddsapi*"))
+    assert "oddsapi/raw/20261120T103100Z.json.gz" in STORED and any(k.startswith("oddsapi/books/") for k in STORED)
+
+
+def test_median_fallback_leaves_out_exchanges():
+    rows, _ = OA.api_parse(BODY, NOW, _fx())
+    g = rows[rows.event_id == "e1"]
+    med = OA.derive(g).set_index("book").loc["median", ["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+    books = g[~g.book.isin(("Avg",) + OA.EXCHANGES)][["odds_h", "odds_d", "odds_a"]].to_numpy(float)
+    each = (1 / books) / (1 / books).sum(1, keepdims=True)
+    m = np.median(each, 0)
+    assert 1 / med == pytest.approx(m / m.sum(), abs=1e-5)
+    assert "betfair_ex_uk" in set(g.book)   # the fixture really had an exchange to leave out

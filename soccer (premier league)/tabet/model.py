@@ -98,8 +98,12 @@ class DixonColes:
 
     def fit(self, train: pd.DataFrame, cutoff: pd.Timestamp,
             promoted: set[tuple[str, str]] | None = None,
-            promo_x: dict[tuple[str, str], tuple[float, float]] | None = None) -> "DixonColes":
+            promo_x: dict[tuple[str, str], tuple[float, float]] | None = None,
+            fixed_promo: bool = False) -> "DixonColes":
         """Fit on completed matches, weighting each by its age at `cutoff`.
+        `fixed_promo` (addendum P, R6): `promo_x` holds each promoted team's mapped rating offsets,
+        added as given (slopes fixed at 1, no shared offset), so they act as the prior mean the L2
+        penalty shrinks the team's own ratings toward. Off by default; the live model never sets it.
         `promoted` may include seasons beyond the training data (e.g. the
         season being predicted), which is why it is passed in separately."""
         train = train[train["status"] == "completed"]
@@ -193,6 +197,10 @@ class DixonColes:
             bounds[3] = bounds[4] = (0.0, 0.0)
         if not px:
             bounds[5 + 2 * n] = bounds[6 + 2 * n] = (0.0, 0.0)
+        elif fixed_promo:
+            bounds[3] = bounds[4] = (0.0, 0.0)
+            bounds[5 + 2 * n] = bounds[6 + 2 * n] = (1.0, 1.0)
+            p0[5 + 2 * n] = p0[6 + 2 * n] = 1.0
         res = minimize(nll, p0, jac=True, method="L-BFGS-B", bounds=bounds,
                        options={"maxiter": 2000})
         if not res.success:

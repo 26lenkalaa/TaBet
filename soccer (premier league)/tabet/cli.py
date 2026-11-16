@@ -243,11 +243,11 @@ def _print_benchmark(s: pd.DataFrame) -> None:
         print("\nmarket benchmark (amendment A6): no scored fixtures")
         return
     p = market_benchmark.save(b)
-    print(f"\nMarket benchmark (amendment A6, benchmark only; TaBet - market log-loss, negative = TaBet better; "
+    print(f"\nMarket benchmark (amendments A6-A8, benchmark only; headline = matched_pinnacle; TaBet - market log-loss, negative = TaBet better; "
           f"p_alpha uses alpha = {b['alpha'].iloc[0]:.2f}, provisional until gameweek 19 is complete). Saved {p}:")
     show = [c for c in ("snapshot", "candidate", "n", "coverage", "log_loss_tabet", "log_loss_market",
                         "tabet_minus_market", "se_paired", "se_gameweek_clustered", "agree_rate", "tabet_only_right",
-                        "market_only_right", "both_wrong", "n_later", "median_hours_after_cutoff") if c in b]
+                        "market_only_right", "both_wrong", "n_later", "n_pinnacle", "median_hours_after_cutoff") if c in b]
     print(b[show].round(4).to_string(index=False))
 
 
@@ -309,7 +309,7 @@ def cmd_site_data(args: argparse.Namespace) -> int:
         print("site data is fresh; not rebuilt")
         return 0
     d = build(preview=not args.no_preview)
-    print(f"site data: {len(d['matches'])} matches written to site/data/matches.json")
+    print(f"site data: {len(d['matches'])} matches written to site/data/ (index.json and one file per season)")
     return 0
 
 
@@ -391,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
     hb = sub.add_parser("heartbeat", help="print logger status as Markdown (for the Actions job summary)")
     hb.add_argument("--json", action="store_true", help="also print the status as JSON")
     sub.add_parser("check-log", help="fail if any fixture/kickoff appears twice in the prospective log")
-    sd = sub.add_parser("site-data", help="rebuild site/data/matches.json for the match explorer")
+    sd = sub.add_parser("site-data", help="rebuild site/data/ (index.json and per-season files) for the site")
     sd.add_argument("--if-stale", type=float, default=None, metavar="HOURS",
                     help="only rebuild if older than HOURS or the forecast log has new records")
     sd.add_argument("--no-preview", action="store_true", help="skip the live preview forecasts (no network)")

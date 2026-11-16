@@ -1,0 +1,8 @@
+{
+  "name": "tabet",
+  "private": true,
+  "description": "TaBet monorepo: npm workspace for the shared backend (Express API + Supabase sync). Python projects live in their sport folders.",
+  "workspaces": [
+    "backend"
+  ]
+}

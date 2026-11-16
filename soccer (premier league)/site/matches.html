@@ -214,17 +214,21 @@ details.xi-more summary, details.acc summary { font-family: var(--sans); font-si
 .notes-btn { font: inherit; font-size: 13px; font-weight: 700; color: var(--gold); background: none; border: 1px solid var(--chalk); padding: 5px 10px; cursor: pointer; }
 #card:not(.show-notes) .note { display: none; }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
-<header class="hud">
-  <a class="logo" href="./" aria-label="Back to the pitch" title="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-  <div class="title">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
     <h1>MATCH EXPLORER</h1>
-    <p>Pick a season and a match: what TaBet predicted, what the market predicted, and what happened.</p>
+    <p>Compare TaBet's forecasts, the market, and the final result.</p>
   </div>
   <nav class="pages" aria-label="Pages">
-    <a href="./">PITCH</a><a href="matches" aria-current="page">MATCHES</a><a href="notebook">NOTEBOOK</a>
+    <a href="./">PITCH</a>
+    <a href="matches.html" aria-current="page">MATCHES</a>
+    <a href="notebook.html">NOTEBOOK</a>
+    <a href="football.html">NFL</a>
   </nav>
 </header>
 
@@ -245,7 +249,7 @@ details.xi-more summary, details.acc summary { font-family: var(--sans); font-si
       <p><span class="tag t-green">Logged</span> A real prediction, saved 24–32 hours before kickoff and never changed. p0 uses no lineups; pE uses the lineups predicted by Fantasy Football Scout and RotoWire.</p>
       <p><span class="tag t-yellow">Pre-match</span> A forecast saved before kickoff by a separate forecast run, shown where the logger missed a match. It was made with only pre-match information but is not a logged record.</p>
       <p><span class="tag t-purple">Preview</span> Today's forecast for an upcoming match, without lineups and, once predicted XIs are published, with them. It updates until the logged forecast replaces it.</p>
-      <p><span class="tag t-blue">Market</span> Bookmakers' average odds turned into probabilities, with their margin removed. "Market at our forecast time" was saved in the same run as TaBet's logged forecast; earlier odds are from Friday or Tuesday afternoon; closing odds are from kickoff; latest odds are the newest snapshot. Odds are only ever a yardstick, never a model input.</p>
+      <p><span class="tag t-blue">Market</span> Betting odds turned into probabilities, with the bookmaker's margin removed. "Market at our forecast time" and "Latest market odds" use Pinnacle, the sharpest bookmaker, with its margin removed by Shin's method (if Pinnacle has no price, the median across bookmakers). "Market at our forecast time" was saved in the same run as TaBet's logged forecast, within minutes of it. Earlier odds (Friday or Tuesday afternoon) and closing odds (at kickoff) are bookmaker averages from past seasons. Odds are only ever a yardstick, never a model input.</p>
       <p><strong>Log-loss</strong> scores the probability given to what happened: lower is better. A confident miss costs the most.</p>
     </div>
   </details>
@@ -255,7 +259,7 @@ details.xi-more summary, details.acc summary { font-family: var(--sans); font-si
   <a href="./">Back to the pitch</a> · <a href="notebook">Model notebook</a>. Nothing here is betting advice.
 </footer>
 
-<script src="common.js?v=20261111"></script>
+<script src="common.js?v=20261114"></script>
 <script>
 var T = window.TaBet, esc = T.esc, pct = T.pct, when = T.when;
 var IX = null, SEASON = null, seasonEl = document.getElementById("season"), teamEl = document.getElementById("team"),

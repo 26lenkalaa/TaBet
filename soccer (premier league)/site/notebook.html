@@ -14,6 +14,15 @@
 /* fonts served from this site (no Google round trips); licences in fonts/OFL-*.txt */
 @font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); }
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
+/* data sources: on phones, tags sit under each source so the explanation gets the full width */
+@media (max-width: 640px) {
+  #sources thead { display: none; }
+  #sources tr, #sources td { display: block; }
+  #sources td:first-child { border-bottom: 0; padding-bottom: 8px; }
+  #sources td:last-child { padding-top: 0; }
+  #sources td:last-child .tag { display: inline-block; margin: 0 6px 6px 0; }
+  #sources td:last-child br { display: none; }
+}
 </style>
 <script type="speculationrules">
 {"prerender": [{"where": {"href_matches": ["/", "/matches", "/notebook"]}, "eagerness": "moderate"}]}
@@ -263,26 +272,29 @@ td.num { font-family: var(--sans); font-size: 15px; font-weight: 700; font-varia
 p.ctx-hist { display: block; color: var(--gold); margin: 6px 0 12px; padding-top: 14px; border-top: 2px dashed var(--chalk); }
 p.ctx-hist { text-transform: none; letter-spacing: .02em; } 
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
-<header class="nav">
-  <div class="nav-in">
-    <a class="logo" href="/" aria-label="Back to the pitch" title="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-    <span class="brand brand-name">TaBet</span>
-    <nav class="links" aria-label="Sections">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
+    <div class="site-title">MODEL NOTEBOOK</div>
+    <p>See how the models work and how they performed.</p>
+  </div>
+  <nav class="pages" aria-label="Pages">
+    <a href="./">PITCH</a>
+    <a href="matches.html">MATCHES</a>
+    <a href="notebook.html" aria-current="page">NOTEBOOK</a>
+    <a href="football.html">NFL</a>
+  </nav>
+</header>
+<div class="page-tools"><nav class="links" aria-label="Sections">
       <a href="#scoreboard">Scoreboard</a>
       <a href="#models">Models</a>
       <a href="#tested">What we tested</a>
       <a href="#method">Method</a>
-    </nav>
-    <div class="nav-end">
-      <nav class="pages" aria-label="Pages">
-    <a href="/">PITCH</a><a href="/matches">MATCHES</a><a href="/notebook" aria-current="page">NOTEBOOK</a>
-  </nav>
-    </div>
-  </div>
-</header>
+    </nav></div>
 
 <section class="hero">
   <div class="wrap hero-in">
@@ -297,7 +309,7 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
       <dl class="facts">
         <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
         <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
-        <div><dt>Last updated</dt><dd>12 November 2026</dd></div>
+        <div><dt>Last updated</dt><dd>16 November 2026</dd></div>
       </dl>
     </div>
   </div>
@@ -319,6 +331,22 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
     <span class="ctx ctx-live">LIVE TEST · 2026-27</span>
     <h2 id="live-title">Forecasts made before the matches</h2>
     <p>Since gameweek 10, TaBet saves a forecast for every match about a day before kickoff, with the market's prices from the same moment, and never changes it. The question: do predicted lineups make that forecast better? The blend is fixed after gameweek 19, a first read comes after gameweek 29, and the verdict at the end of the season. Every logged forecast is on the <a href="/matches">match pages</a>.</p>
+  </section>
+
+  <section class="sec" id="judged">
+    <div class="sec-head">
+      <h2>How the live test is judged</h2>
+      <p>The rules were fixed before the first gameweek-11 forecast and can't change after it. An outside reviewer checked them first.</p>
+    </div>
+    <div class="sec-body">
+      <ul>
+        <li><strong>One question decides the live test.</strong> Do predicted lineups make the day-before forecast better (pα against p0, gameweeks 20 to 38)? That is the only result that can count as a success. Everything else, including the market comparison, other forecast variants and splits by source or timing, is reported to describe what happened, never to claim a win.</li>
+        <li><strong>The yardstick is Pinnacle.</strong> Every logged forecast is compared with odds saved in the same run, within about 15 minutes of it. The headline comparison uses Pinnacle, the bookmaker generally seen as the sharpest. If Pinnacle has no price for a match, we use the median price across bookmakers instead, leaving out betting exchanges, whose prices include commission and depend on how much money is trading. The average across bookmakers is still shown, for comparison with earlier seasons.</li>
+        <li><strong>Removing the bookmaker's cut.</strong> Bookmakers' prices add up to more than 100%. That extra is their margin. We remove it with Shin's method, which takes a little more off the long shots than off the favourite, because that's where bookmakers tend to load their margin.</li>
+        <li><strong>One season can't settle "are we level with the market?"</strong> With about 190 matches, luck alone moves the comparison by around ±0.012. That's more than the whole gap we expect. So the market comparison is reported as a description, not a verdict. The real test is the lineup question, which compares two of our own forecasts on the same matches. That comparison is much less noisy.</li>
+        <li><strong>Matches are grouped by gameweek</strong> when we work out the uncertainty, because forecasts made on the same day share the same team news. A postponed match counts in the gameweek it's actually played.</li>
+      </ul>
+    </div>
   </section>
 
   <p class="ctx ctx-hist">HISTORICAL EVALUATION · past seasons, every forecast made with only information from before each match</p>
@@ -548,14 +576,17 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Four more leagues<span class="note">Learn shared settings from La Liga, Serie A, Bundesliga, Ligue 1</span></td><td class="num">+0.0001</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Match stats<span class="note">Recent dribbles, duels, passing, tackles, key passes</span></td><td class="num">−0.0028</td><td><span class="tag t-yellow">Promising, not proven</span></td></tr>
               <tr><td class="name">Promoted-team ratings<span class="note">Start promoted sides from their Championship stats</span></td><td class="num">−0.0008</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Promoted teams, 13 seasons of history<span class="note">The same idea learned from every promotion since 2001, tested once on 2008-15</span></td><td class="num">−0.0031</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">New-signing ratings<span class="note">Rate arrivals from their previous league's output</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Ratings that move every week<span class="note">Score-driven ratings with a summer reset</span></td><td class="num">+0.0009</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Shorter memory<span class="note">Team ratings with a 116-day half-life instead of 173</span></td><td class="num">+0.0056</td><td><span class="tag t-red">Worse</span></td></tr>
+              <tr><td class="name">A neural network<span class="note">Replaces the lineup model's linear adjustment with a small neural net, same inputs, trained with early stopping</span></td><td class="num">+0.0034</td><td><span class="tag t-gray">No better</span></td></tr>
+              <tr><td class="name">Re-tuning the lineup model<span class="note">27 combinations of how fast player form fades and how much to trust low-minute players</span></td><td class="num">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21.</p>
+      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran.</p>
 
       <details class="acc">
         <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
@@ -565,6 +596,9 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
             <li><strong>A star signing shows up in the results anyway.</strong> The new-signing ratings did pick out the big names, such as Wirtz, Cherki and Ekitiké. But a regular starter is part of the team's usual lineup, so the lineup comparison barely moves. The team's own xG catches the improvement within a few matches.</li>
             <li><strong>Stats from the same match describe the game, not the teams.</strong> Teams that are winning stop passing and start defending, so possession looks bad and tackles look good. Only stats from earlier matches can predict anything.</li>
             <li><strong>Three promoted teams a year is too few</strong> to learn how Championship form carries over.</li>
+            <li><strong>A neural network needs careful training and more matches.</strong> Our first version, trained without early stopping, was far worse than even our simplest model. With early stopping (training stops once it stops improving on recent matches it hasn't seen), it came within 0.003 of the current model but still didn't beat it. We'll retest it on the multi-league data below.</li>
+            <li><strong>Championship form says little about Premier League survival.</strong> Even learned from 13 seasons of promotions and tested on data we'd never used, it didn't reliably help. The market probably knows what results can't show: signings, managers and pre-season form.</li>
+            <li><strong>The lineup model is limited by what it knows, not how it's tuned.</strong> All 27 settings scored within 0.0004 of each other. To improve it, it needs new information about players, not new settings.</li>
           </ul>
         </div>
       </details>
@@ -588,14 +622,15 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Returning-team reset<span class="note">Clubs back after a season away start fresh</span></td><td class="num">+0.0008</td><td class="num wide">+0.0011</td><td><span class="tag t-red">Slightly worse</span></td></tr>
               <tr><td class="name">Reset + promoted-team start<span class="note">Fresh start below average for promoted sides</span></td><td class="num">+0.0035</td><td class="num wide">−0.0018</td><td><span class="tag t-red">Worse</span></td></tr>
               <tr><td class="name">Bayesian Dixon-Coles<span class="note">Tracks how sure we are of each rating</span></td><td class="num">+0.0063</td><td class="num wide">−0.0020</td><td><span class="tag t-red">Worse</span></td></tr>
+              <tr><td class="name">Gradient-boosted adjustment<span class="note">Decision trees instead of a straight-line adjustment, same inputs. Tested on La Liga, Serie A, Bundesliga and Ligue 1, 2018-21, written down before it ran</span></td><td class="num">n/a</td><td class="num wide">n/a</td><td><span class="tag t-gray">No better than linear</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
+      <p class="table-note">The gradient-boosted adjustment was scored on 4,217 matches from four other leagues, not the Premier League: it was +0.0005 against a straight-line adjustment on the same inputs. The useful finding: both beat plain Dixon-Coles by about 0.003, so recent shots, rest days and games played add real information. Changes are in log-loss against our current team ratings. Five models were tested at once, so a model only counted as better if it cleared a stricter bar that allows for that. Only the bivariate Poisson model did. The Elo blend was tested earlier the same way.</p>
 
       <div class="callout">
-        <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
+        <p><strong>Nothing replaces the current model yet.</strong> The bivariate Poisson model was clearly better on 2018-21 but slightly worse on 2024-26, so we're treating it as a lead to confirm, not a win. It's also logged in the live test, but we found that in recent seasons its shared part is almost always zero, so live it mostly tests removing our low-score fix. It's now a minor check: we'd only switch if all the evidence combined pointed the same way. The fixes aimed at promoted teams made things worse on the clean seasons, even for promoted teams' early matches. Plugged into the lineup model (V2x), none of them changed 2024-26 by more than 0.002 either way.</p>
       </div>
 
       <details class="acc">
@@ -613,6 +648,46 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </section>
 
+  <section class="sec" id="neural">
+    <div class="sec-head">
+      <h2>Can a neural network do better?</h2>
+      <p>Not yet. With the right training it comes close, but it doesn't beat our current model.</p>
+    </div>
+    <div class="sec-body">
+      <p>Our lineup model starts from each team's strength (Dixon-Coles), then makes a small <em>straight-line</em> adjustment using chance quality and the starting XI. We replaced that adjustment with a small neural network, which can learn curved and combined effects the straight line can't. Everything else stayed the same: the same inputs, the same matches, and the same rule that a forecast only uses information from before kickoff. The network starts out as exactly Dixon-Coles and only learns corrections, so it can't do worse simply by starting badly.</p>
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>2024-26</th><th class="num">No XI</th><th class="num">With XI</th></tr></thead>
+            <tbody>
+              <tr><td class="name">Current model<span class="note">Straight-line adjustment (V1x, V2x)</span></td><td class="num">1.0011</td><td class="num">0.9973</td></tr>
+              <tr><td class="name">Neural network, first try<span class="note">Trained for a fixed time</span></td><td class="num">1.0173</td><td class="num">1.0281</td></tr>
+              <tr><td class="name">Neural network, early stopping<span class="note">Stops once it stops improving on recent matches it hasn't seen</span></td><td class="num">1.0043</td><td class="num">1.0007</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">Log-loss on 760 matches, lower is better. "No XI" is before team news; "With XI" uses the starting lineups. The early-stopped network is 0.003 behind the current model in both columns.</p>
+      <ul>
+        <li><strong>The first try overfitted.</strong> It memorised quirks of the matches it was trained on, and did worst when it had the fewest matches to learn from. An outside reviewer spotted that the training setup was part of the problem.</li>
+        <li><strong>Early stopping fixed most of it.</strong> It closed about 80–90% of the gap, but the network still isn't better than the straight line.</li>
+        <li><strong>How much data is enough?</strong> We trained both on 17 other leagues (shots and goals, no xG), from 2,000 up to about 36,000 matches. The network was clearly worse at 2,000, roughly level from 5,000 to 20,000, and only edged ahead (by 0.0004) at about 36,000.</li>
+        <li><strong>What's next.</strong> More data alone isn't enough: those inputs carry little extra information, so neither model has much to learn. A network is worth it only with tens of thousands of matches <em>and</em> richer inputs such as xG and lineups. For now, better inputs matter more than a bigger model.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="data">
+    <div class="sec-head">
+      <h2>More data on the way</h2>
+      <p>Most remaining ideas need more matches than the Premier League alone can give.</p>
+    </div>
+    <div class="sec-body">
+      <p>Since 16 November we've been collecting matches from other leagues through API-Football: La Liga, Serie A, the Bundesliga and Ligue 1 first, then the Championship. For each match we get both teams' expected goals, the starting lineups and per-player stats such as shots, passes, tackles and duels. The free plan allows about 45 matches a day, so the four big leagues take about three months. The data is stored privately and is used for testing only, never for live forecasts.</p>
+      <p>We plan two uses for it. The first is checking whether one or two new player stats improve the lineup model; we'll choose the stats before looking at results. The second is a fair rerun of the neural network on many more matches.</p>
+    </div>
+  </section>
+
   <section class="sec" id="reading">
     <div class="sec-head">
       <h2>Reading the numbers</h2>
@@ -624,6 +699,32 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     </div>
   </section>
 
+  <section class="sec" id="sources">
+    <div class="sec-head">
+      <h2>Where the data comes from</h2>
+      <p>Everything TaBet uses, what we use it for, and what each source is allowed to do. Only the sources marked "Model input" or "Live-test input" ever change a forecast.</p>
+    </div>
+    <div class="sec-body">
+      <div class="panel">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Source</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td class="name"><a href="https://www.football-data.co.uk/">football-data.co.uk</a><span class="note">Match results, shots on target, corners and cards for the Premier League since 2000 and 20+ other leagues. <strong>Used for:</strong> the team-strength ratings every forecast starts from (Dixon-Coles), scoring every forecast against what happened, and testing ideas on other leagues and older seasons. Its betting odds are only ever the yardstick in the scoreboard, never an input.</span></td><td><span class="tag t-green">Model input</span><br><span class="tag t-gray">Odds: benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://fantasy.premierleague.com/">Fantasy Premier League</a> and the <a href="https://github.com/vaastav/Fantasy-Premier-League">vaastav FPL archive</a><span class="note">Every player's minutes, starts, expected goals (xG) and expected assists (xA), match by match since 2021, plus injury and suspension flags. <strong>Used for:</strong> rating each player's attacking threat, so the lineup model (V2x) can tell how strong a particular starting XI is compared with the team's usual one; each team's chance-quality strength (V1x); and dropping unavailable players from our own projected lineups.</span></td><td><span class="tag t-green">Model input</span></td></tr>
+              <tr><td class="name"><a href="https://www.fantasyfootballscout.co.uk/">Fantasy Football Scout</a> and <a href="https://www.rotowire.com/soccer/lineups.php">RotoWire</a><span class="note">Experts' predicted starting XIs, published a day or more before official team news. <strong>Used for:</strong> the live test. Each logged forecast plugs both predicted XIs into the lineup model, so we can measure whether knowing the likely lineup a day early makes forecasts better.</span></td><td><span class="tag t-blue">Live-test input</span></td></tr>
+              <tr><td class="name"><a href="https://the-odds-api.com/">The Odds API</a><span class="note">Odds from about 40 bookmakers, including Pinnacle, fetched when each forecast is logged and once a day. <strong>Used for:</strong> the fair comparison with the market at the same moment ("Market at our forecast time" on the match pages) and the "Latest market odds" shown for upcoming matches. Never a model input.</span></td><td><span class="tag t-gray">Benchmark only</span></td></tr>
+              <tr><td class="name"><a href="https://www.api-football.com/">API-Football</a><span class="note">Lineups, team xG and per-player stats (shots, passes, tackles, duels) for other leagues, 2022-25, collected a little each day. <strong>Used for:</strong> testing whether new player stats improve the lineup model, and retrying the neural network on many more matches. Not used in live forecasts.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name"><a href="https://huggingface.co/datasets/eatpizzanot/soccer-dataset">Hugging Face soccer dataset</a><span class="note">Player match stats for the top five European leagues, 2021-25. <strong>Used for:</strong> two finished studies: rating new signings from their previous league, and testing whether recent dribbles, duels and passing predict results. Neither earned a place in the model.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name">Wyscout public dataset<span class="note">Every pass, shot and tackle for five leagues in 2017-18. <strong>Used for:</strong> our first prototype of rating lineups from player actions, before FPL's xG data replaced it. Pappalardo et al. (2019), <em>Scientific Data</em>, CC BY 4.0.</span></td><td><span class="tag t-gray">Early prototype</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="table-note">We only use sources whose terms allow it and never get around a site's blocking. Raw bookmaker prices and the API-Football data are stored privately; the site shows only probabilities.</p>
+    </div>
+  </section>
+
   <section class="sec" id="rules">
     <div class="sec-head">
       <h2>Rules every model follows</h2>
@@ -631,9 +732,10 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
     <div class="sec-body">
       <ul class="rules">
         <li><strong>No peeking.</strong> A forecast only uses information that existed before kickoff. A result counts as known two and a half hours after its own kickoff.</li>
-        <li><strong>No odds as inputs.</strong> Betting prices and fantasy-football ownership are benchmarks only.</li>
+        <li><strong>No odds as inputs.</strong> Betting prices and fantasy-football ownership are benchmarks only. Raw bookmaker prices are stored privately, as the data provider's terms require; the site shows only probabilities.</li>
         <li><strong>Past predicts future, never the reverse.</strong> Models are trained on earlier matches and scored on later ones, never on a random shuffle.</li>
         <li><strong>Tests are written down first.</strong> The main comparisons were committed to the project's history before they were run.</li>
+        <li><strong>Every test gets fresh data.</strong> A data ledger records which league-seasons each experiment has used, and the code refuses to score a test on matches an earlier experiment has already looked at.</li>
       </ul>
     </div>
   </section>
@@ -642,7 +744,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
 <footer class="foot">
   <div class="wrap foot-in">
     <a class="brand brand-inv" href="/"><span class="mark" aria-hidden="true"></span>TaBet</a>
-    <p>TaBet is a student software-engineering project. Data comes from football-data.co.uk, the Fantasy Premier League API and its public archive, Fantasy Football Scout and RotoWire. Nothing here is betting advice.</p>
+    <p>TaBet is a student software-engineering project. Every data source, and what it is used for, is listed in <a href="#sources">Where the data comes from</a>. Nothing here is betting advice.</p>
   </div>
 </footer>
 

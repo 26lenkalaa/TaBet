@@ -1,4 +1,8 @@
-"""Data for the site's match explorer (site/matches.html): one JSON file, site/data/matches.json.
+"""Data for the site (pitch, match explorer), written to site/data/:
+  index.json                built time, log record count, seasons and the per-season file names
+  matches-<season>.json     every match of that season with its forecasts and market odds
+  lineups-<season>.json     starting XIs (actual and predicted), loaded only by the match page
+These files are canonical; there is no combined matches.json.
 
 Every match from 2022-23 onward gets the forecasts that exist for it, each labelled by kind:
   backtest  frozen walk-forward forecasts (results/xg_strength/ledger.csv): V0, V1x, V2x. Made with
@@ -32,8 +36,8 @@ from .ingest import implied_probabilities, load_all
 from .teams import TEAMS, try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "site" / "data" / "matches.json"
-INDEX = OUT.with_name("index.json")   # seasons, build time and per-season file names
+SITE_DATA = ROOT / "site" / "data"
+INDEX = SITE_DATA / "index.json"   # seasons, build time and per-season file names; the other files sit beside it
 LIVE_SEASON = "2026-27"
 LEDGER = ROOT / "results" / "xg_strength" / "ledger.csv"
 LOG = ROOT / "results" / "prospective" / "log.jsonl"
@@ -76,6 +80,27 @@ def _logged() -> dict[int, dict]:
     return best
 
 
+# Which price the site shows (amendment A8): Pinnacle with its margin removed by Shin's method; if
+# Pinnacle is missing from a snapshot, the median over bookmakers (exchanges excluded, A9); then the
+# bookmaker average (older snapshots, football-data). Display only: nothing here feeds a forecast.
+_PREFERENCE = (("pinnacle_shin", "Pinnacle, margin removed (Shin's method)"),
+               ("median", "median of the bookmakers, margins removed"),
+               ("Avg", "bookmaker average{n}, margin removed"))
+
+
+def _snapshot_price(rows: pd.DataFrame) -> tuple[list[float], str] | None:
+    """The preferred price among one snapshot's rows for one fixture, as probabilities and a note."""
+    from .market_benchmark import _implied
+    for book, text in _PREFERENCE:
+        x = rows[rows["book"] == book]
+        if len(x):
+            x = x.iloc[0]
+            n = f" of {int(x['n_books'])} bookmakers" if "n_books" in x and pd.notna(x.get("n_books")) else ""
+            p = _implied(x[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
+            return [round(float(v), 4) for v in p], text.format(n=n)
+    return None
+
+
 def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
     """The market at a logged record's cutoff, or None if no snapshot was taken by then."""
     from .market_benchmark import select_snapshots
@@ -87,34 +112,34 @@ def _matched_market(r: dict, odds_log: pd.DataFrame) -> dict | None:
         s = select_snapshots(rec, odds_log, source=source, with_last=False)
         if len(s) and not bool(s["later"].iloc[0]) and abs(float(s["hours_after_cutoff"].iloc[0])) <= 1.0:
             x = s.iloc[0]
-            row = odds_log[(odds_log["source"] == source) & (odds_log["book"] == "Avg")
-                           & (odds_log["retrieved_utc"] == x["retrieved_utc"])
-                           & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == r["fpl_fixture"])]
-            n = row["n_books"].iloc[0] if "n_books" in row and len(row) and pd.notna(row["n_books"].iloc[0]) else None
+            snap = odds_log[(odds_log["source"] == source) & (odds_log["retrieved_utc"] == x["retrieved_utc"])
+                            & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == r["fpl_fixture"])]
+            price = _snapshot_price(snap)
+            if price is None:
+                continue
+            p, what = price
             hrs = (pd.Timestamp(r["kickoff_utc"]) - x["retrieved_utc"]).total_seconds() / 3600
-            note = (f"bookmaker average{f' of {int(n)} bookmakers' if n else ''}, margin removed; {label}, "
-                    f"retrieved {x['retrieved_utc']:%d %b %H:%M} UTC, {hrs:.1f} h before kickoff")
-            return {"key": "matched", "label": "Market at our forecast time", "note": note,
-                    "p": [round(float(x[c]), 4) for c in ("p_home", "p_draw", "p_away")]}
+            note = f"{what}; {label}, retrieved {x['retrieved_utc']:%d %b %H:%M} UTC, {hrs:.1f} h before kickoff"
+            return {"key": "matched", "label": "Market at our forecast time", "note": note, "p": p}
     return None
 
 
 def _latest_market(fixture: int, odds_log: pd.DataFrame) -> dict | None:
-    """The newest The Odds API bookmaker average for an upcoming fixture (refreshed at least daily)."""
-    from .market_benchmark import _implied
+    """The newest The Odds API snapshot for an upcoming fixture (refreshed at least daily), priced by the
+    same preference as the matched market: Pinnacle (Shin), else the median, else the average."""
     from .odds_archive import API_SOURCE
     if odds_log is None or odds_log.empty or "source" not in odds_log:
         return None
-    o = odds_log[(odds_log["source"] == API_SOURCE) & (odds_log["book"] == "Avg")
-                 & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == fixture)]
+    o = odds_log[(odds_log["source"] == API_SOURCE) & (pd.to_numeric(odds_log["fpl_fixture"], errors="coerce") == fixture)]
     if o.empty:
         return None
-    x = o.sort_values("retrieved_utc").iloc[-1]
-    p = _implied(x[["odds_h", "odds_d", "odds_a"]].to_numpy(float)[None, :])[0]
-    n = f" of {int(x['n_books'])} bookmakers" if pd.notna(x.get("n_books")) else ""
+    last = o["retrieved_utc"].max()
+    price = _snapshot_price(o[o["retrieved_utc"] == last])
+    if price is None:
+        return None
+    p, what = price
     return {"key": "latest", "label": "Latest market odds",
-            "note": f"bookmaker average{n}, margin removed; The Odds API, retrieved {x['retrieved_utc']:%d %b %H:%M} UTC",
-            "p": [round(float(v), 4) for v in p]}
+            "note": f"{what}; The Odds API, retrieved {last:%d %b %H:%M} UTC", "p": p}
 
 
 def _odds_log() -> pd.DataFrame:
@@ -225,7 +250,9 @@ def _logged_forecasts(r: dict) -> list[dict]:
             if key in r["candidates"]]
 
 
-def build(preview: bool = True, out: Path = OUT) -> dict:
+def build(preview: bool = True, out: Path = INDEX) -> dict:
+    """Build the site data. `out` is the index.json path; the per-season files are written beside it.
+    Returns the full data dict (built_utc, n_log_records, seasons, matches)."""
     matches, odds = load_all(ROOT / "res")
     pre = implied_probabilities(odds, "Avg").set_index("match_id")
     close = implied_probabilities(odds, "AvgC").set_index("match_id")
@@ -343,11 +370,9 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
     data = {"built_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat(), "n_log_records": n_log,
             "seasons": sorted({e["season"] for e in entries}), "matches": entries}
     out.parent.mkdir(parents=True, exist_ok=True)
-    # one match per line, so the daily rebuild commits a small diff instead of rewriting the file
     head = {k: v for k, v in data.items() if k != "matches"}
-    body = ",\n".join(json.dumps(e, separators=(",", ":")) for e in entries)
-    out.write_text(json.dumps(head, separators=(",", ":"))[:-1] + ',"matches":[\n' + body + "\n]}\n")
-    # one small file per season plus an index, so a page loads only the season it shows
+    # one small file per season plus an index, so a page loads only the season it shows; one match per
+    # line, so the daily rebuild commits a small diff instead of rewriting the file
     files = {}
     for season in data["seasons"]:
         name = f"matches-{season}.json"
@@ -380,18 +405,20 @@ def build(preview: bool = True, out: Path = OUT) -> dict:
         name = f"lineups-{season}.json"
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
         lfiles[season] = name
-    (out.parent / INDEX.name).write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
+    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
     return data
 
 
-def stale(max_age_h: float = 20.0, out: Path = OUT) -> bool:
-    """Rebuild if the file is missing, older than max_age_h, the log has records it has not seen, or
-    The Odds API has a snapshot newer than the build (so new odds reach the site the same day)."""
-    if not out.exists() or not out.with_name(INDEX.name).exists():
+def stale(max_age_h: float = 20.0, out: Path = INDEX) -> bool:
+    """Rebuild if index.json (`out`) is missing or unreadable, older than max_age_h, the log has records
+    it has not seen, or The Odds API has a snapshot newer than the build (so new odds reach the site the
+    same day)."""
+    if not out.exists():
         return True
     try:
         head = json.loads(out.read_text())
-    except ValueError:
+        pd.Timestamp(head["built_utc"])
+    except (ValueError, KeyError, TypeError):
         return True
     age = (pd.Timestamp.now(tz="UTC") - pd.Timestamp(head["built_utc"])).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0

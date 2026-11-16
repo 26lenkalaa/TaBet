@@ -1,0 +1,91 @@
+/* Shared TaBet page shell. The pitch itself keeps its field markings. */
+:root {
+  --panel: #15241b;
+  --panel-hi: #122019;
+  --deep: #0f1c15;
+  --deeper: #0b1711;
+  --chalk: rgba(220, 255, 230, .17);
+  --chalk-dim: rgba(220, 255, 230, .10);
+  --muted: #bccdc1;
+  --faint: #8ea596;
+  --gold: #ffd23f;
+}
+body {
+  background: #0d1812 linear-gradient(180deg, #13261a, #0d1812 420px) no-repeat;
+}
+body::before {
+  content: "";
+  display: block;
+  height: 8px;
+  background: repeating-linear-gradient(90deg, #2f8a3f 0 48px, #2a7f39 48px 96px);
+}
+.site-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 14px 20px;
+}
+.site-header .logo img { display: block; width: 48px; height: 48px; }
+.site-heading h1, .site-title { margin: 0; font: 20px/1.5 var(--px); }
+.site-heading p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.site-header .pages { display: flex; gap: 6px; margin: 0; width: auto; }
+.site-header .pages a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  position: relative;
+  white-space: nowrap;
+  padding: 8px 10px 8px 22px;
+  font: 10px/1.4 var(--px);
+  color: #fff;
+  background: var(--panel-hi);
+  border: 1px solid var(--chalk);
+  box-shadow: none;
+  text-decoration: none;
+}
+.site-header .pages a:hover { color: var(--gold); }
+.site-header .pages a[aria-current="page"] {
+  background: var(--gold);
+  color: #1c1600;
+  border-color: var(--gold);
+}
+.site-header .pages a::before {
+  content: "\25B6";
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  transform: translateY(-50%);
+  font-size: 8px;
+  opacity: 0;
+}
+.site-header .pages a[aria-current="page"]::before { opacity: 1; }
+.site-header a:focus-visible, .toolbar select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.chalk, .site-panel {
+  background: var(--panel);
+  border: 1px solid var(--chalk);
+  box-shadow: none;
+}
+.toolbar label {
+  font: 700 12px/1.5 var(--sans);
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+.toolbar select { background: var(--deeper); border: 1px solid var(--chalk); }
+.page-tools { max-width: 1440px; margin: 0 auto; padding: 0 20px 10px; }
+@media (max-width: 960px) {
+  .site-header .pages { grid-column: 1 / -1; }
+  .site-header .pages a { flex: 1; }
+}
+@media (max-width: 460px) {
+  .site-header { padding-inline: 12px; }
+  .site-heading h1, .site-title { font-size: 14px; }
+  .site-header .pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-header .pages a { font-size: 9px; }
+}

@@ -221,6 +221,7 @@ footer .linkish { font-family: var(--sans); font-size: 14px; font-weight: 600; c
 }
 @media (max-width: 560px) { .tbtns { width: 100%; } .fbtn, .kick { flex: 1; justify-content: center; white-space: nowrap; padding: 8px 10px; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
@@ -235,21 +236,24 @@ footer .linkish { font-family: var(--sans); font-size: 14px; font-weight: 600; c
   </div>
 </div>
 
-<header class="hud">
-  <a class="logo" href="./" aria-label="TaBet home" title="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-  <div class="title">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
     <h1>TABET</h1>
     <p>Our forecasts against the betting market. Pick a match.</p>
   </div>
-  <div class="gw" role="group" aria-label="Gameweek">
+  <nav class="pages" aria-label="Pages">
+    <a href="./" aria-current="page">PITCH</a>
+    <a href="matches.html">MATCHES</a>
+    <a href="notebook.html">NOTEBOOK</a>
+    <a href="football.html">NFL</a>
+  </nav>
+</header>
+<div class="page-tools"><div class="gw" role="group" aria-label="Gameweek">
     <button id="prev" type="button" aria-label="Previous gameweek">&#9664;</button>
     <span id="gwlab" class="px" aria-live="polite">GW --</span>
     <button id="next" type="button" aria-label="Next gameweek">&#9654;</button>
-  </div>
-  <nav class="pages" aria-label="Pages">
-    <a href="./" aria-current="page">PITCH</a><a href="matches">MATCHES</a><a href="notebook">NOTEBOOK</a>
-  </nav>
-</header>
+  </div></div>
 
 <main class="pitch">
   <div class="field">
@@ -287,7 +291,7 @@ footer .linkish { font-family: var(--sans); font-size: 14px; font-weight: 600; c
   <button id="replay" type="button" class="linkish">Replay intro</button>
 </footer>
 
-<script src="common.js?v=20261111"></script>
+<script src="common.js?v=20261114"></script>
 <script>
 (function () {
   "use strict";
