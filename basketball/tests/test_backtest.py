@@ -10,6 +10,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # the basketball/ folder
 
 from src import backtest, db, market  # noqa: E402
+from src.models import ratings  # noqa: E402
 from src.models.elo import rate_games  # noqa: E402
 
 BOS, NYK, LAL, GSW = 1, 2, 3, 4
@@ -225,3 +226,78 @@ def test_main_explains_when_nothing_can_be_graded(games, odds, tmp_path, capsys)
     db_file = make_db(games, odds.iloc[:2], tmp_path)   # odds only for the warm-up season
     assert backtest.main(["--db", str(db_file), "--output", str(tmp_path / "summary.csv")]) == 1
     assert "no games left to grade" in capsys.readouterr().err
+
+
+# --- choosing and comparing models ----------------------------------------------
+
+@pytest.fixture
+def box_games(games):
+    """The same games with a box score, so possessions can be worked out."""
+    return games.assign(home_fga=88, home_fta=22, home_oreb=10, home_tov=13,
+                        away_fga=86, away_fta=24, away_oreb=9, away_tov=14)
+
+
+def with_possessions(box_games, tmp_path):
+    return db.read_games(db.connect(make_db(box_games, None, tmp_path)), possessions=True)
+
+
+def test_the_efficiency_model_can_be_graded_too(box_games, odds, tmp_path):
+    games = with_possessions(box_games, tmp_path)
+    table = backtest.build_table(games, odds, "efficiency")
+    rated, _ = ratings.rate_games(games)
+    assert list(table["home_win_prob"]) == pytest.approx(list(rated["home_win_prob"]))
+    assert list(table["predicted_margin"]) == pytest.approx(list(rated["predicted_margin"]))
+    assert backtest.grade(table)["games"] == 9
+
+
+def test_both_models_are_compared_on_the_same_games_against_the_same_market(box_games, odds, tmp_path):
+    games = with_possessions(box_games, tmp_path)
+    tables = {name: backtest.build_table(games, odds, name) for name in backtest.MODELS}
+    comparison = backtest.compare(tables)
+    assert list(zip(comparison["part"], comparison["model"])) == [
+        ("regular", "elo-v1"), ("regular", "eff-v2"), ("regular", "market"),
+        ("playoffs", "elo-v1"), ("playoffs", "eff-v2"), ("playoffs", "market")]
+    assert list(comparison["games"]) == [5, 5, 5, 2, 2, 2]
+    regular = comparison[comparison["part"] == "regular"].set_index("model")
+    assert regular.loc["elo-v1", "brier"] == pytest.approx(
+        backtest.summarize(tables["elo"]).set_index(["part", "season"]).loc[("regular", "all"), "brier_model"])
+    assert regular.loc["eff-v2", "brier"] != pytest.approx(regular.loc["elo-v1", "brier"])
+
+
+def comparison_with(new, old):
+    rows = [{"part": "regular", "model": "eff-v2", "games": 10, **new},
+            {"part": "regular", "model": "elo-v1", "games": 10, **old},
+            {"part": "playoffs", "model": "eff-v2", "games": 2, "brier": 0.9, "logloss": 0.9, "margin_err": 99},
+            {"part": "playoffs", "model": "elo-v1", "games": 2, "brier": 0.1, "logloss": 0.1, "margin_err": 1}]
+    return pd.DataFrame(rows)
+
+
+def test_the_new_model_is_kept_only_if_it_wins_every_regular_season_measure():
+    old = {"brier": 0.22, "logloss": 0.63, "margin_err": 10.9}
+    wins = backtest.verdict(comparison_with({"brier": 0.21, "logloss": 0.62, "margin_err": 10.5}, old))
+    mixed = backtest.verdict(comparison_with({"brier": 0.21, "logloss": 0.64, "margin_err": 10.5}, old))
+    loses = backtest.verdict(comparison_with({"brier": 0.23, "logloss": 0.64, "margin_err": 11.5}, old))
+    assert "keep eff-v2" in wins
+    assert "elo-v1 stays" in mixed and "brier, margin_err" in mixed
+    assert "elo-v1 stays" in loses and "any" in loses
+
+
+def test_main_can_grade_the_efficiency_model(box_games, odds, tmp_path, capsys):
+    db_file = make_db(box_games, odds, tmp_path)
+    output = tmp_path / "summary.csv"
+    assert backtest.main(["--model", "efficiency", "--db", str(db_file), "--output", str(output)]) == 0
+    assert "Model: eff-v2" in capsys.readouterr().out
+    assert len(db.read_predictions(db.connect(db_file), "eff-v2")) == 9
+    assert len(pd.read_csv(output)) == 5
+
+
+def test_main_compare_prints_both_models_the_market_and_a_verdict(box_games, odds, tmp_path, capsys):
+    db_file = make_db(box_games, odds, tmp_path)
+    output = tmp_path / "comparison.csv"
+    assert backtest.main(["--compare", "--db", str(db_file), "--output", str(output)]) == 0
+    printed = capsys.readouterr().out
+    for name in ("elo-v1", "eff-v2", "market", "Regular season, 5 games", "Verdict:"):
+        assert name in printed
+    assert len(pd.read_csv(output)) == 6
+    engine = db.connect(db_file)
+    assert len(db.read_predictions(engine, "elo-v1")) == len(db.read_predictions(engine, "eff-v2")) == 9

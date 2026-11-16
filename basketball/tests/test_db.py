@@ -88,6 +88,22 @@ def test_games_come_back_exactly_as_they_went_in(engine, games):
     pd.testing.assert_frame_equal(db.read_games(engine), games[columns], check_dtype=False)
 
 
+def test_games_can_come_back_with_possessions(engine, games):
+    table = db.read_games(engine, possessions=True)
+    assert len(table) == len(games)
+    assert table["home_possessions"].tolist() == pytest.approx([90 + 0.44 * 20 - 10 + 12] * 4)
+    assert table["away_possessions"].tolist() == pytest.approx([85 + 0.44 * 25 - 8 + 15] * 4)
+    assert "home_possessions" not in db.read_games(engine).columns
+
+
+def test_possessions_are_empty_when_there_is_no_box_score(games, tmp_path):
+    engine = db.connect(tmp_path / "no_box.db")
+    db.build(engine, games.drop(columns=["home_fga", "away_fga"]))
+    table = db.read_games(engine, possessions=True)
+    assert len(table) == len(games)
+    assert table["home_possessions"].isna().all()
+
+
 def test_game_ids_keep_their_leading_zeros(engine):
     assert list(db.read_games(engine)["game_id"])[0] == "0021800001"
 

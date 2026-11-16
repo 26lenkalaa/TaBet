@@ -33,6 +33,7 @@ GAMES_FILE = BASKETBALL_DIR / "data" / "processed" / "games.csv"
 ODDS_FILE = BASKETBALL_DIR / "data" / "processed" / "odds.csv"
 
 ELO_VERSION = "elo-v1"
+EFFICIENCY_VERSION = "eff-v2"
 ODDS_SOURCE = "kaggle"
 
 metadata = MetaData()
@@ -196,20 +197,30 @@ def build(engine: Engine, games_csv: pd.DataFrame, odds_csv: pd.DataFrame | None
 
 # --- reading -----------------------------------------------------------------
 
-def read_games(engine: Engine) -> pd.DataFrame:
-    """Every game in date order, in the shape the models expect (the same columns clean.py writes)."""
+def read_games(engine: Engine, possessions: bool = False) -> pd.DataFrame:
+    """Every game in date order, in the shape the models expect (the same columns clean.py writes).
+
+    With possessions=True, home_possessions and away_possessions are added from team_stats.
+    """
     home, away = teams.alias("home_team"), teams.alias("away_team")
-    query = (
-        select(
-            games.c.id.label("game_id"), games.c.season, games.c.date, games.c.game_type, games.c.is_playoffs,
-            games.c.home_team_id, home.c.abbreviation.label("home"),
-            games.c.away_team_id, away.c.abbreviation.label("away"),
-            games.c.home_pts, games.c.away_pts,
-        )
-        .join(home, games.c.home_team_id == home.c.id)
-        .join(away, games.c.away_team_id == away.c.id)
-        .order_by(games.c.date, games.c.id)
-    )
+    columns = [
+        games.c.id.label("game_id"), games.c.season, games.c.date, games.c.game_type, games.c.is_playoffs,
+        games.c.home_team_id, home.c.abbreviation.label("home"),
+        games.c.away_team_id, away.c.abbreviation.label("away"),
+        games.c.home_pts, games.c.away_pts,
+    ]
+    source = (games.join(home, games.c.home_team_id == home.c.id)
+                   .join(away, games.c.away_team_id == away.c.id))
+    if possessions:
+        home_stats, away_stats = team_stats.alias("home_stats"), team_stats.alias("away_stats")
+        columns += [home_stats.c.possessions.label("home_possessions"),
+                    away_stats.c.possessions.label("away_possessions")]
+        source = (source
+                  .outerjoin(home_stats, (home_stats.c.game_id == games.c.id)
+                             & (home_stats.c.team_id == games.c.home_team_id))
+                  .outerjoin(away_stats, (away_stats.c.game_id == games.c.id)
+                             & (away_stats.c.team_id == games.c.away_team_id)))
+    query = select(*columns).select_from(source).order_by(games.c.date, games.c.id)
     with engine.connect() as connection:
         table = pd.read_sql(query, connection)
     table["is_playoffs"] = table["is_playoffs"].astype(bool)
