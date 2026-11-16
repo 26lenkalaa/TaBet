@@ -75,7 +75,7 @@ select option { background: #0b2c14; color: #fff; }
 .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
 .card, details { padding: 14px; }
-.card h3, summary { font-family: var(--px); font-size: 11px; font-weight: 400; line-height: 1.6; color: var(--gold); }
+.card h3, summary { font: 700 15px/1.5 var(--sans); color: var(--ink); }
 .card h3, .card p { margin: 0 0 8px; }
 .card p:last-child { margin-bottom: 0; }
 progress { display: block; width: 100%; margin: 10px 0; accent-color: var(--c-h); }
@@ -91,16 +91,20 @@ summary { cursor: pointer; }
 }
 </style>
 <script src="football.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
-<header class="hud">
-  <a class="logo" href="./" aria-label="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-  <div class="title">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
     <h1>NFL FORECASTS</h1>
     <p>Pregame Elo predictions for NFL regular-season games.</p>
   </div>
   <nav class="pages" aria-label="Pages">
-    <a href="./">PITCH</a><a href="matches">MATCHES</a><a href="notebook">NOTEBOOK</a><a href="football.html" aria-current="page">NFL</a>
+    <a href="./">PITCH</a>
+    <a href="matches.html">MATCHES</a>
+    <a href="notebook.html">NOTEBOOK</a>
+    <a href="football.html" aria-current="page">NFL</a>
   </nav>
 </header>
 <main class="wrap">

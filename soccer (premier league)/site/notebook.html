@@ -272,26 +272,29 @@ td.num { font-family: var(--sans); font-size: 15px; font-weight: 700; font-varia
 p.ctx-hist { display: block; color: var(--gold); margin: 6px 0 12px; padding-top: 14px; border-top: 2px dashed var(--chalk); }
 p.ctx-hist { text-transform: none; letter-spacing: .02em; } 
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
-<header class="nav">
-  <div class="nav-in">
-    <a class="logo" href="/" aria-label="Back to the pitch" title="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-    <span class="brand brand-name">TaBet</span>
-    <nav class="links" aria-label="Sections">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
+    <div class="site-title">MODEL NOTEBOOK</div>
+    <p>See how the models work and how they performed.</p>
+  </div>
+  <nav class="pages" aria-label="Pages">
+    <a href="./">PITCH</a>
+    <a href="matches.html">MATCHES</a>
+    <a href="notebook.html" aria-current="page">NOTEBOOK</a>
+    <a href="football.html">NFL</a>
+  </nav>
+</header>
+<div class="page-tools"><nav class="links" aria-label="Sections">
       <a href="#scoreboard">Scoreboard</a>
       <a href="#models">Models</a>
       <a href="#tested">What we tested</a>
       <a href="#method">Method</a>
-    </nav>
-    <div class="nav-end">
-      <nav class="pages" aria-label="Pages">
-    <a href="/">PITCH</a><a href="/matches">MATCHES</a><a href="/notebook" aria-current="page">NOTEBOOK</a><a href="football.html">NFL</a>
-  </nav>
-    </div>
-  </div>
-</header>
+    </nav></div>
 
 <section class="hero">
   <div class="wrap hero-in">

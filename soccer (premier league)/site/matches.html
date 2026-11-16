@@ -214,17 +214,21 @@ details.xi-more summary, details.acc summary { font-family: var(--sans); font-si
 .notes-btn { font: inherit; font-size: 13px; font-weight: 700; color: var(--gold); background: none; border: 1px solid var(--chalk); padding: 5px 10px; cursor: pointer; }
 #card:not(.show-notes) .note { display: none; }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
-<header class="hud">
-  <a class="logo" href="./" aria-label="Back to the pitch" title="Back to the pitch"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
-  <div class="title">
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
     <h1>MATCH EXPLORER</h1>
-    <p>Pick a season and a match: what TaBet predicted, what the market predicted, and what happened.</p>
+    <p>Compare TaBet's forecasts, the market, and the final result.</p>
   </div>
   <nav class="pages" aria-label="Pages">
-    <a href="./">PITCH</a><a href="matches" aria-current="page">MATCHES</a><a href="notebook">NOTEBOOK</a><a href="football.html">NFL</a>
+    <a href="./">PITCH</a>
+    <a href="matches.html" aria-current="page">MATCHES</a>
+    <a href="notebook.html">NOTEBOOK</a>
+    <a href="football.html">NFL</a>
   </nav>
 </header>
 
