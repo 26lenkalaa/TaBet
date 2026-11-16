@@ -20,6 +20,7 @@ function percent(probability) {
 
 function card(game) {
     const article = document.createElement("article");
+    article.className = "card chalk";
     const upcoming = Boolean(game.outcome_probabilities);
     const home = upcoming ? game.outcome_probabilities.home : game.p_home;
     addText(article, "h3", game.away_team + " at " + game.home_team);
