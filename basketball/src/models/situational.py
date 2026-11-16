@@ -94,6 +94,33 @@ def add_situation(games: pd.DataFrame) -> pd.DataFrame:
     return table.drop(columns=[column for column in table.columns if column.startswith("_")])
 
 
+def situation_for(games: pd.DataFrame, home: str, away: str, date: str) -> dict[str, float]:
+    """The situation for a game that has not been played yet: `away` at `home` on `date` (YYYY-MM-DD).
+
+    Returns home_rest_days, away_rest_days, home_travel_km, away_travel_km and the three
+    home-minus-away gaps, worked out from each team's last game in `games`.
+    """
+    today = pd.Timestamp(date)
+    result: dict[str, float] = {}
+    for side, team in (("home", home), ("away", away)):
+        played = games[(games["home"] == team) | (games["away"] == team)]
+        rest, travel = float("nan"), 0.0
+        if len(played):
+            last = played.sort_values(["date", "game_id"]).iloc[-1]
+            days = (today - pd.Timestamp(last["date"])).days
+            if days <= 0:
+                raise ValueError(f"{team} already has a game on or after {date} in the database "
+                                 f"(its last game is {last['date']}). Choose a later date.")
+            if days < FRESH_START_DAYS:
+                rest, travel = float(days), distance_km(last["home"], home)
+        result[f"{side}_rest_days"], result[f"{side}_travel_km"] = rest, travel
+    result["back_to_back"] = float(result["home_rest_days"] == 1) - float(result["away_rest_days"] == 1)
+    result["long_rest"] = (float(result["home_rest_days"] >= LONG_REST_DAYS)
+                           - float(result["away_rest_days"] >= LONG_REST_DAYS))
+    result["travel_1000km"] = (result["home_travel_km"] - result["away_travel_km"]) / 1000
+    return result
+
+
 def learn_effects(situations: pd.DataFrame, misses: pd.Series) -> dict[str, float]:
     """How many points of margin each situation gap has been worth, from games already played.
 

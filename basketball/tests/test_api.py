@@ -126,7 +126,7 @@ def test_games_rejects_a_missing_or_bad_date_or_model(client, params):
 
 def test_predict_matches_predict_py(client, db_file):
     body = client.get("/predict", params={"home": "BOS", "away": "NYK"}).json()
-    expected = predict.predict_game(predict.load_games(db_file), "BOS", "NYK")
+    expected = predict.predict_game(predict.load_games(db_file), "BOS", "NYK", model="efficiency")
     assert body["home"] == "BOS" and body["away"] == "NYK"
     assert body["model"] == "eff-v2"
     assert body["home_win_prob"] == pytest.approx(expected.home_win_prob)
@@ -140,7 +140,7 @@ def test_predict_accepts_lower_case_neutral_and_the_elo_model(client, db_file):
     games = predict.load_games(db_file)
     neutral = client.get("/predict", params={"home": "bos", "away": "nyk", "neutral": "true"}).json()
     assert neutral["home"] == "BOS" and neutral["neutral"] is True
-    assert neutral["home_win_prob"] == pytest.approx(predict.predict_game(games, "BOS", "NYK", True).home_win_prob)
+    assert neutral["home_win_prob"] == pytest.approx(predict.predict_game(games, "BOS", "NYK", True, "efficiency").home_win_prob)
 
     with_elo = client.get("/predict", params={"home": "BOS", "away": "NYK", "model": "elo"}).json()
     assert with_elo["model"] == "elo-v1"
