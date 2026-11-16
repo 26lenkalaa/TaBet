@@ -42,13 +42,17 @@ FINISHED = {"FT", "AET", "PEN"}
 REFUSED = ("odds", "predictions")   # benchmark data must never become training data
 BUCKET = "api-football"
 
-# Order of collection: the Premier League first, then the leagues most useful for a cross-league model.
+# Order of collection. The Premier League comes last: 2022-26 is already covered by FPL, which has
+# player-level xG. The other big leagues come first (team xG is the cross-league analogue of V1x),
+# then the Championship (promoted teams, brief §5.21).
 LEAGUES = [
-    (39, "Premier League"), (40, "Championship"), (140, "La Liga"), (135, "Serie A"),
-    (78, "Bundesliga"), (61, "Ligue 1"), (88, "Eredivisie"), (94, "Primeira Liga"),
-    (144, "Belgian Pro League"), (179, "Scottish Premiership"),
+    (140, "La Liga"), (135, "Serie A"), (78, "Bundesliga"), (61, "Ligue 1"), (40, "Championship"),
+    (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
+    (39, "Premier League"),
 ]
-SEASONS = list(range(2025, 2009, -1))   # API seasons are the starting year: 2025 = 2025-26
+# API seasons are the starting year (2024 = 2024-25). The free plan allows 2022-2024 only (probe of
+# 2026-11-16), so nothing else is requested: each refused season would waste a call per league.
+SEASONS = [2024, 2023, 2022]
 
 
 class PlanLimit(Exception):

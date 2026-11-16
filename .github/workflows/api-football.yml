@@ -9,9 +9,10 @@ name: API-Football data (training only)
 # Budget: the free plan allows 100 requests a day and refuses the 20-matches-a-request option, so a
 # match costs one request. A run uses at most `budget` requests (default 50, including the status
 # check), always leaves 10 unused, and waits 6.5 s between calls: about 40-45 matches a run.
-# There is no schedule yet: run `probe` first (about 5 calls), then `fetch` by hand. A daily schedule
-# is added only once the probe shows what the free plan covers.
+# Runs once a day (fetch, 50 requests). `probe` and other budgets can still be run by hand.
 on:
+  schedule:
+    - cron: "17 6 * * *"   # 06:17 UTC daily
   workflow_dispatch:
     inputs:
       mode:
@@ -41,8 +42,8 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-      MODE: ${{ inputs.mode }}
-      BUDGET: ${{ inputs.budget }}
+      MODE: ${{ inputs.mode || 'fetch' }}
+      BUDGET: ${{ inputs.budget || '50' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
