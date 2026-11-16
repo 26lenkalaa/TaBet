@@ -932,31 +932,6 @@ linear stage 2. It is unproven rather than ruled out. Any rerun on multi-league 
 should keep early stopping. Code: `NNParams(early_stop=True)`, `prototypes/run_neural_recheck.py`,
 `results/neural_net/recheck.json`.
 
-### 5.28 Promoted-team mapping on fresh PL 2000-15 (R6, pre-registered as addendum P): closed
-
-- **Design.** The Championship → first-PL-season mapping (shots-on-target attack and defence, goal
-  difference per match) was learned by ridge from **every** earlier promotion. Ridge λ = 10 was
-  chosen on the 2001-08 cohorts. The mapping was used as the promoted prior mean in Dixon-Coles
-  (D3). It was scored once on PL 2008-09 → 2014-15 (2,660 matches, 202 early-promoted), against no
-  prior (D0) and the shared offset (D1).
-- **Data.** football-data E0/E1 1999-2015 (the PL files were never scored before). Five files needed
-  their stray fields cut. 42 promotions were linked, 3 a season.
-
-| Primary (98.33%, Bonferroni over 3) | Result |
-|---|---|
-| P1: D3 − D0, early promoted | −0.0031 [−0.0203, +0.0124] |
-| P2: D3 − D1, early promoted | −0.0057 [−0.0207, +0.0084] |
-| P3: D3 − D0, all matches | +0.0009 [−0.0018, +0.0039] |
-
-The final mapping's slopes are all small, and every 95% bootstrap interval includes 0: attack on
-SoT +0.020, attack on goal difference +0.038, defence on SoT +0.032, defence on goal difference
-+0.030.
-
-**Not confirmed, and the pre-registered stop rule is met.** The promoted-team line is closed until
-squad-level data (signings, managers) exists live, and R3 is not run. This fits the reviewer's
-reading that the promoted-team gap is information the market has and results can't recover. PL
-2008-15 has now used one of its three primary families.
-
 ### 5.27 Tuning the player model's settings (exploratory)
 
 Question: three V2x settings were fixed in the original pre-registration and never tuned:
@@ -984,6 +959,31 @@ Do better values exist?
 layer seems limited by the information in its single input, decayed xG + xA per 90, not by how that
 input is weighted. Code: `prototypes/run_player_tuning.py`, `results/player_tuning/`. Nothing changes
 in the live model, which is frozen this season.
+
+### 5.28 Promoted-team mapping on fresh PL 2000-15 (R6, pre-registered as addendum P): closed
+
+- **Design.** The Championship → first-PL-season mapping (shots-on-target attack and defence, goal
+  difference per match) was learned by ridge from **every** earlier promotion. Ridge λ = 10 was
+  chosen on the 2001-08 cohorts. The mapping was used as the promoted prior mean in Dixon-Coles
+  (D3). It was scored once on PL 2008-09 → 2014-15 (2,660 matches, 202 early-promoted), against no
+  prior (D0) and the shared offset (D1).
+- **Data.** football-data E0/E1 1999-2015 (the PL files were never scored before). Five files needed
+  their stray fields cut. 42 promotions were linked, 3 a season.
+
+| Primary (98.33%, Bonferroni over 3) | Result |
+|---|---|
+| P1: D3 − D0, early promoted | −0.0031 [−0.0203, +0.0124] |
+| P2: D3 − D1, early promoted | −0.0057 [−0.0207, +0.0084] |
+| P3: D3 − D0, all matches | +0.0009 [−0.0018, +0.0039] |
+
+The final mapping's slopes are all small, and every 95% bootstrap interval includes 0: attack on
+SoT +0.020, attack on goal difference +0.038, defence on SoT +0.032, defence on goal difference
++0.030.
+
+**Not confirmed, and the pre-registered stop rule is met.** The promoted-team line is closed until
+squad-level data (signings, managers) exists live, and R3 is not run. This fits the reviewer's
+reading that the promoted-team gap is information the market has and results can't recover. PL
+2008-15 has now used one of its three primary families.
 
 ## 6. Known weaknesses and open questions
 
