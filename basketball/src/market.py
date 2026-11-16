@@ -36,6 +36,15 @@ def moneyline_to_prob(moneyline: float) -> float:
     return 100.0 / (moneyline + 100.0)
 
 
+def decimal_to_moneyline(decimal_odds: float) -> float:
+    """Decimal odds -> American odds. 2.50 -> +150;  1.40 -> -250."""
+    if not math.isfinite(decimal_odds) or decimal_odds <= 1.0:
+        raise ValueError(f"Decimal odds must be above 1, got {decimal_odds}")
+    if decimal_odds >= 2.0:
+        return (decimal_odds - 1.0) * 100.0
+    return -100.0 / (decimal_odds - 1.0)
+
+
 def prob_to_moneyline(prob: float) -> float:
     """Probability -> the American odds that would pay fairly for it."""
     if not 0.0 < prob < 1.0:
@@ -203,24 +212,42 @@ def match_odds(games: pd.DataFrame, odds: pd.DataFrame, margin_sd: float = MARGI
         taken_keys = set(zip(taken.dt.strftime("%Y-%m-%d"), found["home"], found["away"]))
         spare = spare[[tuple(row) not in taken_keys for row in spare[keys].to_numpy()]]
 
-    matched = matched.drop(columns="_found")
-    matched["market_margin"] = spread_to_margin(matched["spread_close"])
-    matched["market_home_win_prob"] = spread_to_prob(matched["spread_close"], margin_sd)
-    if {"home_ml", "away_ml"} <= set(matched.columns):
-        both = matched["home_ml"].notna() & matched["away_ml"].notna()
-        matched.loc[both, "market_home_win_prob"] = [
+    return add_market_predictions(matched.drop(columns="_found"), margin_sd)
+
+
+def add_market_predictions(games_with_odds: pd.DataFrame, margin_sd: float = MARGIN_SD) -> pd.DataFrame:
+    """Add market_margin and market_home_win_prob to games that already carry odds columns.
+
+    The margin comes from the closing spread. The win probability comes from the
+    two moneylines when a game has both, otherwise from the closing spread.
+    """
+    table = games_with_odds.copy()
+    if "spread_close" not in table.columns:
+        table["spread_close"] = float("nan")
+    table["market_margin"] = spread_to_margin(table["spread_close"])
+    table["market_home_win_prob"] = spread_to_prob(table["spread_close"], margin_sd)
+    if {"home_ml", "away_ml"} <= set(table.columns):
+        both = table["home_ml"].notna() & table["away_ml"].notna()
+        table.loc[both, "market_home_win_prob"] = [
             moneylines_to_probs(home_ml, away_ml)[0]
-            for home_ml, away_ml in zip(matched.loc[both, "home_ml"], matched.loc[both, "away_ml"])
+            for home_ml, away_ml in zip(table.loc[both, "home_ml"], table.loc[both, "away_ml"])
         ]
-    return matched
+    return table
 
 
 def coverage(games_with_odds: pd.DataFrame) -> pd.DataFrame:
-    """Per season: how many games have a closing spread, and how many do not."""
+    """Per season: how many games have a closing spread, and how many do not.
+
+    When the table has moneylines, a with_moneyline column counts the games that have both.
+    """
     has_spread = games_with_odds["spread_close"].notna()
     table = games_with_odds.assign(with_spread=has_spread, without_spread=~has_spread)
-    table = table.groupby("season")[["with_spread", "without_spread"]].sum()
-    table.insert(0, "games", table.sum(axis=1))
+    columns = ["with_spread", "without_spread"]
+    if {"home_ml", "away_ml"} <= set(table.columns):
+        table["with_moneyline"] = table["home_ml"].notna() & table["away_ml"].notna()
+        columns.append("with_moneyline")
+    table = table.groupby("season")[columns].sum()
+    table.insert(0, "games", table["with_spread"] + table["without_spread"])
     return table
 
 
