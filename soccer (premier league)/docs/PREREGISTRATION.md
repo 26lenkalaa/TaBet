@@ -318,3 +318,62 @@ inputs, on league-seasons no TaBet experiment has ever used?
   installs it.
 - **Ledger:** the rows for family G are added to `docs/data_ledger.csv` in this commit. The test
   seasons are **reserved**, and the script must call `tabet.ledger.claim` before scoring them.
+
+## Addendum DXI (2026-11-16, committed before any player data for it has been looked at): a defensive-XI block
+
+The seventh review's experiment 2. Question: does a fixed block describing the starting XI's
+**defensive** output add information beyond an **attacking**-XI rating, on leagues no TaBet
+experiment has used? Nothing about the live Premier League model changes.
+
+- **Data.**
+  - **Source:** API-Football (`tabet/api_football.py`, stored in Supabase). Per-player match stats:
+    `games.minutes`, `games.position` (G/D/M/F), `games.substitute`, `shots.total`, `passes.key`,
+    `tackles.total`, `tackles.interceptions`, `duels.total`, `duels.won`. Per-team match stats:
+    `Ball Possession`. Plus the starting lineups and final scores.
+  - **Development:** La Liga, Serie A, Bundesliga and Ligue 1, 2022-23 → 2024-25. Spent as test
+    data by addendum B, and usable for development under the ledger.
+  - **Test:** Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership, 2022-23 →
+    2024-25. **Untouched** per `docs/data_ledger.csv` on 2026-11-16.
+  - **Run condition:** the test runs only once at least 95% of each test league-season's finished
+    fixtures are stored with player stats. That check, and a check of the provider's field
+    definitions (for example whether `duels` mixes aerial and ground contests), happen before any
+    model is fitted, and are reported.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  API-Football results from earlier dates, over the previous 3 years. A match is used once its
+  league has at least 150 earlier matches and both teams have at least 5 earlier matches with
+  player stats. Ratings never cross leagues.
+- **Player ratings** (from earlier dates only, within the league):
+  - **attack:** (shots + key passes) per 90 minutes, shrunk toward that position's league mean with
+    a prior weight of `k_att` minutes;
+  - **ball-winning:** (tackles + interceptions) per 90 minutes, possession-adjusted (multiplied by
+    50 / the opponent's possession % in each match), shrunk toward the position mean with
+    `k_def` minutes;
+  - **duels:** (won + `a` × position mean rate) / (total + `a`).
+- **XI blocks**, each as the log ratio of this match's starting XI to the team's own average for the
+  same block over its previous 10 league matches:
+  - **ATT** = the mean attack rating of the starting outfielders;
+  - **BW** = the mean ball-winning rating of the starting defenders and midfielders;
+  - **DUEL** = the mean duel rate of the starting defenders and midfielders.
+- **Models** (pooled penalised Poisson stage 2 on goals, offset the log DC rate, refitted monthly on
+  all eight leagues' side-rows from earlier dates):
+  - **BASE:** the scoring side's ATT;
+  - **DEF:** BASE plus the **opponent's** BW and DUEL.
+- **Development choices** (only these, by equal-weight mean log-loss over the four development
+  leagues, monthly walk-forward on 2022-25):
+  - for BASE: L2 ∈ {1, 10, 100} and `k_att` ∈ {300, 900, 2700};
+  - then for DEF, with BASE's choices fixed: `k_def` ∈ {300, 900, 2700}, `a` ∈ {20, 60} and its own
+    L2 ∈ {1, 10, 100}.
+- **Primary.** DEF − BASE: the mean paired log-loss difference per test league, averaged over the
+  four test leagues with equal weight, on 2022-23 → 2024-25. Inference: 14-day calendar blocks
+  spanning all four leagues, 2,000 resamples, seed 0, 95% interval.
+- **Decision.** **Confirmed** only if DEF − BASE ≤ −0.001 **and** its upper bound is below 0.
+  - The 0.001 threshold is fixed now, as for addendum G.
+  - If confirmed, the block becomes a candidate for the Premier League XI model. That requires its
+    own prospective test, with FPL data in a later season.
+- **Secondary, never decisive:**
+  - each league and each season;
+  - BW alone and DUEL alone;
+  - early-season matches;
+  - BASE − DC, which shows how much the attacking block alone adds.
+- **Ledger:** family DXI. Development on SP1/I1/D1/F1 2022-25; test on N1/P1/B1/SC0 2022-25, all
+  reserved in this commit. The script must call `tabet.ledger.claim` before scoring.

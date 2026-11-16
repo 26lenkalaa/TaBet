@@ -50,3 +50,11 @@ F1,2005-06,2013-14,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2
 F1,2014-15,2016-17,G,development,spent,1,PREREGISTRATION addendum G,boosted stage 2: L2 and GBM settings only
 F1,2017-18,2017-18,G,training,spent,1,PREREGISTRATION addendum G,boosted stage 2: training only (no decisions)
 F1,2018-19,2020-21,G,test,spent,1,PREREGISTRATION addendum G,boosted stage 2: scored once on 2026-11-16 (not confirmed)
+SP1,2022-23,2024-25,DXI,development,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: settings only
+I1,2022-23,2024-25,DXI,development,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: settings only
+D1,2022-23,2024-25,DXI,development,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: settings only
+F1,2022-23,2024-25,DXI,development,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: settings only
+N1,2022-23,2024-25,DXI,test,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once
+P1,2022-23,2024-25,DXI,test,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once
+B1,2022-23,2024-25,DXI,test,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once
+SC0,2022-23,2024-25,DXI,test,reserved,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once
