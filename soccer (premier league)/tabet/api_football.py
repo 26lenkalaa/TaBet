@@ -46,9 +46,10 @@ BUCKET = "api-football"
 # player-level xG. The other big leagues come first (team xG is the cross-league analogue of V1x),
 # then the Championship (promoted teams, brief §5.21).
 LEAGUES = [
-    (140, "La Liga"), (135, "Serie A"), (78, "Bundesliga"), (61, "Ligue 1"), (40, "Championship"),
+    (140, "La Liga"), (135, "Serie A"), (78, "Bundesliga"), (61, "Ligue 1"),
+    # addendum DXI's test leagues come before the Championship, which that test does not use
     (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
-    (39, "Premier League"),
+    (40, "Championship"), (39, "Premier League"),
 ]
 # API seasons are the starting year (2024 = 2024-25). The free plan allows 2022-2024 only (probe of
 # 2026-11-16), so nothing else is requested: each refused season would waste a call per league.
