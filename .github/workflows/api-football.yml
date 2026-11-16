@@ -1,0 +1,54 @@
+name: API-Football data (training only)
+
+# Collects multi-league match data (lineups, team and player statistics) for model training and
+# stores it in the backend: raw responses in Supabase Storage (private bucket `api-football`) and
+# bookkeeping in private tables (backend/supabase/migrations/0003_api_football.sql). Nothing is
+# committed to git. It is separate from the forecast logger and never calls the odds or predictions
+# endpoints.
+#
+# Budget: the free plan allows 100 requests a day. A run uses at most `budget` requests (default 50,
+# including the status check), always leaves 10 unused, and waits 6.5 s between calls.
+# There is no schedule yet: run `probe` first (about 5 calls), then `fetch` by hand. A daily schedule
+# is added only once the probe shows what the free plan covers.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe (about 5 calls: plan, allowed seasons, one sample match) | fetch"
+        type: choice
+        options: [probe, fetch]
+        default: probe
+      budget:
+        description: "Most requests this run may use (free plan: 100 a day)"
+        default: "50"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-football
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: "soccer (premier league)"
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      MODE: ${{ inputs.mode }}
+      BUDGET: ${{ inputs.budget }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install certifi
+      - name: Run
+        run: |
+          python -m tabet.api_football "$MODE" --budget "$BUDGET" | tee result.json
+          { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
