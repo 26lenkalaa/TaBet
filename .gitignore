@@ -11,3 +11,4 @@ soccer (premier league)/data/raw/
 basketball/data/raw/
 *.db
 node_modules/
+.env
