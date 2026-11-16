@@ -17,6 +17,23 @@
 >     2 but still doesn't beat it (§5.26 re-check).
 >   - R6, pre-registered on fresh PL 2000-15: not confirmed, and the stop rule closes the
 >     promoted-team line (§5.28).
+> - A football-data learning curve: with about 36,000 matches a network only draws level with the
+>   linear stage 2 on shots and goals form (§5.29). More data helps less than better inputs.
+> - **Seventh review (amendment A9, before the freeze).**
+>   - It confirms the one primary claim (pα − p0, gameweeks 20–38); every split is diagnostic.
+>   - It defines the fitting and evaluation populations.
+>   - It adds a wild-cluster bootstrap check and a gameweek-bootstrap α interval.
+>   - Betting exchanges are dropped from the market fallback, and the benchmark is called "within
+>     15 minutes".
+>   - pBP must also not just gain from dropping ρ.
+>   - **The reviewer's next cycle:** at most two experiments, each against per-league Dixon-Coles
+>     **and** a pooled linear model on identical inputs:
+>     - (1) a shallow gradient-boosted stage 2 on an untouched big-four holdout (2018-21);
+>     - (2) a fixed defensive-XI block (tackles plus interceptions, shrunk duel success) on API-Football
+>       data.
+>
+>     No further neural-network search until 10–20k matches with the required features exist.
+>   - A league × season × experiment ledger is to be enforced in the scripts.
 > - A multi-league collector (API-Football, free plan) now runs daily. It gives team xG, lineups and
 >   per-player match stats for 2022-23 to 2024-25 (§3, §5.25), and it feeds §8 item 7.
 > - **No change to any model, forecast or scored contrast.** The protocol still freezes at the first
@@ -984,6 +1001,45 @@ SoT +0.020, attack on goal difference +0.038, defence on SoT +0.032, defence on 
 squad-level data (signings, managers) exists live, and R3 is not run. This fits the reviewer's
 reading that the promoted-team gap is information the market has and results can't recover. PL
 2008-15 has now used one of its three primary families.
+
+### 5.29 How much data does a network need? A learning curve on football-data (exploratory)
+
+Review 6, item 7e asked for learning curves on pooled leagues.
+
+**Data**
+- football-data from 17 divisions that are neither the PL nor the big four. Those stay reserved for
+  confirmatory tests.
+- Shots on target exist for the English second to fifth tiers and the Scottish Premiership from
+  2003-04, and for the other leagues from 2017-18.
+- About 36,400 usable training matches before July 2018, and 9,667 test matches (2018-19, 2019-20).
+
+**Design**
+- **Base:** Dixon-Coles per division, refitted weekly on earlier matches only.
+- **Inputs, the same for both stage-2 models:** each side's own shots-on-target and goals form, and
+  the opponent's against-form. All time-decayed, scaled to the division average, and point-in-time.
+- **Fitting:** static fits on the most recent N training matches. The most recent 15% choose the
+  linear L2 and the network's weight decay, and the network uses early stopping.
+
+| Training matches | DC only | Linear | Network | Network − linear |
+|---|---|---|---|---|
+| 2,000 | 1.0275 | 1.0243 | 1.0266 | +0.0023 [+0.0013, +0.0034] |
+| 5,000 | 1.0275 | 1.0258 | 1.0261 | +0.0003 [−0.0003, +0.0008] |
+| 10,000 | 1.0275 | 1.0247 | 1.0263 | +0.0015 [+0.0003, +0.0027] |
+| 20,000 | 1.0275 | 1.0250 | 1.0255 | +0.0006 [−0.0004, +0.0016] |
+| 36,393 | 1.0275 | 1.0248 | 1.0244 | −0.0004 [−0.0010, +0.0001] |
+
+**Reading.**
+- The network's deficit closes as data grows, and it draws level at roughly 30,000–40,000 matches,
+  in line with the reviewer's estimate. The path is not monotone.
+- Even then the gain is tiny, because these inputs add only about 0.003 over Dixon-Coles for any
+  model. The binding constraint is input information, not model flexibility.
+- For the xG and lineup inputs that matter, the free API-Football plan (about 9,300 matches at most)
+  cannot reach this scale.
+- These divisions' 2003-20 seasons are now development data for the network line.
+
+**Storage.** football-data history (307 season files) and this experiment's derived rows live in a
+private Supabase bucket, `football-data`, read through `tabet/fd_cache.py`. Nothing is kept on disk.
+Code: `prototypes/run_nn_learning_curve.py`, `results/nn_learning_curve/results.json`.
 
 ## 6. Known weaknesses and open questions
 

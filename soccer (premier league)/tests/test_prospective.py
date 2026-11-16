@@ -313,3 +313,14 @@ def test_bivariate_poisson_grid_sums_to_one_and_more_draws_with_shared_goals():
     p_ind = _hda3(bp_grid(lh, la, 1e-9))[0]
     p_bp = _hda3(bp_grid(lh, la, 0.15))[0]
     assert p_bp.sum() == pytest.approx(1.0) and p_bp[1] > p_ind[1]
+
+
+def test_wild_cluster_bootstrap_p_value():
+    # amendment A9: a clear effect gets a small p, pure noise a large one
+    from tabet.prospective import wild_cluster_p
+    rng = np.random.default_rng(1)
+    gw = np.repeat(np.arange(19), 10)
+    assert wild_cluster_p(rng.normal(-0.05, 0.05, 190), gw, reps=999) < 0.01
+    noise = rng.normal(0.0, 0.05, 190)
+    assert wild_cluster_p(noise - noise.mean(), gw, reps=999) > 0.5   # mean exactly 0: no evidence at all
+    assert wild_cluster_p(np.ones(5), np.zeros(5)) is None

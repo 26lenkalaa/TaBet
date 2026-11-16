@@ -500,3 +500,61 @@ rule changes.
 
    Copies already in the public git history are not rewritten by this amendment. football-data's
    `fixtures.csv` archive is unaffected.
+
+## Amendment A9 (2026-11-16, written before any gameweek-11 record)
+
+From the seventh external review. Like A8, it changes only what is reported and how results are
+judged. p0, pE, pBP, α's fitting rule, the record windows and what is logged are unchanged. It must be
+on `main` before 2026-11-20 04:30 UTC.
+
+1. **One primary claim.** The protocol makes exactly one confirmatory claim: **pα − p0 on gameweeks
+   20–38**, judged with A5's inference.
+   - **Descriptive only, never a route to declaring success:**
+     - the gameweek 20–29 read;
+     - pE − p0, pα − pE, each source − p0, fpl_proj − fpl_proj_hist;
+     - the record-type and source-timing splits (A5);
+     - α = 0 / 0.5 / 1 (A5);
+     - pBP − p0 (A8);
+     - every market benchmark.
+   - **The confirmed-XI question (V2x − V1x)** was answered offline. Any live confirmed-XI number is
+     descriptive.
+2. **Who is in the fitting and evaluation sets.**
+   - **α's fitting set:** gameweek 10–19 fixtures whose scored record (`select_records`: primary if
+     any, else fallback; the one matching the kickoff actually played) has both p0 and pE, and whose
+     result was known (kickoff + 2 h 30) before the first gameweek-20 record's cutoff (A3).
+     - A fitting fixture whose result is not known by then is left out of α permanently, and
+       counted.
+     - Every evaluation record is therefore scored with the single frozen α.
+   - **Evaluation set:** gameweek 20–38 fixtures with a scored record holding both p0 and pE, and a
+     result.
+   - **Excluded and counted:** fixtures abandoned or voided without a result, and fixtures whose
+     played kickoff has no matching record (A4).
+   - **Source failures** follow A2: pE falls back to the one valid source, or to p0. Such fixtures
+     stay in the set, and complete cases are reported separately (A5).
+3. **α degeneracy, complete.** A8 item 4's rule stands. α is fitted by grid search on [0, 1] in steps
+   of 0.01, so there is no optimiser to fail. "Constant" covers the case where pE equals p0 for every
+   fitting fixture (summed log-loss range below 1e-12). A minimum at 0 or 1 is a valid fit.
+4. **Inference checks beside A5's primary.**
+   - **Primary measure (unchanged):** the gameweek-clustered SE with t on (G − 1) df.
+   - **Reported beside it:**
+     - a **null-imposed wild-cluster bootstrap** p-value: Rademacher weights per gameweek,
+       studentised with the clustered SE, 9,999 resamples, seed 0;
+     - the 14-day calendar-block bootstrap, as a calendar-dependence sensitivity;
+     - the sign-flip test, as a check that assumes symmetry.
+   - **α's intervals:** A5's likelihood interval is labelled **model-based**, because it treats
+     fixtures as independent. Beside it is a **gameweek-bootstrap interval** (resample the fitting
+     gameweeks, refit α, 2,000 resamples, seed 0). Both are descriptive; only the one frozen α is
+     evaluated.
+5. **Market benchmark wording and fallback.**
+   - **"Within 15 minutes":** the headline (A8 item 3) is described as *Pinnacle at the snapshot
+     within 15 minutes of the cutoff*, not "at the same information cutoff". Each record's signed
+     delay is reported (A8). The site's 1-hour rule is for display only and never used in analysis.
+   - **Fallback:** from this amendment, the median fallback excludes betting exchanges (Betfair
+     Exchange, Matchbook, Smarkets), because their prices carry commission and depend on liquidity.
+     Each bookmaker's margin is removed before the median is taken. Pinnacle coverage and fallback
+     coverage are reported separately (`n_pinnacle`).
+   - **Exchanges** stay in A7's `Avg` secondary, for continuity.
+   - **Order of fetching:** odds are still fetched after the forecast inputs, in the same run. A
+     confidence interval that crosses zero does not establish parity with the market.
+6. **pBP adoption, one more condition.** Beyond A8 item 2's pooled rule, adoption also requires that
+   pBP − p0 is ≤ 0 among records with λ3 ≥ 0.02. That shows any gain is not just from dropping ρ.

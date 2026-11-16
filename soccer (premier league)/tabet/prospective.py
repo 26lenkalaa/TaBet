@@ -543,6 +543,7 @@ def robustness(scores: pd.DataFrame, candidate: str = "pE", primary_horizon: flo
         out["sign_flip_p_gameweek"] = float((1 + (null >= abs(sums.sum()) - 1e-12).sum()) / (1 + len(null)))
         out.update({"se_gameweek_clustered": se_c, "ci_gameweek_clustered": [float(d.mean() - q * se_c), float(d.mean() + q * se_c)],
                     "n_gameweeks": int(G)})
+        out["wild_cluster_p_gameweek"] = wild_cluster_p(d.to_numpy(), gw.to_numpy())   # amendment A9
     return out
 
 
@@ -583,6 +584,31 @@ def decomposition(scores: pd.DataFrame, primary_horizon: float = HORIZON_H) -> p
         out.append({"source": src, "n_fixtures": len(g), "feature_capture": cap, "feature_mae": np.mean(np.abs(pred - conf)),
                     "confirmed_gain": conf_gain, "implied_gain": cap * conf_gain, "observed_gain": obs})
     return pd.DataFrame(out)
+
+
+def _clustered_t(d: np.ndarray, g: np.ndarray) -> float:
+    ids, inv = np.unique(g, return_inverse=True)
+    G = len(ids)
+    sums, sizes = np.bincount(inv, d, G), np.bincount(inv, minlength=G)
+    resid = sums - sizes * d.mean()
+    se = np.sqrt(G / (G - 1) * (resid ** 2).sum()) / len(d)
+    return float(d.mean() / se) if se > 0 else 0.0
+
+
+def wild_cluster_p(d: np.ndarray, g: np.ndarray, reps: int = 9_999, seed: int = 0) -> float | None:
+    """Amendment A9: null-imposed wild-cluster bootstrap p-value for mean(d) = 0, Rademacher weights
+    per gameweek, studentised with the clustered SE (an additional check beside the t on G - 1 df)."""
+    d, g = np.asarray(d, float), np.asarray(g)
+    ids, inv = np.unique(g, return_inverse=True)
+    if len(ids) < 2:
+        return None
+    t0 = abs(_clustered_t(d, g))
+    rng = np.random.default_rng(seed)
+    hits = 0
+    for _ in range(reps):
+        v = rng.choice([-1.0, 1.0], size=len(ids))[inv]
+        hits += abs(_clustered_t(d * v, g)) >= t0 - 1e-12   # null imposed: the mean is 0, so d itself is the residual
+    return float((1 + hits) / (1 + reps))
 
 
 def fit_alpha(scores: pd.DataFrame, through_gameweek: int, known_before: pd.Timestamp | None = None) -> float:
@@ -645,20 +671,30 @@ def alpha_report(scores: pd.DataFrame, through_gameweek: int = 19, known_before:
         fit = fit[pd.to_datetime(fit["kickoff_utc"], utc=True) + RESULT_LAG <= known_before]
     col = {"H": "p_home", "D": "p_draw", "A": "p_away"}
 
-    def probs(df):
-        w = df[df["candidate"].isin(["p0", "pE"])].pivot_table(index=["fpl_fixture", "result"], columns="candidate",
+    def probs(df, with_gw=False):
+        w = df[df["candidate"].isin(["p0", "pE"])].pivot_table(index=["fpl_fixture", "result", "gameweek"], columns="candidate",
                                                                 values=["p_home", "p_draw", "p_away"]).dropna()
         y = w.index.get_level_values("result")
-        return (np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)]),
-                np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)]))
+        p = (np.array([w.loc[i, (col[r], "p0")] for i, r in zip(w.index, y)]),
+             np.array([w.loc[i, (col[r], "pE")] for i, r in zip(w.index, y)]))
+        return (*p, w.index.get_level_values("gameweek").to_numpy()) if with_gw else p
 
     out = {"alpha": a}
-    p0, pe = probs(fit[fit["gameweek"] <= through_gameweek])
+    p0, pe, gws = probs(fit[fit["gameweek"] <= through_gameweek], with_gw=True)
     if len(p0) >= ALPHA_MIN_FIXTURES:
         grid = np.linspace(0, 1, 101)
-        tot = np.array([-np.log((1 - g) * p0 + g * pe).sum() for g in grid])
+        ll = -np.log((1 - grid[:, None]) * p0[None, :] + grid[:, None] * pe[None, :])   # grid x fixtures
+        tot = ll.sum(1)
         ok = grid[tot <= tot.min() + 1.92]
-        out.update({"n_fit": int(len(p0)), "interval": [float(ok.min()), float(ok.max())]})
+        # A9: the likelihood interval is model-based (it treats fixtures as independent); beside it, a
+        # descriptive interval from resampling the fitting gameweeks and refitting alpha
+        ids, inv = np.unique(gws, return_inverse=True)
+        per_gw = np.stack([ll[:, inv == k].sum(1) for k in range(len(ids))], axis=1)   # grid x gameweeks
+        rng = np.random.default_rng(0)
+        boot = [grid[per_gw[:, rng.integers(0, len(ids), len(ids))].sum(1).argmin()] for _ in range(2000)]
+        out.update({"n_fit": int(len(p0)), "interval": [float(ok.min()), float(ok.max())],
+                    "interval_model_based": [float(ok.min()), float(ok.max())],
+                    "interval_gameweek_bootstrap": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]})
     lo, hi = eval_gameweeks
     e0, ee = probs(s[(s["gameweek"] >= lo) & (s["gameweek"] <= hi)])
     if len(e0):

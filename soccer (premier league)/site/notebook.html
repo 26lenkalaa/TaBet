@@ -657,7 +657,8 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
       <ul>
         <li><strong>The first try overfitted.</strong> It memorised quirks of the matches it was trained on, and did worst when it had the fewest matches to learn from. An outside reviewer spotted that the training setup was part of the problem.</li>
         <li><strong>Early stopping fixed most of it.</strong> It closed about 80–90% of the gap, but the network still isn't better than the straight line.</li>
-        <li><strong>What's next.</strong> A network should shine with much more data. Once we've collected a few thousand matches from other leagues (see below), we'll rerun this fairly, with early stopping built in.</li>
+        <li><strong>How much data is enough?</strong> We trained both on 17 other leagues (shots and goals, no xG), from 2,000 up to about 36,000 matches. The network was clearly worse at 2,000, roughly level from 5,000 to 20,000, and only edged ahead (by 0.0004) at about 36,000.</li>
+        <li><strong>What's next.</strong> More data alone isn't enough: those inputs carry little extra information, so neither model has much to learn. A network is worth it only with tens of thousands of matches <em>and</em> richer inputs such as xG and lineups. For now, better inputs matter more than a bigger model.</li>
       </ul>
     </div>
   </section>
