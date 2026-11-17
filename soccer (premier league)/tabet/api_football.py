@@ -55,9 +55,12 @@ LEAGUES = [
     (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
     (40, "Championship"), (39, "Premier League"),
 ]
-# API seasons are the starting year (2024 = 2024-25). The free plan allows 2022-2024 only (probe of
-# 2026-11-16), so nothing else is requested: each refused season would waste a call per league.
-SEASONS = [2024, 2023, 2022]
+# API seasons are the starting year (2024 = 2024-25). Coverage check of 2026-11-17 (Pro plan): every
+# league has lineups and team and player statistics from 2015 (Belgium and Scotland: player
+# statistics from 2020); team expected goals start in 2022 (samples of 2015-2021 had none). The
+# season in progress (2026) is not collected: E0 2026-27 is the live test. On the free plan (2022-2024
+# only) the other seasons' lists are refused once each and remembered as blocked.
+SEASONS = list(range(2025, 2014, -1))
 
 
 class PlanLimit(Exception):
