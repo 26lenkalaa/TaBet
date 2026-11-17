@@ -72,6 +72,8 @@ def test_side_rows_are_complete_pairs_with_every_input(rows):
 
 
 def test_every_model_runs_and_choice_drives_the_test_specs(rows, monkeypatch):
+    pytest.importorskip("sklearn")   # optional ML dependencies (requirements-ml.txt); CI does not install them
+    pytest.importorskip("torch")
     monkeypatch.setattr(nlx, "MIN_STAGE2", 100)
     monkeypatch.setattr(nlx, "L2S", (1.0, 10.0))
     monkeypatch.setattr(nlx, "GBM_GRID", [(2, 50)])
@@ -91,6 +93,7 @@ def test_every_model_runs_and_choice_drives_the_test_specs(rows, monkeypatch):
 def test_nn_fallback_switch():
     """The most recent 15% reverse the pattern the network learns, so it never beats Dixon-Coles on them:
     with the fallback it returns no adjustment; with fallback=False (NLX) it keeps its adjustment."""
+    pytest.importorskip("torch")
     from tabet.neural import NNParams, _fit_predict
     rng = np.random.default_rng(0)
     n = 2000
