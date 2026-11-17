@@ -31,6 +31,9 @@ on:
       season:
         description: "xgcheck only: season, starting year"
         default: "2022"
+      ids:
+        description: "coverage only: comma-separated league ids (default: the collector's list)"
+        default: ""
 
 permissions:
   contents: read
@@ -54,6 +57,7 @@ jobs:
       BUDGET: ${{ inputs.budget || '2000' }}
       LEAGUE: ${{ inputs.league || '39' }}
       SEASON: ${{ inputs.season || '2022' }}
+      IDS: ${{ inputs.ids || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -63,5 +67,5 @@ jobs:
       - name: Run
         run: |
           set -o pipefail   # a crash must fail the run, even through tee
-          python -m tabet.api_football "$MODE" --budget "$BUDGET" --league "$LEAGUE" --season "$SEASON" | tee result.json
+          python -m tabet.api_football "$MODE" --budget "$BUDGET" --league "$LEAGUE" --season "$SEASON" --ids "$IDS" | tee result.json
           { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

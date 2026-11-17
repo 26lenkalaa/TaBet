@@ -58,3 +58,60 @@ N1,2022-23,2024-25,DXI,test,spent,1,PREREGISTRATION addendum DXI,defensive-XI bl
 P1,2022-23,2024-25,DXI,test,spent,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once on 2026-11-17 (not confirmed)
 B1,2022-23,2024-25,DXI,test,spent,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once on 2026-11-17 (not confirmed)
 SC0,2022-23,2024-25,DXI,test,spent,1,PREREGISTRATION addendum DXI,defensive-XI block: scored once on 2026-11-17 (not confirmed)
+SP1,2015-16,2018-19,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+I1,2015-16,2018-19,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+D1,2015-16,2018-19,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+F1,2015-16,2018-19,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+SP1,2019-20,2024-25,NLX,development,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: model settings only
+I1,2019-20,2024-25,NLX,development,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: model settings only
+D1,2019-20,2024-25,NLX,development,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: model settings only
+F1,2019-20,2024-25,NLX,development,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: model settings only
+N1,2015-16,2019-20,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+P1,2015-16,2019-20,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+B1,2015-16,2019-20,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+SC0,2015-16,2019-20,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+N1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+P1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+B1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+SC0,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
+N1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+P1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+B1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SC0,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+N1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+P1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+B1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SC0,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SP1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+I1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+D1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+F1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SP1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+I1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+D1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+F1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+N1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+P1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+B1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SC0,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+N1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+P1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+B1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SC0,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+N1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+P1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+B1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+SC0,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+N1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+P1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+B1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+SC0,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+AUT,2015-16,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+SWZ,2015-16,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+DNK,2015-16,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+G1,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+T1,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+I2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+D2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+F2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
+SP2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four

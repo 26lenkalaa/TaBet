@@ -54,6 +54,17 @@ LEAGUES = [
     # addendum DXI's test leagues come before the Championship, which that test does not use
     (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
     (40, "Championship"), (39, "Premier League"),
+    # Rest, congestion and XI fatigue (eighth review): European and domestic cup fixtures with player
+    # minutes for the clubs above. Ids checked against the API's own names on 2026-11-17.
+    (2, "Champions League"), (3, "Europa League"), (848, "Conference League"),
+    (45, "FA Cup"), (48, "League Cup"), (143, "Copa del Rey"), (137, "Coppa Italia"), (81, "DFB Pokal"),
+    (66, "Coupe de France"), (90, "KNVB Beker"), (96, "Taca de Portugal"), (147, "Belgian Cup"),
+    (181, "Scottish FA Cup"), (185, "Scottish League Cup"),
+    # Sealed holdout (docs/PREREGISTRATION.md, ledger note of 2026-11-17): collected, never looked at
+    # outside a pre-registered test.
+    (218, "Austrian Bundesliga"), (207, "Swiss Super League"), (119, "Danish Superliga"),
+    (197, "Greek Super League"), (203, "Super Lig"), (136, "Serie B"), (79, "2. Bundesliga"),
+    (62, "Ligue 2"), (141, "Segunda Division"),
 ]
 # API seasons are the starting year (2024 = 2024-25). Coverage check of 2026-11-17 (Pro plan): every
 # league has lineups and team and player statistics from 2015 (Belgium and Scotland: player
@@ -383,6 +394,8 @@ def coverage(client: Client, leagues=LEAGUES) -> dict:
            "requests_today": (s.get("requests") or {}) if isinstance(s, dict) else {}, "leagues": {}}
     for league, name in leagues:
         lg = client.get("leagues", id=league)["response"]
+        if lg:   # the API's own name and country, so a wrong id is visible
+            name = f'{lg[0]["league"]["name"]} ({(lg[0].get("country") or {}).get("name")})'
         out["leagues"][f"{league} {name}"] = {
             x["year"]: "".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
                                if x["coverage"]["fixtures"].get(k)) or "-"
@@ -397,6 +410,7 @@ def main(argv=None) -> int:
     ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage"])
     ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
     ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
+    ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
     ap.add_argument("--budget", type=int, default=50)
     ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
@@ -413,7 +427,10 @@ def main(argv=None) -> int:
     if a.mode == "xgcheck":
         result = xgcheck(client, a.league, a.season)
     else:
-        result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
+        if a.mode == "coverage" and a.ids:
+            result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
+        else:
+            result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 
