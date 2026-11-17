@@ -135,3 +135,42 @@ def test_xgcheck_uses_two_calls_and_reports_expected_goals():
     out = af.xgcheck(client(store, api), league=39, season=2022)
     assert out["requests_used"] == 2 and store.list_path(39, 2022)
     assert out["has_expected_goals"] is False and out["team_stat_names"] == ["Shots on Goal"]
+
+
+def test_a_paid_plan_is_detected_batches_and_retries_blocked_seasons():
+    store = af.MemoryStore()
+    af.fetch(client(store, FakeAPI(n_fixtures=45, allowed=(2023,))), LEAGUES, seasons=[2024, 2023])
+    assert (39, 2024) in store.blocked()                          # refused on the free plan
+    api = FakeAPI(n_fixtures=45, allowed=(2023, 2024), free=False, limit=7500)
+    s = af.fetch(client(store, api), LEAGUES, seasons=[2024, 2023])   # no --batch flag needed
+    assert s["plan"] == "paid" and s["unblocked"] == ["39-2024"] and (39, 2024) not in store.blocked()
+    assert store.list_path(39, 2024) and s["new_fixtures"] == 0     # the fake reuses 2023's ids, already stored
+
+
+def test_a_paid_plan_batches_without_the_flag():
+    api = FakeAPI(n_fixtures=45, free=False, limit=7500)
+    s = af.fetch(client(af.MemoryStore(), api), LEAGUES, seasons=[2023])
+    assert not [q for e, q in api.calls if "id" in q]               # never one match a request
+    assert len([q for e, q in api.calls if "ids" in q]) == 3 and s["new_fixtures"] == 43
+
+
+def test_a_season_still_refused_on_a_paid_plan_stays_blocked():
+    store = af.MemoryStore()
+    store.block(39, 2010, "refused")
+    api = FakeAPI(n_fixtures=45, allowed=(2023,), free=False, limit=7500)
+    s = af.fetch(client(store, api), LEAGUES, seasons=[2010])
+    assert (39, 2010) in store.blocked() and s["unblocked"] == []
+
+
+def test_free_plan_keeps_one_match_a_request_and_skips_blocked():
+    store = af.MemoryStore()
+    store.block(39, 2024, "refused")
+    api = FakeAPI(n_fixtures=45, allowed=(2023, 2024))
+    af.fetch(client(store, api), LEAGUES, seasons=[2024])
+    assert [e for e, q in api.calls] == ["status"]
+
+
+def test_coverage_reports_flags_per_season():
+    api = FakeAPI(free=False, limit=7500)
+    out = af.coverage(client(af.MemoryStore(), api), LEAGUES)
+    assert out["leagues"]["39 Premier League"] == {2023: "LTP"} and out["requests_used"] == 2

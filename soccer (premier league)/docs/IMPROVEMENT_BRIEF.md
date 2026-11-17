@@ -1078,6 +1078,42 @@ seasons untouched.
 - **Ledger:** the big four's 2005-21 seasons are now **spent** for family G.
 - **Code:** `prototypes/run_g_boosted_stage2.py`, `results/g_boosted/`.
 
+### 5.31 Defensive-XI block (pre-registered as addendum DXI): not confirmed
+
+The seventh review's experiment 2. Pre-registered (`266d9df`) before any player data for it was
+looked at; run with `prototypes/run_dxi.py` on API-Football data stored in Supabase (Pro plan).
+
+**Design**
+- **Data:** per-player match stats and starting lineups. Development on La Liga, Serie A, Bundesliga
+  and Ligue 1 2022-25; test on the Eredivisie, Primeira Liga, Belgian Pro League and Scottish
+  Premiership 2022-25, untouched until this run.
+- **Run condition:** met. 97-100% of each test league-season's finished matches had player stats.
+  Field check: duels are two-sided (team duels correlate 0.87 with the opponent's; won share 0.505),
+  no won > total rows, possession missing in 0.3% of team rows. API-Football's duels mix ground and
+  aerial contests.
+- **Models:** Dixon-Coles per league; BASE adds the scoring side's attacking-XI block; DEF adds the
+  opponent's ball-winning and duel blocks. Pooled penalised Poisson stage 2, monthly refits.
+- **Development (3,190 matches):** DC 0.99695, BASE 0.99560, best DEF 0.99570. Frozen: k_att 300,
+  BASE L2 10, k_def 2700, a 20, DEF L2 1.
+
+| Test (2,624 matches), equal-weight mean of the four leagues | Mean | 95% block CI | Rule |
+|---|---|---|---|
+| **DEF − BASE** | **−0.0003** | [−0.0014, +0.0007] | needed ≤ −0.001 and upper bound < 0 ✗ |
+| BASE − DC (secondary) | −0.0010 | [−0.0030, +0.0011] | |
+| ball-winning alone − BASE | −0.0005 | [−0.0013, +0.0003] | |
+| duels alone − BASE | +0.0000 | [−0.0009, +0.0009] | |
+
+**Not confirmed.**
+- **The defensive block adds little, if anything.** The point estimate is in the right direction,
+  but a third of the pre-set threshold, and the interval includes zero. Whatever it adds comes from
+  ball-winning; the duel rate adds nothing.
+- **Secondaries (descriptive):** by league B1 −0.0007, N1 −0.0004, SC0 −0.0005, P1 +0.0003; by
+  season 2022-23 −0.0022, 2023-24 +0.0004, 2024-25 −0.0005; early season +0.0006.
+- **Consequence:** the defensive block is not a candidate for the Premier League XI model. The
+  attacking-XI block's gain over DC (about 0.001 on both development and test) is the more promising
+  thread, but it was not a primary here.
+- **Ledger:** DXI's rows are now spent; the test leagues' 2022-25 seasons may be used for development.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
