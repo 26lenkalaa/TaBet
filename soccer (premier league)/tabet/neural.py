@@ -41,6 +41,9 @@ class NNParams:
     # train up to `epochs`, and keep the weights with the best held-out loss (checked every 10 epochs).
     early_stop: bool = False
     val_frac: float = 0.15
+    # with early stopping, use no adjustment (Dixon-Coles) when the network never beats it on the
+    # held-out rows. Addendum NLX switches this off so no model has a safety valve the others lack.
+    fallback: bool = True
 
 
 def _fit_predict(Xtr: np.ndarray, off: np.ndarray, y: np.ndarray, Xte: np.ndarray, p: NNParams) -> np.ndarray:
@@ -87,7 +90,7 @@ def _fit_predict(Xtr: np.ndarray, off: np.ndarray, y: np.ndarray, Xte: np.ndarra
                 net.load_state_dict(best_state), None
                 vl = best
             dc_only = float((torch.exp(ov) - yv * ov).mean())
-            if dc_only <= vl:   # the network never beat Dixon-Coles on held-out matches: use no adjustment
+            if p.fallback and dc_only <= vl:   # the network never beat Dixon-Coles on held-out matches: use no adjustment
                 outs.append(np.zeros(len(Xte)))
                 continue
         with torch.no_grad():
