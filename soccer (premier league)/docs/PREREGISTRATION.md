@@ -521,3 +521,17 @@ What this means, enforced by `tabet.ledger.claim`:
 - Up to three pre-registered families may score a test on them (SEALED itself takes the fourth
   place in the quota). Each must register its own test rows first.
 - They are expected to transfer to the Premier League less well than the leagues already used.
+
+## Amendment to NLX and XIA (2026-11-17, before any model was fitted or any test result seen): Belgian 2020-21 excluded
+
+The test phase's run condition stopped the first test run before any model was fitted: Belgian Pro
+League 2020-21 had player statistics for 88 of 332 finished matches (27%; every other test
+league-season 97-100%). All 332 matches' details were fetched. API-Football has no player statistics
+for that season before February 2021 (0 of 225 matches from August 2020 to January 2021; 88 of 107
+from February to May 2021), so the gap is the provider's and re-fetching cannot close it.
+
+- **Change:** B1 2020-21 is removed from both families' test cells and becomes **training** for both
+  (history for B1 2021-22's ratings and Dixon-Coles fits, and earlier stage-2 rows); it is never
+  scored. Belgium is still one of the four equally weighted test leagues, scored on 2021-22 and
+  2025-26.
+- **Basis:** only the completeness check, which reads no results. Nothing else changes.
