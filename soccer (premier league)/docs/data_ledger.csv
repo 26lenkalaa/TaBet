@@ -76,7 +76,8 @@ B1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinea
 SC0,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
 N1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
 P1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-B1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+B1,2020-21,2020-21,NLX,training,reserved,1,PREREGISTRATION addendum NLX amendment,excluded from the test (provider gap: 27% player stats); history only; never scored
+B1,2021-22,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
 SC0,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
 N1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
 P1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
@@ -100,7 +101,8 @@ B1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attackin
 SC0,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
 N1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
 P1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
-B1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+B1,2020-21,2020-21,XIA,training,reserved,1,PREREGISTRATION addendum XIA amendment,excluded from the test (provider gap: 27% player stats); history only; never scored
+B1,2021-22,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
 SC0,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
 N1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
 P1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)

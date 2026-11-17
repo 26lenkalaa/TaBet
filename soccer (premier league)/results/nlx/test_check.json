@@ -1,0 +1,62 @@
+{
+  "N1 2020-21": {
+    "finished": 314,
+    "with_player_stats": 314,
+    "share": 1.0
+  },
+  "N1 2021-22": {
+    "finished": 322,
+    "with_player_stats": 322,
+    "share": 1.0
+  },
+  "N1 2025-26": {
+    "finished": 308,
+    "with_player_stats": 308,
+    "share": 1.0
+  },
+  "P1 2020-21": {
+    "finished": 308,
+    "with_player_stats": 308,
+    "share": 1.0
+  },
+  "P1 2021-22": {
+    "finished": 308,
+    "with_player_stats": 308,
+    "share": 1.0
+  },
+  "P1 2025-26": {
+    "finished": 308,
+    "with_player_stats": 308,
+    "share": 1.0
+  },
+  "B1 2020-21": {
+    "finished": 332,
+    "with_player_stats": 88,
+    "share": 0.2651
+  },
+  "B1 2021-22": {
+    "finished": 332,
+    "with_player_stats": 329,
+    "share": 0.991
+  },
+  "B1 2025-26": {
+    "finished": 319,
+    "with_player_stats": 319,
+    "share": 1.0
+  },
+  "SC0 2020-21": {
+    "finished": 234,
+    "with_player_stats": 228,
+    "share": 0.9744
+  },
+  "SC0 2021-22": {
+    "finished": 233,
+    "with_player_stats": 228,
+    "share": 0.9785
+  },
+  "SC0 2025-26": {
+    "finished": 234,
+    "with_player_stats": 228,
+    "share": 0.9744
+  }
+}

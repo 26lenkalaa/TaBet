@@ -47,6 +47,9 @@ BIG4_SEASONS = list(range(2015, 2025))           # 2015-16 .. 2024-25
 TEST4_SEASONS = list(range(2015, 2026))          # 2015-16 .. 2025-26
 DEV_SEASONS = [D.season_label(y) for y in range(2019, 2025)]
 TEST_SEASONS = ["2020-21", "2021-22", "2025-26"]
+# Amendment of 2026-11-17 (before any model was fitted): B1 2020-21 failed the run condition (provider
+# gap, 27% with player stats), so it is training history only, never scored.
+EXCLUDED = {("B1", "2020-21")}
 K_ATT, K_DEF, A_DUEL = 300, 2700, 20             # DXI's frozen development choices
 HALF_LIFE, MIN_PREV_SOT = 120.0, 5               # addendum G
 MIN_PREV_XI, MIN_STAGE2, MIN_COMPLETE = 5, 500, 0.95
@@ -330,6 +333,7 @@ FEATS_X = FEATS + PRODUCTS
 def walk_forward(rows: pd.DataFrame, eval_divs, eval_seasons, specs: dict) -> tuple[pd.DataFrame, list]:
     """Monthly refits on all earlier rows. specs: name -> (kind, feats, setting). Wide per-match table."""
     sel = rows[rows["div"].isin(eval_divs) & rows["season"].isin(eval_seasons)]
+    sel = sel[[(d, s) not in EXCLUDED for d, s in zip(sel["div"], sel["season"])]]
     month = sel["date"].dt.tz_localize(None).dt.to_period("M")
     out, rounds = [], []
     for mth in sorted(month.unique()):
@@ -391,7 +395,8 @@ def _claim(include_test: bool):
             for code in TEST4.values():
                 ledger.claim(fam, code, ledger.season_range("2015-16", "2019-20"), "training")
                 ledger.claim(fam, code, ledger.season_range("2022-23", "2024-25"), "training")
-                ledger.claim(fam, code, TEST_SEASONS, "test")
+                ledger.claim(fam, code, [s for s in TEST_SEASONS if (code, s) not in EXCLUDED], "test")
+                ledger.claim(fam, code, [s for s in TEST_SEASONS if (code, s) in EXCLUDED], "training")
 
 
 def _rows(leagues, tag):
@@ -403,7 +408,8 @@ def _rows(leagues, tag):
     except RuntimeError:
         tb = load_tables(leagues)
         if tag == "test":
-            comp = completeness(tb, TEST4, TEST_SEASONS)
+            comp = {k: v for k, v in completeness(tb, TEST4, TEST_SEASONS).items()
+                    if tuple(k.split(" ")) not in EXCLUDED}
             short = {k: v for k, v in comp.items() if v["share"] < MIN_COMPLETE}
             OUT.mkdir(parents=True, exist_ok=True)
             (OUT / "test_check.json").write_text(json.dumps(comp, indent=2))
