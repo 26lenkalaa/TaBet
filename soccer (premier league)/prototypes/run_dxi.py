@@ -35,6 +35,7 @@ import io
 import json
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -121,23 +122,35 @@ def load_tables(leagues: dict[int, str]) -> dict[str, pd.DataFrame]:
             blob = _build_league(store, league)
             buf = io.BytesIO()
             blob.to_parquet(buf, index=False)
-            ss.put(BUCKET, path, buf.getvalue())
+            _retry(ss.put, BUCKET, path, buf.getvalue())
+            print(f"league {league}: parsed and cached", flush=True)
         for k in parts:
             parts[k].append(blob[blob["_table"] == k].dropna(axis=1, how="all").drop(columns="_table"))
     return {k: pd.concat(v, ignore_index=True) for k, v in parts.items()}
 
 
+def _retry(fn, *args, tries: int = 8, **kw):
+    """Supabase answers 429 (too many connections) under load: back off and try again."""
+    for i in range(tries):
+        try:
+            return fn(*args, **kw)
+        except RuntimeError as e:
+            if "429" not in str(e) or i == tries - 1:
+                raise
+            time.sleep(min(2 ** i, 30))
+
+
 def _build_league(store: SupabaseStore, league: int) -> pd.DataFrame:
     m, t, s = [], [], []
     for season in API_SEASONS:
-        lp = store.list_path(league, season)
+        lp = _retry(store.list_path, league, season)
         if lp is None:
             raise RuntimeError(f"no fixture list stored for league {league} season {season}")
-        listing = store.get(lp)["response"]
-        rows = store._rows("apif_fixtures", "fixture_id,object_path", league=f"eq.{league}", season=f"eq.{season}")
+        listing = _retry(store.get, lp)["response"]
+        rows = _retry(store._rows, "apif_fixtures", "fixture_id,object_path", league=f"eq.{league}", season=f"eq.{season}")
         paths = sorted({r["object_path"] for r in rows})
-        with ThreadPoolExecutor(8) as ex:
-            bodies = list(ex.map(store.get, paths))
+        with ThreadPoolExecutor(2) as ex:
+            bodies = list(ex.map(lambda p: _retry(store.get, p), paths))
         details = {f["fixture"]["id"]: f for b in bodies for f in b.get("response", [])}
         for f in listing:
             d = details.get(f["fixture"]["id"])
