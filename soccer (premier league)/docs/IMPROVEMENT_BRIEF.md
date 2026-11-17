@@ -11,7 +11,10 @@
 >   **not confirmed** (DEF − BASE −0.0003, 95% CI [−0.0014, +0.0007]) on four untouched leagues
 >   (§5.31). The attacking-XI block beat Dixon-Coles by about 0.001 on both development and test
 >   (secondary only).
-> - **Pre-registered, not yet run: NLX and XIA** (§5.32). A retry of boosting and the neural network
+> - **NLX and XIA, scored once (§5.33):** the nonlinear stage 2 is **closed** (NN − LIN +0.0002,
+>   95% CI [−0.0025, +0.0029]); the attacking-XI block is **not confirmed** (−0.0007 [−0.0024,
+>   +0.0010]), though its gain sits in high-deviation matches as in the Premier League.
+> - **Pre-registered as below (§5.32), now run:** NLX and XIA. A retry of boosting and the neural network
 >   with player-level XI inputs, and the attacking-XI block as its own primary, on the last
 >   untouched cells in the ledger. Revised after the eighth review (one primary, no fallbacks, league
 >   indicators, LIN-X, a closed/inconclusive stop rule). **Please review the revised design (§8,
@@ -1180,6 +1183,46 @@ matches (§5.16).
   player minutes is found.
 - The reviewer's broader point, recorded: nearly every experiment since §5.20 landed within ±0.001
   of its comparator; the prospective log may be the most informative thing running.
+
+### 5.33 NLX and XIA scored once: nonlinear line closed; attacking-XI block not confirmed
+
+Run 2026-11-17 with `prototypes/run_nlx.py`, as frozen in §5.32, plus one amendment made before any
+model was fitted: the run condition failed for Belgian 2020-21 (player stats for 88 of 332 matches,
+an API-Football gap before February 2021), so that season became history only and Belgium was
+scored on 2021-22 and 2025-26 (`docs/PREREGISTRATION.md`, amendment to NLX and XIA).
+
+**Development** (big four 2019-25, 8,314 matches): LIN without XI 0.99100, LIN 0.99116, NN 0.99261,
+GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
+
+| Test (3,109 matches; N1, P1, B1, SC0), equal-weight mean of the four leagues | Mean | 95% block CI | Rule |
+|---|---|---|---|
+| **NLX: NN − LIN** | **+0.0002** | [−0.0025, +0.0029] | lower bound > −0.003 → **closed** |
+| **XIA: LIN − LIN without XI** | **−0.0007** | [−0.0024, +0.0010] | needed ≤ −0.001 and upper bound < 0 ✗ |
+| GBM − LIN (secondary) | −0.0012 | [−0.0040, +0.0014] | |
+| LIN-X − LIN (secondary) | −0.0001 | [−0.0004, +0.0001] | |
+| LIN − DC | −0.0046 | [−0.0089, −0.0005] | |
+| GBM − DC | −0.0058 | [−0.0091, −0.0027] | |
+| NN − DC | −0.0044 | [−0.0084, −0.0007] | |
+
+**Readings**
+- **NLX: closed.** The network matches the linear stage 2 and a gain larger than 0.003 is ruled
+  out. By the pre-registered rule the nonlinear stage-2 line is closed until a new kind of input
+  exists (for example player xG). Boosting did better on the test (−0.0012) than the network, but
+  development chose the network, the interval includes 0, and a secondary cannot rescue the primary.
+  The interaction products add nothing to LIN (−0.0001), so there was little interaction structure
+  for a nonlinear model to find.
+- **XIA: not confirmed.** The XI block's point estimate is in the expected direction (−0.0007) but
+  below the threshold, with an interval including 0. On development it was slightly negative
+  (+0.0002 the wrong way). Its main secondary matches the Premier League pattern (§5.16): the gain
+  is concentrated in high-deviation matches (−0.0023, n = 1,019) and absent in low and mid bands
+  (−0.0004, +0.0002). That is descriptive, not a confirmation.
+- **Every stage 2 beats Dixon-Coles** by 0.004-0.006 on fresh leagues, again mostly from the form
+  features.
+- **Secondaries (descriptive):** NLX by league B1 +0.0036, N1 −0.0004, P1 −0.0012, SC0 −0.0013; by
+  season 2020-21 −0.0047, 2021-22 +0.0049, 2025-26 −0.0018; excluding 2020-21 +0.0015. XIA by league
+  B1 −0.0022, N1 −0.0028, P1 +0.0011, SC0 +0.0012.
+- **Ledger:** both families' rows are spent. No untouched cross-league cells remain except the
+  sealed holdout.
 
 ## 6. Known weaknesses and open questions
 
