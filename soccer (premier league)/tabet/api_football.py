@@ -383,6 +383,8 @@ def coverage(client: Client, leagues=LEAGUES) -> dict:
            "requests_today": (s.get("requests") or {}) if isinstance(s, dict) else {}, "leagues": {}}
     for league, name in leagues:
         lg = client.get("leagues", id=league)["response"]
+        if lg:   # the API's own name and country, so a wrong id is visible
+            name = f'{lg[0]["league"]["name"]} ({(lg[0].get("country") or {}).get("name")})'
         out["leagues"][f"{league} {name}"] = {
             x["year"]: "".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
                                if x["coverage"]["fixtures"].get(k)) or "-"
@@ -397,6 +399,7 @@ def main(argv=None) -> int:
     ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage"])
     ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
     ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
+    ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
     ap.add_argument("--budget", type=int, default=50)
     ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
@@ -413,7 +416,10 @@ def main(argv=None) -> int:
     if a.mode == "xgcheck":
         result = xgcheck(client, a.league, a.season)
     else:
-        result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
+        if a.mode == "coverage" and a.ids:
+            result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
+        else:
+            result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 

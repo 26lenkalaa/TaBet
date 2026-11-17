@@ -74,11 +74,35 @@ N1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinea
 P1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
 B1,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
 SC0,2022-23,2024-25,NLX,training,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: training only
-N1,2020-21,2021-22,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-P1,2020-21,2021-22,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-B1,2020-21,2021-22,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-SC0,2020-21,2021-22,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-N1,2025-26,2025-26,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-P1,2025-26,2025-26,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-B1,2025-26,2025-26,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
-SC0,2025-26,2025-26,NLX,test,reserved,1,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+N1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+P1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+B1,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SC0,2020-21,2021-22,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+N1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+P1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+B1,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SC0,2025-26,2025-26,NLX,test,reserved,2,PREREGISTRATION addendum NLX,nonlinear stage 2: scored once
+SP1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+I1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+D1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+F1,2015-16,2018-19,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SP1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+I1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+D1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+F1,2019-20,2024-25,XIA,development,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: settings only
+N1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+P1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+B1,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SC0,2015-16,2019-20,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+N1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+P1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+B1,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+SC0,2022-23,2024-25,XIA,training,reserved,1,PREREGISTRATION addendum XIA,attacking-XI block: training only
+N1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+P1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+B1,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+SC0,2020-21,2021-22,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+N1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+P1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+B1,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)
+SC0,2025-26,2025-26,XIA,test,reserved,2,PREREGISTRATION addendum XIA,attacking-XI block: scored once (closed set shared with NLX)

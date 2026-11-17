@@ -37,7 +37,7 @@ class FakeAPI:
                  "lineups": [{"startXI": []}], "statistics": [{"statistics": [{"type": "Shots on Goal"}]}],
                  "players": [{"players": [{"statistics": [{"games": {}, "shots": {}}]}]}]}]}
         elif endpoint == "leagues":
-            body = {"errors": [], "results": 1, "response": [{"seasons": [
+            body = {"errors": [], "results": 1, "response": [{"league": {"name": "Premier League"}, "country": {"name": "England"}, "seasons": [
                 {"year": 2023, "coverage": {"fixtures": {"lineups": True, "statistics_fixtures": True, "statistics_players": True}}}]}]}
         elif endpoint == "fixtures" and "ids" in q:
             ids = [int(x) for x in q["ids"].split("-")]
@@ -173,4 +173,4 @@ def test_free_plan_keeps_one_match_a_request_and_skips_blocked():
 def test_coverage_reports_flags_per_season():
     api = FakeAPI(free=False, limit=7500)
     out = af.coverage(client(af.MemoryStore(), api), LEAGUES)
-    assert out["leagues"]["39 Premier League"] == {2023: "LTP"} and out["requests_used"] == 2
+    assert out["leagues"]["39 Premier League (England)"] == {2023: "LTP"} and out["requests_used"] == 2
