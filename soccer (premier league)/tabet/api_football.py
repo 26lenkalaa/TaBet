@@ -12,13 +12,15 @@ repository secrets, and everything collected goes straight to the backend:
 Nothing is written to git or to anyone's laptop.
 
     python -m tabet.api_football probe                # plan, allowed seasons, one sample match (5 calls)
+    python -m tabet.api_football coverage             # plan + what each league offers by season (1 + 10 calls)
     python -m tabet.api_football fetch --budget 50
 
-Budget (kept deliberately modest): the free plan allows 100 requests a day and about 10 a minute.
-A run uses at most `--budget` requests (default 50, counting the /status check), never goes within
-`RESERVE` of the daily limit, and waits 6.5 s between calls. Each match's details (events, lineups,
-team statistics, player statistics) come from /fixtures?id=..., one match a request: the free plan
-refuses the 20-a-request ids parameter (`--batch` turns it on for a paid plan).
+Budget: a run uses at most `--budget` requests (counting the /status check) and never goes within
+`RESERVE` of the daily limit. fetch reads the plan from /status:
+  * free plan (100 a day, about 10 a minute): one match a request (/fixtures?id=), 6.5 s apart;
+  * paid plan (daily limit above 100): 20 matches a request (/fixtures?ids=), PAID_PAUSE_S apart, and
+    seasons the free plan refused are tried again (and unblocked if now allowed).
+When a paid month ends the limit drops back to 100 and fetch returns to the free settings by itself.
 Everything is resumable: a fixture already stored is never requested again.
 """
 from __future__ import annotations
@@ -37,6 +39,8 @@ import urllib.request
 BASE = "https://v3.football.api-sports.io"
 RESERVE = 10            # requests left untouched each day
 PAUSE_S = 6.5           # about 9 requests a minute, under the free plan's per-minute limit
+PAID_PAUSE_S = 0.4      # paid plans allow 300 requests a minute; this stays well under it
+FREE_LIMIT = 100        # a daily limit above this means a paid plan
 BATCH = 20              # /fixtures?ids= accepts up to 20 ids
 FINISHED = {"FT", "AET", "PEN"}
 REFUSED = ("odds", "predictions")   # benchmark data must never become training data
@@ -110,6 +114,9 @@ class MemoryStore:
     def block(self, league, season, reason):
         self.blocked_[(league, season)] = reason
 
+    def unblock(self, league, season):
+        self.blocked_.pop((league, season), None)
+
     def log(self, row):
         self.requests.append(row)
 
@@ -173,6 +180,9 @@ class SupabaseStore:
 
     def block(self, league, season, reason):
         self._insert("apif_blocked", [{"league": league, "season": season, "reason": reason[:500]}], upsert=True)
+
+    def unblock(self, league, season):
+        self._req("DELETE", f"/rest/v1/apif_blocked?league=eq.{int(league)}&season=eq.{int(season)}")
 
     def log(self, row):
         self._insert("apif_requests", [row])
@@ -311,12 +321,17 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     store = client.store
     used, limit = quota(client)
     client.budget = min(client.budget, max(0, limit - RESERVE - used) + client.used)
+    paid = limit > FREE_LIMIT
+    if paid:   # 20 matches a request, faster pace, and another try at seasons the free plan refused
+        client.batch, client.pause = True, min(client.pause, PAID_PAUSE_S)
     fetched, blocked = store.fetched_ids(), store.blocked()
-    summary = {"start_used_today": used, "limit_day": limit, "budget": client.budget, "new_fixtures": 0, "lists": 0}
+    retry = set(blocked) if paid else set()
+    summary = {"start_used_today": used, "limit_day": limit, "plan": "paid" if paid else "free",
+               "budget": client.budget, "new_fixtures": 0, "lists": 0, "unblocked": []}
     try:
         for league, _name in leagues:
             for season in seasons:
-                if (league, season) in blocked:
+                if (league, season) in blocked and (league, season) not in retry:
                     continue
                 path = store.list_path(league, season)
                 if path is None:
@@ -330,6 +345,10 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
                     store.put(path, body)
                     store.add_list(league, season, path, len(body.get("response", [])))
                     summary["lists"] += 1
+                    if (league, season) in blocked:
+                        store.unblock(league, season)
+                        blocked.discard((league, season))
+                        summary["unblocked"].append(f"{league}-{season}")
                     listing = body
                 else:
                     listing = store.get(path)
@@ -353,9 +372,28 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     return summary
 
 
+def coverage(client: Client, leagues=LEAGUES) -> dict:
+    """1 + len(leagues) calls: the plan, and per league and season what API-Football says it has
+    (lineups, team statistics, player statistics). Team xG is not a coverage flag; xgcheck samples it."""
+    s = client.get("status")["response"]
+    out = {"plan": (s.get("subscription") or {}).get("plan") if isinstance(s, dict) else None,
+           "requests_today": (s.get("requests") or {}) if isinstance(s, dict) else {}, "leagues": {}}
+    for league, name in leagues:
+        lg = client.get("leagues", id=league)["response"]
+        out["leagues"][f"{league} {name}"] = {
+            x["year"]: "".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
+                               if x["coverage"]["fixtures"].get(k)) or "-"
+            for x in (lg[0]["seasons"] if lg else [])}
+    out["key"] = "L = lineups, T = team statistics, P = player statistics"
+    out["requests_used"] = client.used
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage"])
+    ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
+    ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
     ap.add_argument("--budget", type=int, default=50)
     ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
@@ -369,7 +407,10 @@ def main(argv=None) -> int:
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
     client = Client(key, store, a.budget, batch=a.batch)
-    result = {"probe": probe, "fetch": fetch, "xgcheck": xgcheck}[a.mode](client)
+    if a.mode == "xgcheck":
+        result = xgcheck(client, a.league, a.season)
+    else:
+        result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 
