@@ -11,9 +11,13 @@
 >   **not confirmed** (DEF − BASE −0.0003, 95% CI [−0.0014, +0.0007]) on four untouched leagues
 >   (§5.31). The attacking-XI block beat Dixon-Coles by about 0.001 on both development and test
 >   (secondary only).
-> - **Pre-registered, not yet run: NLX** (§5.32). A retry of boosting and the neural network, now
->   with player-level XI inputs, on the last untouched cells in the ledger. **This is what I most
->   want reviewed (§8, item 1)**, before any code for it exists.
+> - **Pre-registered, not yet run: NLX and XIA** (§5.32). A retry of boosting and the neural network
+>   with player-level XI inputs, and the attacking-XI block as its own primary, on the last
+>   untouched cells in the ledger. Revised after the eighth review (one primary, no fallbacks, league
+>   indicators, LIN-X, a closed/inconclusive stop rule). **Please review the revised design (§8,
+>   item 1)** before any code for it exists.
+> - **A sealed holdout** (nine more leagues) and European and cup fixtures (for rest and fatigue)
+>   are being collected during the paid month (§5.32).
 >
 > Earlier in this cycle:
 > - **Two exploratory experiments, both negative (nothing adopted):**
@@ -1127,47 +1131,55 @@ looked at; run with `prototypes/run_dxi.py` on API-Football data stored in Supab
   thread, but it was not a primary here.
 - **Ledger:** DXI's rows are now spent; the test leagues' 2022-25 seasons may be used for development.
 
-### 5.32 Pre-registered, not yet run: nonlinear stage 2 with player-level inputs (addendum NLX)
+### 5.32 Pre-registered, not yet run: NLX (nonlinear stage 2 with player-level inputs) and XIA (attacking-XI block)
 
-Committed (`5dfaf46`, PR #74) before any code for it exists and before its test seasons are loaded.
-Full text: `docs/PREREGISTRATION.md`, addendum NLX.
+First committed as `5dfaf46` (PR #74), then revised the same day after the eighth review, still
+before any code for it exists and before its test seasons are loaded. Full text:
+`docs/PREREGISTRATION.md`, addenda NLX and XIA.
 
 **Why retry.** Boosting (G, §5.30) and the network (§5.26-§5.29) only reached parity with the linear
-stage 2, but on **team-level** inputs. Player-level XI inputs could carry interactions (a strong
-attack against a weak ball-winning midfield) that a linear model cannot use. Your seventh review
-asked for no more network search until 10-20k matches with the required features exist: the
-development pool here is the big four 2015-25 (about 14,000 matches with lineups and player stats,
-before burn-in), so this is the first test that meets that bar.
+stage 2 on **team-level** inputs. Player-level XI inputs could carry interactions that a linear
+model cannot use. The development pool (big four 2015-25, about 14,000 matches with lineups and
+player stats) meets the seventh review's 10-20k bar, though it is below the 30-40k at which §5.29
+found network parity. **The prior is written down as low**, especially for the network.
 
-**Design**
-- **Data:** API-Football only, eight leagues, league matches.
-  - Training only: big four 2015-19; Eredivisie, Primeira Liga, Belgian Pro League, Scottish
-    Premiership 2015-20 and 2022-25 (the latter spent as DXI's test).
-  - Development: big four 2019-20 → 2024-25. The four test leagues are not loaded at all.
-  - **Test (scored once):** Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership in
-    **2020-21, 2021-22 and 2025-26**, the last untouched cells in the ledger (about 3,000-3,500
-    matches).
-- **Inputs, identical for all models (16):** G's ten team-form features, plus DXI's XI blocks
-  (attack, ball-winning, duels) for **both** sides, with DXI's frozen shrinkage settings.
-- **Models**, all with the per-league Dixon-Coles offset, pooled, monthly refits:
-  - LIN, L2 ∈ {0.1, 1, 10, 100};
-  - GBM, exactly G's model, depth {2, 3} × minimum leaf {50, 200};
-  - NN, our early-stopping network, hidden {16, 64} × weight decay {0.001, 0.01}, 5 seeds.
-- **Primaries:** C1 = GBM − LIN, C2 = NN − LIN, each the equal-weight mean of the four test
-  leagues. Each is confirmed only if ≤ −0.001 **and** its **97.5%** (Bonferroni) 14-day-block
-  bootstrap upper bound is below 0.
-- **Stop rule:** if neither is confirmed, the nonlinear stage-2 line closes until a new kind of
-  input exists (for example player xG). More data of the same kind will not reopen it.
-- **Secondaries:** each model − DC; by league and test season; excluding 2020-21 (behind closed
-  doors); LIN without the XI inputs; early season; GBM rounds and NN fallbacks.
+**NLX design**
+- **Data:** API-Football only, eight leagues. Training only: big four 2015-19; the four smaller
+  leagues 2015-20 and 2022-25. Development: big four 2019-20 → 2024-25 (the test leagues are not
+  loaded). **Test (scored once):** Eredivisie, Primeira Liga, Belgian Pro League, Scottish
+  Premiership in **2020-21, 2021-22 and 2025-26**, the last untouched cells in the ledger.
+- **Identical inputs:** G's ten team-form features, DXI's six XI blocks for both sides (deviation
+  from the usual XI) and league indicators. Identical eligibility (at least 5 earlier matches with
+  player stats for both sides).
+- **Models:** LIN (L2 grid); GBM (G's model: offset as target y/μ with weight μ, `random_state` 0,
+  built-in early stopping off); NN (early-stopping network, 5 seeds). GBM and NN stop on the same
+  rule: the most recent 15% of each refit's training rows, chronologically. **No model falls back
+  to Dixon-Coles.**
+- **One primary: NL − LIN**, where NL is whichever of GBM and NN wins on development. Confirmed
+  only if ≤ −0.001 and the 95% block-bootstrap upper bound is below 0. The minimum detectable
+  effect is computed on development and recorded before the test (about 0.004 expected).
+- **Stop rule:** closed if not confirmed and the interval rules out gains larger than 0.003;
+  otherwise inconclusive and parked. No secondary can rescue a failed primary.
+- **Secondaries:** the other nonlinear model; each model − DC; **LIN-X** (LIN plus own attack ×
+  opponent ball-winning and × opponent duels), to tell whether a nonlinear gain is just those
+  interactions; by league and season; excluding 2020-21; early season.
 
-**Known weaknesses I'd like checked**
-- The test seasons are split (2020-22 and 2025-26), and 2020-21 was largely behind closed doors.
-- Development scores only the big four, while the test is on four smaller leagues. The DXI test
-  showed the leagues behave somewhat differently.
-- In the test phase the stage 2 trains on all eight leagues pooled; the big four dominate the rows.
-- Belgian and Scottish player stats start in 2020, so their 2020-21 early months have short XI
-  histories and many matches will be ineligible.
+**XIA (new):** the attacking-XI block as its own confirmatory primary, LIN − LIN without the XI
+inputs, on the same test cells (a closed set shared by the two families). Main secondary: tercile
+bands of XI deviation, fixed on development, since the Premier League effect sat in high-deviation
+matches (§5.16).
+
+**Eighth review, also acted on**
+- **A sealed cross-league holdout** is registered in the ledger before collection: Austria,
+  Switzerland and Denmark 2015-26; Greece, Turkey, Serie B, 2. Bundesliga, Ligue 2 and Segunda
+  2020-26. No training, development or summary statistics on it outside a pre-registered test.
+- **Rest, congestion and XI fatigue (F1, F2):** European competitions and domestic cups (with player
+  minutes for the big four and the Netherlands and Portugal; lineups only for the Belgian and
+  Scottish cups) are being collected during the paid month, so a fatigue block can be built later.
+  Live Premier League use would be limited to team-level rest unless another source of European
+  player minutes is found.
+- The reviewer's broader point, recorded: nearly every experiment since §5.20 landed within ±0.001
+  of its comparator; the prospective log may be the most informative thing running.
 
 ## 6. Known weaknesses and open questions
 
