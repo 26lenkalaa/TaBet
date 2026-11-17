@@ -377,3 +377,74 @@ experiment has used? Nothing about the live Premier League model changes.
   - BASE − DC, which shows how much the attacking block alone adds.
 - **Ledger:** family DXI. Development on SP1/I1/D1/F1 2022-25; test on N1/P1/B1/SC0 2022-25, all
   reserved in this commit. The script must call `tabet.ledger.claim` before scoring.
+
+## Addendum NLX (2026-11-17, committed before any code for it exists and before its test seasons are loaded): nonlinear stage 2 with player-level inputs
+
+The retry of the neural network (brief §5.27–§5.29) and of boosting (addendum G, §5.30). Both
+reached parity with the linear stage 2 on **team-level** inputs. The new question is whether they
+gain once **player-level XI inputs** are available, which give interactions (a strong attack against
+a weak ball-winning midfield) for a nonlinear model to find. Nothing about the live Premier League
+model changes.
+
+- **Data:** API-Football only (`tabet/api_football.py`, stored in Supabase): results, team match
+  statistics (`Shots on Goal`, `Ball Possession`), starting lineups and per-player match statistics.
+  League matches only (status FT).
+  - **Training only** (inputs and history, never scored): La Liga, Serie A, Bundesliga, Ligue 1
+    2015-16 → 2018-19; Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership
+    2015-16 → 2019-20 and 2022-23 → 2024-25.
+  - **Development:** La Liga, Serie A, Bundesliga, Ligue 1, 2019-20 → 2024-25.
+  - **Test:** Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership, **2020-21,
+    2021-22 and 2025-26**. **Untouched** per `docs/data_ledger.csv` on 2026-11-17.
+  - The development phase loads no data from the four test leagues at all (their history runs
+    through the test seasons). The test phase loads all of the above.
+  - **Run condition:** at least 95% of each test league-season's finished matches stored with player
+    statistics (2020-21 onward; Belgian and Scottish player statistics start in 2020). Checked and
+    reported before any model is fitted.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  earlier matches over the previous 3 years, once the league has at least 150 earlier matches.
+- **Inputs, identical for all three models** (per side-row: the scoring side and its opponent; all
+  from earlier dates only, within the league):
+  - **Team form (addendum G's ten):** shots-on-target and goals for and against, decayed with a
+    120-day half-life and scaled to the league's previous-365-day average; DC relative strength;
+    rest days for both sides; games played this season for both sides (capped at 10); home.
+  - **XI blocks (addendum DXI's definitions and its frozen development settings, `k_att` 300,
+    `k_def` 2700, `a` 20):** ATT, BW and DUEL for **both** the scoring side and the opponent: six
+    inputs, each the log ratio of this match's starting XI to the team's mean over its previous
+    (up to) 10 matches.
+  - **Eligibility:** a DC rate exists; both sides have at least 5 earlier matches with shots data
+    and at least 5 with player statistics; all inputs are finite.
+- **Models** (penalised or regularised Poisson on goals with offset log DC rate; pooled over all
+  loaded leagues' side-rows from earlier dates; refitted monthly; standardised inputs):
+  - **LIN:** linear, unpenalised intercept, L2 ∈ {0.1, 1, 10, 100}.
+  - **GBM:** addendum G's model exactly (scikit-learn HGB, Poisson with the ratio target and weight
+    trick, learning rate 0.05, `l2_regularization` 1, up to 1,000 rounds chosen by chronological
+    early stopping on the most recent 15% of training rows, patience 50), depth ∈ {2, 3} and
+    minimum leaf ∈ {50, 200}.
+  - **NN:** `tabet/neural.py` (`_fit_predict`): two hidden layers, last layer initialised at zero,
+    AdamW, learning rate 0.01, 300 full-batch epochs, early stopping on the most recent 15% of
+    training rows (with the Dixon-Coles fallback), mean of 5 seeds; hidden ∈ {16, 64} and weight
+    decay ∈ {0.001, 0.01}.
+  - A month is scored only if it has at least 500 earlier side-rows to train on (the same months
+    for every model).
+- **Development choices** (only these): each model's own grid, by equal-weight mean log-loss over
+  the four development leagues, monthly walk-forward on 2019-20 → 2024-25.
+- **Primary** (two contrasts, each decided on its own). For each test league, the mean paired
+  log-loss difference over its test matches; then the four leagues averaged with equal weight:
+  - **C1:** GBM − LIN;
+  - **C2:** NN − LIN.
+- **Inference.** 14-day calendar blocks spanning all four leagues together, 2,000 resamples, seed 0.
+  Bonferroni for two contrasts: **97.5%** intervals (1.25th and 98.75th percentiles).
+- **Decision.** A contrast is **confirmed** only if its mean is **≤ −0.001** (addendum G's threshold)
+  **and** its 97.5% upper bound is below 0. Anything else is not confirmed.
+  - If either is confirmed, that model becomes a candidate for the Premier League stage 2. Adopting
+    it needs its own frozen prospective comparison in a later season.
+  - If neither is confirmed, the nonlinear stage-2 line is closed until a new kind of input exists
+    (for example player xG); more data of the same kind is not a reason to reopen it.
+- **Secondary, never decisive:**
+  - LIN − DC, GBM − DC, NN − DC;
+  - each league; each test season; excluding 2020-21 (matches behind closed doors);
+  - LIN without the six XI inputs, minus LIN (how much the XI inputs add to the linear model);
+  - early-season matches (either side within its first 10 league matches);
+  - GBM's rounds and how often the NN falls back to Dixon-Coles.
+- **Ledger:** family NLX, rows added in this commit, test seasons **reserved**. The script must
+  call `tabet.ledger.claim` for every role before loading the data.
