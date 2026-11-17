@@ -54,6 +54,17 @@ LEAGUES = [
     # addendum DXI's test leagues come before the Championship, which that test does not use
     (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
     (40, "Championship"), (39, "Premier League"),
+    # Rest, congestion and XI fatigue (eighth review): European and domestic cup fixtures with player
+    # minutes for the clubs above. Ids checked against the API's own names on 2026-11-17.
+    (2, "Champions League"), (3, "Europa League"), (848, "Conference League"),
+    (45, "FA Cup"), (48, "League Cup"), (143, "Copa del Rey"), (137, "Coppa Italia"), (81, "DFB Pokal"),
+    (66, "Coupe de France"), (90, "KNVB Beker"), (96, "Taca de Portugal"), (147, "Belgian Cup"),
+    (181, "Scottish FA Cup"), (185, "Scottish League Cup"),
+    # Sealed holdout (docs/PREREGISTRATION.md, ledger note of 2026-11-17): collected, never looked at
+    # outside a pre-registered test.
+    (218, "Austrian Bundesliga"), (207, "Swiss Super League"), (119, "Danish Superliga"),
+    (197, "Greek Super League"), (203, "Super Lig"), (136, "Serie B"), (79, "2. Bundesliga"),
+    (62, "Ligue 2"), (141, "Segunda Division"),
 ]
 # API seasons are the starting year (2024 = 2024-25). Coverage check of 2026-11-17 (Pro plan): every
 # league has lineups and team and player statistics from 2015 (Belgium and Scotland: player

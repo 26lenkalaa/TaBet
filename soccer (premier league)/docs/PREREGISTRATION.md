@@ -503,3 +503,21 @@ the same run, with its own error control. Nothing in it adapts to NLX's results.
 - **Ledger:** family XIA, rows in this commit. Training and development cells as NLX; test cells
   shared with NLX as a closed set with a quota of two. The script calls `tabet.ledger.claim` for
   XIA separately.
+
+## Ledger note: sealed holdout (2026-11-17, before any of it is collected)
+
+The eighth review's advice: keep a fresh cross-league holdout while bulk collection is cheap. Before
+API-Football collects them, these cells are registered in `docs/data_ledger.csv` as family
+**SEALED**, role test, status reserved, quota 4:
+
+- Austrian Bundesliga (AUT), Swiss Super League (SWZ), Danish Superliga (DNK): 2015-16 → 2025-26
+  (never used by any experiment);
+- Greek Super League (G1), Süper Lig (T1), Serie B (I2), 2. Bundesliga (D2), Ligue 2 (F2), Segunda
+  División (SP2): 2020-21 → 2025-26 (their earlier seasons were used by the learning curve, §5.29).
+
+What this means, enforced by `tabet.ledger.claim`:
+- No one may use these cells for training or development, and no one looks at them, even as
+  summary statistics, outside a pre-registered test.
+- Up to three pre-registered families may score a test on them (SEALED itself takes the fourth
+  place in the quota). Each must register its own test rows first.
+- They are expected to transfer to the Premier League less well than the leagues already used.
