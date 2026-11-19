@@ -44,6 +44,10 @@ class FakeAPI:
             assert len(ids) <= af.BATCH
             body = {"errors": [], "results": len(ids), "response": [
                 {"fixture": {"id": i}, "lineups": [{}], "statistics": [], "players": []} for i in ids]}
+        elif endpoint == "injuries":
+            body = {"errors": [], "paging": {"current": 1, "total": 1}, "results": 2, "response": [
+                {"player": {"id": 1, "type": "Missing Fixture", "reason": "Knee Injury"}, "fixture": {"id": 7}},
+                {"player": {"id": 2, "type": "Questionable", "reason": "Doubtful"}, "fixture": {"id": 7}}]}
         elif endpoint == "fixtures":
             if int(q["season"]) not in self.allowed:
                 body = {"errors": {"plan": "Free plans do not have access to this season, try from 2021 to 2023."},
@@ -174,3 +178,14 @@ def test_coverage_reports_flags_per_season():
     api = FakeAPI(free=False, limit=7500)
     out = af.coverage(client(af.MemoryStore(), api), LEAGUES)
     assert out["leagues"]["39 Premier League (England)"] == {2023: "LTP"} and out["requests_used"] == 2
+
+
+def test_injuries_one_call_each_resumes_and_hides_sealed_counts():
+    store, api = af.MemoryStore(), FakeAPI(limit=7500)
+    out = af.injuries(client(store, api), leagues=[(39, "PL"), (218, "Austria")], seasons=[2024, 2023])
+    assert out["requests_used"] == 1 + 4
+    assert out["seasons"]["39-2024"] == {"rows": 2, "fixtures": 1}
+    assert out["seasons"]["218-2024"] == "stored (sealed)"
+    assert "injuries/218-2023.json.gz" in store.objects
+    again = af.injuries(client(store, api), leagues=[(39, "PL"), (218, "Austria")], seasons=[2024, 2023])
+    assert again["requests_used"] == 1 and again["skipped_stored"] == 4

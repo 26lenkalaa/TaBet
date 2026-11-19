@@ -425,9 +425,56 @@ def injcheck(client: Client, league: int = 39, season: int = 2022) -> dict:
             "sample": rows[:1], "requests_used": client.used}
 
 
+# Domestic leagues whose absences are collected: API-Football has injury records from 2020-21 (coverage
+# check of 2026-11-18: none for 2015-2019; Portugal, Belgium and Scotland patchy). Cups are left out.
+INJURY_LEAGUES = [x for x in LEAGUES if x[0] in {140, 135, 78, 61, 88, 94, 144, 179, 40, 39,
+                                                   218, 207, 119, 197, 203, 136, 79, 62, 141}]
+INJURY_SEASONS = list(range(2025, 2019, -1))
+SEALED_IDS = {218, 207, 119, 197, 203, 136, 79, 62, 141}
+
+
+def injuries(client: Client, leagues=INJURY_LEAGUES, seasons=INJURY_SEASONS) -> dict:
+    """One /injuries call per league-season not stored yet. For the sealed holdout only "stored" is
+    reported, never counts or contents (it is looked at only inside a pre-registered test)."""
+    out = {"seasons": {}, "skipped_stored": 0}
+    try:
+        used, limit = quota(client)
+        if limit > FREE_LIMIT:
+            client.pause = PAID_PAUSE_S
+        out["start_used_today"] = used
+        for league, _ in leagues:
+            for season in seasons:
+                path = f"injuries/{league}-{season}.json.gz"
+                try:
+                    client.store.get(path)
+                    out["skipped_stored"] += 1
+                    continue
+                except Exception:
+                    pass
+                key = f"{league}-{season}"
+                try:
+                    body = client.get("injuries", league=league, season=season)
+                except PlanLimit as e:
+                    out["seasons"][key] = f"refused: {e}"[:120]
+                    continue
+                client.store.put(path, body)
+                paging = body.get("paging") or {}
+                if int(paging.get("total") or 1) > 1:
+                    out["seasons"][key] = f"stored; WARNING {paging.get('total')} pages, only page 1 kept"
+                elif league in SEALED_IDS:
+                    out["seasons"][key] = "stored (sealed)"
+                else:
+                    rows = body.get("response", [])
+                    out["seasons"][key] = {"rows": len(rows), "fixtures": len({(r.get("fixture") or {}).get("id") for r in rows} - {None})}
+    except DailyLimit as e:
+        out["stopped"] = f"DailyLimit: {e}"[:250]
+    out["requests_used"] = client.used
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck", "injuries"])
     ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
     ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
     ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
@@ -439,7 +486,7 @@ def main(argv=None) -> int:
     if not key:
         print("API_FOOTBALL_KEY is not set; nothing to do.")
         return 0
-    if a.mode == "fetch" and not (url and skey):
+    if a.mode in ("fetch", "injuries") and not (url and skey):
         print("SUPABASE_URL / SUPABASE_SECRET_KEY are not set; fetch stores everything in Supabase, so it stops here.")
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
@@ -452,7 +499,7 @@ def main(argv=None) -> int:
         if a.mode == "coverage" and a.ids:
             result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
         else:
-            result = {"probe": probe, "fetch": fetch, "coverage": coverage}[a.mode](client)
+            result = {"probe": probe, "fetch": fetch, "coverage": coverage, "injuries": injuries}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 

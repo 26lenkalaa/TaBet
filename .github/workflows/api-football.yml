@@ -20,7 +20,7 @@ on:
       mode:
         description: "probe (5 calls) | fetch | xgcheck (2 calls) | coverage (11 calls: what each league has by season)"
         type: choice
-        options: [probe, fetch, xgcheck, coverage, injcheck]
+        options: [probe, fetch, xgcheck, coverage, injcheck, injuries]
         default: probe
       budget:
         description: "Most requests this run may use (free plan: 100 a day)"
