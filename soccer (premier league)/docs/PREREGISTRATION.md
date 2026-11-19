@@ -535,3 +535,108 @@ from February to May 2021), so the gap is the provider's and re-fetching cannot 
   scored. Belgium is still one of the four equally weighted test leagues, scored on 2021-22 and
   2025-26.
 - **Basis:** only the completeness check, which reads no results. Nothing else changes.
+
+## Addendum FAT (2026-11-19, committed before any code for it exists and before any sealed data is loaded): rest, congestion and XI fatigue (F1, F2)
+
+The eighth review's pick for the new data (brief §8; F1 and F2 in the feature list). Every model so
+far has seen only **league** matches, so a team that played a Champions League or cup match three
+days earlier looks rested. The question: does knowing each side's full fixture load (all
+competitions) improve the forecast beyond its league-only rest? This is the first family to score
+on the sealed holdout. Nothing about the live Premier League model changes.
+
+- **Prior expectation (written down so a null is read correctly):** low to moderate, and small if
+  present, likely under 0.001 in log-loss. Clubs rotate for congested weeks, and the lineup already
+  shows the rotation. The best case is in top flights with European football.
+- **The injury lists are not used.** The check of 2026-11-19 (PR #77) found them reconciled after
+  the match.
+- **Data:** API-Football only (`tabet/api_football.py`, stored in Supabase): fixture dates,
+  results, team match statistics (`Shots on Goal`) and starting lineups. **No player statistics are
+  needed.** That is deliberate: the sealed leagues' player statistics are patchy (Greece only from
+  2022-23, per the coverage flags of 2026-11-19, which are metadata).
+  - **Counted competitions:**
+    - the team's league;
+    - the Champions League (2), Europa League (3) and Conference League (848), qualifying rounds
+      included;
+    - the domestic cups FA Cup (45), League Cup (48), Copa del Rey (143), Coppa Italia (137),
+      DFB Pokal (81), Coupe de France (66), KNVB Beker (90), Taça de Portugal (96), Belgian Cup
+      (147), Scottish FA Cup (181), Scottish League Cup (185), Austrian Cup (220), Schweizer Cup
+      (209), DBU Pokalen (121), Greek Cup (199) and Türkiye Kupası (206).
+    - **Not counted (known gaps):** super cups, the Taça da Liga, the Coupe de la Ligue (ended in
+      2020), the Club World Cup, friendlies and national-team matches.
+    - The last five cups' ids were checked against the API's own names on 2026-11-19. They are
+      collected before the test (they involve sealed teams, so they are treated as sealed: never
+      looked at outside the test).
+  - **Training only** (inputs and history, never scored): La Liga, Serie A, Bundesliga, Ligue 1,
+    Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership, 2015-16 → 2020-21; Greek
+    Super League, Süper Lig, Serie B, 2. Bundesliga, Ligue 2 and Segunda División, 2015-16 → 2019-20.
+  - **Development:** the same eight leagues, 2021-22 → 2025-26. All of these cells are spent test
+    or development sets of earlier families, which the ledger allows for development.
+  - **Test (the sealed holdout):** Austrian Bundesliga, Swiss Super League, Danish Superliga, Greek
+    Super League, Süper Lig, Serie B, 2. Bundesliga, Ligue 2, Segunda División, **2020-21 →
+    2025-26 scored**.
+    - The Austrian, Swiss and Danish cells for 2015-16 → 2019-20 are loaded as history only and
+      never scored. They are part of the sealed set, so they are registered as this family's test
+      use.
+    - The development phase loads nothing from the nine test leagues or their five new cups.
+  - **Run condition,** checked and reported before any model is fitted (as the NLX amendment did):
+    - for each scored league-season, at least 95% of finished league matches have lineups and both
+      teams' shots on target;
+    - at least 90% of counted non-league fixtures involving that league's teams have lineups.
+    - A failing league-season stops the run. It is then excluded by a written amendment before any
+      fitting.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  earlier matches over the previous 3 years, once the league has at least 150 earlier matches.
+- **Inputs** (per side-row: the scoring side and its opponent; earlier dates only):
+  - **BASE block:** addendum G's ten team-form features (shots on target and goals for and against,
+    decayed with a 120-day half-life and scaled to the league's previous-365-day average; DC
+    relative strength; **league-only** rest days for both sides; games played this season for both
+    sides, capped at 10; home). Plus one indicator per league.
+  - **FAT block** (six inputs, three for each side, all from the counted competitions):
+    - **rest:** days since the team's previous counted match, capped at 14;
+    - **load14:** the team's counted matches in the previous 14 days;
+    - **xi7:** for this match's starting XI, the mean number of counted starts each player made in
+      the previous 7 days. A player with no recorded start counts 0. It uses this match's lineup, so
+      it is a lineup-time input, like V2's XI layer.
+  - **Eligibility, identical for both models:**
+    - a DC rate exists;
+    - both sides have at least 5 earlier league matches with shots data;
+    - this match has both lineups;
+    - all inputs are finite.
+    - The number of eligible matches per league-season is reported.
+- **Models** (Poisson on goals with offset log DC rate; pooled over all loaded leagues' side-rows
+  from earlier dates; refitted monthly; standardised inputs; unpenalised intercept; no fallback):
+  - **LIN:** the BASE block;
+  - **LIN+FAT:** the BASE block plus the FAT block.
+  - Each model has its own L2 from {0.1, 1, 10, 100}. A month is scored only if it has at least 500
+    earlier side-rows, the same months for both models.
+  - Only linear models: the nonlinear stage 2 is closed (NLX).
+- **Development choices (only these):** each model's L2, by equal-weight mean log-loss over the
+  eight development leagues, monthly walk-forward on 2021-22 → 2025-26.
+- **Minimum detectable effect,** recorded in `dev.json` before the test, as in NLX: (1.96 + 0.84)
+  × SE, with SE the 14-day-block bootstrap SE of LIN+FAT − LIN on development, scaled by
+  √(development matches / expected test matches).
+- **Primary (one contrast): LIN+FAT − LIN.** For each test league, the mean paired log-loss
+  difference over its scored matches; then the nine leagues averaged with equal weight.
+- **Inference:** 14-day calendar blocks spanning all nine leagues together, 2,000 resamples, seed
+  0, two-sided 95% percentile interval.
+- **Decision.** The thresholds are half of NLX's. The expected effect is smaller, and the test has
+  roughly 15,000 scored matches, against NLX's 3,109.
+  - **Confirmed** only if the mean is **≤ −0.0005** and the 95% upper bound is below 0. Then FAT
+    becomes a candidate for the Premier League stage 2. Live use needs a feed of other-competition
+    fixtures and lineups. Dates are public, but the free API-Football plan excludes the current
+    season. Adoption needs its own frozen prospective comparison.
+  - **Closed** if not confirmed **and** the 95% lower bound is above −0.0015. The fatigue line is
+    then closed.
+  - **Inconclusive** otherwise.
+  - No secondary can rescue a failed primary.
+- **Secondary, never decisive:**
+  - F1 only: LIN plus rest and load14, minus LIN;
+  - F2 only: LIN plus xi7, minus LIN (own L2s, chosen on development);
+  - top flights (AUT, SWZ, DNK, G1, T1) versus second tiers (I2, D2, F2, SP2);
+  - **European hangover:** matches where either side played a European match in the previous 4
+    days;
+  - each league; each test season; excluding 2020-21 (behind closed doors and unusually congested);
+  - counted fixtures per team-season, and the share with lineups.
+- **Ledger:** family FAT. Rows are in this commit; the test cells are added to SEALED's closed set
+  (quota 4: SEALED itself and FAT, leaving two). The script calls `tabet.ledger.claim` for every role
+  before loading data.
