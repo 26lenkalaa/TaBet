@@ -20,16 +20,16 @@ on:
       mode:
         description: "probe (5 calls) | fetch | xgcheck (2 calls) | coverage (11 calls: what each league has by season)"
         type: choice
-        options: [probe, fetch, xgcheck, coverage]
+        options: [probe, fetch, xgcheck, coverage, injcheck]
         default: probe
       budget:
         description: "Most requests this run may use (free plan: 100 a day)"
         default: "2000"
       league:
-        description: "xgcheck only: league id (39 = Premier League)"
+        description: "xgcheck/injcheck: league id (39 = Premier League)"
         default: "39"
       season:
-        description: "xgcheck only: season, starting year"
+        description: "xgcheck/injcheck: season, starting year"
         default: "2022"
       ids:
         description: "coverage only: comma-separated league ids (default: the collector's list)"

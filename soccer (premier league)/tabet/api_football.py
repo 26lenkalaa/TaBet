@@ -397,17 +397,37 @@ def coverage(client: Client, leagues=LEAGUES) -> dict:
         if lg:   # the API's own name and country, so a wrong id is visible
             name = f'{lg[0]["league"]["name"]} ({(lg[0].get("country") or {}).get("name")})'
         out["leagues"][f"{league} {name}"] = {
-            x["year"]: "".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
-                               if x["coverage"]["fixtures"].get(k)) or "-"
+            x["year"]: ("".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
+                                if x["coverage"]["fixtures"].get(k)) + ("I" if x["coverage"].get("injuries") else "")) or "-"
             for x in (lg[0]["seasons"] if lg else [])}
-    out["key"] = "L = lineups, T = team statistics, P = player statistics"
+    out["key"] = "L = lineups, T = team statistics, P = player statistics, I = injuries"
     out["requests_used"] = client.used
     return out
 
 
+def injcheck(client: Client, league: int = 39, season: int = 2022) -> dict:
+    """One call: what /injuries returns for a league-season (count, reasons, how many are tied to a
+    fixture, date range). Stores the response so a later collector never asks again."""
+    body = client.get("injuries", league=league, season=season)
+    path = f"injuries/{league}-{season}.json.gz"
+    client.store.put(path, body)
+    rows = body.get("response", [])
+    fx = [r.get("fixture") or {} for r in rows]
+    dates = sorted(f.get("date", "")[:10] for f in fx if f.get("date"))
+    reasons = {}
+    for r in rows:
+        k = f'{(r.get("player") or {}).get("type")}: {(r.get("player") or {}).get("reason")}'
+        reasons[k] = reasons.get(k, 0) + 1
+    return {"league": league, "season": season, "rows": len(rows),
+            "with_fixture": sum(1 for f in fx if f.get("id")), "fixtures": len({f.get("id") for f in fx if f.get("id")}),
+            "first_date": dates[0] if dates else None, "last_date": dates[-1] if dates else None,
+            "top_reasons": dict(sorted(reasons.items(), key=lambda kv: -kv[1])[:8]),
+            "sample": rows[:1], "requests_used": client.used}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck"])
     ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
     ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
     ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
@@ -426,6 +446,8 @@ def main(argv=None) -> int:
     client = Client(key, store, a.budget, batch=a.batch)
     if a.mode == "xgcheck":
         result = xgcheck(client, a.league, a.season)
+    elif a.mode == "injcheck":
+        result = injcheck(client, a.league, a.season)
     else:
         if a.mode == "coverage" and a.ids:
             result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
