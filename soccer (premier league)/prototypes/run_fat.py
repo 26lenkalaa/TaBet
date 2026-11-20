@@ -67,8 +67,9 @@ def _build(store: SupabaseStore, league: int, seasons: list[int]) -> tuple[pd.Da
     """NLX's builder, except that a season with no stored list is skipped (and returned)."""
     parts, missing = [], []
     for season in seasons:
-        if D._retry(store.list_path, league, season) is None:
-            missing.append(season)
+        lp = D._retry(store.list_path, league, season)
+        if lp is None or not D._retry(store.get, lp).get("response"):
+            missing.append(season)       # no list, or an empty one (the Conference League began in 2021)
             continue
         parts.append(N._build_league(store, league, [season]))
     if not parts:
