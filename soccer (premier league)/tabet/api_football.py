@@ -65,6 +65,10 @@ LEAGUES = [
     (218, "Austrian Bundesliga"), (207, "Swiss Super League"), (119, "Danish Superliga"),
     (197, "Greek Super League"), (203, "Super Lig"), (136, "Serie B"), (79, "2. Bundesliga"),
     (62, "Ligue 2"), (141, "Segunda Division"),
+    # Their domestic cups (addendum FAT; ids checked against the API's own names on 2026-11-19).
+    # They involve sealed teams, so they are treated as sealed too.
+    (220, "Austrian Cup"), (209, "Schweizer Cup"), (121, "DBU Pokalen"), (199, "Greek Cup"),
+    (206, "Turkiye Kupasi"),
 ]
 # API seasons are the starting year (2024 = 2024-25). Coverage check of 2026-11-17 (Pro plan): every
 # league has lineups and team and player statistics from 2015 (Belgium and Scotland: player
