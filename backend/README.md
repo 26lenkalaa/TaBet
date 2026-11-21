@@ -45,7 +45,7 @@ Errors look like `{"error": {"code": "bad_request", "message": "..."}}`, with st
 ## Setup (one time)
 
 1. **Create the project.** At supabase.com, make a free project and save the database password.
-2. **Create the tables.** In the dashboard, open **SQL Editor → New query**, paste all of `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_row_order.sql`.
+2. **Create the tables.** With the Supabase CLI (below), run `supabase db push` from `backend/`. Alternatively, paste each file in `supabase/migrations/` into **SQL Editor → New query**, in order.
 3. **Find your keys.** Under **Project Settings → API Keys**, note the **Project URL**, the **Publishable key** and a **Secret key**.
 4. **Add GitHub secrets.** In the repo, go to **Settings → Secrets and variables → Actions** and add `SUPABASE_URL` and `SUPABASE_SECRET_KEY`.
 5. **Add Vercel variables.** In the project, go to **Settings → Environment Variables** and add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Then redeploy.
@@ -65,6 +65,16 @@ npm run site        # the whole site + API on http://localhost:3000, like Vercel
 ## The website
 
 `soccer (premier league)/site/common.js` loads the seasons, matches and lineups from `/api`. If the API errors or takes longer than 4–6 s, the page quietly uses the static files in `site/data/` instead. The logger still builds those files, and they are also what the sync copies from.
+
+## Database changes (Supabase CLI)
+
+The project is linked to the CLI (`supabase/config.toml`; the link itself lives in the git-ignored
+`supabase/.temp`), and migrations 0001–0004 are recorded as applied.
+- **Log in once per laptop:** `supabase login` in your own terminal (browser approval; the token
+  stays in the macOS keychain).
+- **A new change:** add `supabase/migrations/0005_<name>.sql`, then run `supabase db push --dry-run`
+  to preview it and `supabase db push` to apply it. Already-applied migrations are skipped.
+- **Check status:** `supabase migration list --remote`.
 
 ## Adding a sport or league
 

@@ -12,13 +12,15 @@ repository secrets, and everything collected goes straight to the backend:
 Nothing is written to git or to anyone's laptop.
 
     python -m tabet.api_football probe                # plan, allowed seasons, one sample match (5 calls)
+    python -m tabet.api_football coverage             # plan + what each league offers by season (1 + 10 calls)
     python -m tabet.api_football fetch --budget 50
 
-Budget (kept deliberately modest): the free plan allows 100 requests a day and about 10 a minute.
-A run uses at most `--budget` requests (default 50, counting the /status check), never goes within
-`RESERVE` of the daily limit, and waits 6.5 s between calls. Each match's details (events, lineups,
-team statistics, player statistics) come from /fixtures?id=..., one match a request: the free plan
-refuses the 20-a-request ids parameter (`--batch` turns it on for a paid plan).
+Budget: a run uses at most `--budget` requests (counting the /status check) and never goes within
+`RESERVE` of the daily limit. fetch reads the plan from /status:
+  * free plan (100 a day, about 10 a minute): one match a request (/fixtures?id=), 6.5 s apart;
+  * paid plan (daily limit above 100): 20 matches a request (/fixtures?ids=), PAID_PAUSE_S apart, and
+    seasons the free plan refused are tried again (and unblocked if now allowed).
+When a paid month ends the limit drops back to 100 and fetch returns to the free settings by itself.
 Everything is resumable: a fixture already stored is never requested again.
 """
 from __future__ import annotations
@@ -37,6 +39,8 @@ import urllib.request
 BASE = "https://v3.football.api-sports.io"
 RESERVE = 10            # requests left untouched each day
 PAUSE_S = 6.5           # about 9 requests a minute, under the free plan's per-minute limit
+PAID_PAUSE_S = 0.4      # paid plans allow 300 requests a minute; this stays well under it
+FREE_LIMIT = 100        # a daily limit above this means a paid plan
 BATCH = 20              # /fixtures?ids= accepts up to 20 ids
 FINISHED = {"FT", "AET", "PEN"}
 REFUSED = ("odds", "predictions")   # benchmark data must never become training data
@@ -46,13 +50,32 @@ BUCKET = "api-football"
 # player-level xG. The other big leagues come first (team xG is the cross-league analogue of V1x),
 # then the Championship (promoted teams, brief §5.21).
 LEAGUES = [
-    (140, "La Liga"), (135, "Serie A"), (78, "Bundesliga"), (61, "Ligue 1"), (40, "Championship"),
+    (140, "La Liga"), (135, "Serie A"), (78, "Bundesliga"), (61, "Ligue 1"),
+    # addendum DXI's test leagues come before the Championship, which that test does not use
     (88, "Eredivisie"), (94, "Primeira Liga"), (144, "Belgian Pro League"), (179, "Scottish Premiership"),
-    (39, "Premier League"),
+    (40, "Championship"), (39, "Premier League"),
+    # Rest, congestion and XI fatigue (eighth review): European and domestic cup fixtures with player
+    # minutes for the clubs above. Ids checked against the API's own names on 2026-11-17.
+    (2, "Champions League"), (3, "Europa League"), (848, "Conference League"),
+    (45, "FA Cup"), (48, "League Cup"), (143, "Copa del Rey"), (137, "Coppa Italia"), (81, "DFB Pokal"),
+    (66, "Coupe de France"), (90, "KNVB Beker"), (96, "Taca de Portugal"), (147, "Belgian Cup"),
+    (181, "Scottish FA Cup"), (185, "Scottish League Cup"),
+    # Sealed holdout (docs/PREREGISTRATION.md, ledger note of 2026-11-17): collected, never looked at
+    # outside a pre-registered test.
+    (218, "Austrian Bundesliga"), (207, "Swiss Super League"), (119, "Danish Superliga"),
+    (197, "Greek Super League"), (203, "Super Lig"), (136, "Serie B"), (79, "2. Bundesliga"),
+    (62, "Ligue 2"), (141, "Segunda Division"),
+    # Their domestic cups (addendum FAT; ids checked against the API's own names on 2026-11-19).
+    # They involve sealed teams, so they are treated as sealed too.
+    (220, "Austrian Cup"), (209, "Schweizer Cup"), (121, "DBU Pokalen"), (199, "Greek Cup"),
+    (206, "Turkiye Kupasi"),
 ]
-# API seasons are the starting year (2024 = 2024-25). The free plan allows 2022-2024 only (probe of
-# 2026-11-16), so nothing else is requested: each refused season would waste a call per league.
-SEASONS = [2024, 2023, 2022]
+# API seasons are the starting year (2024 = 2024-25). Coverage check of 2026-11-17 (Pro plan): every
+# league has lineups and team and player statistics from 2015 (Belgium and Scotland: player
+# statistics from 2020); team expected goals start in 2022 (samples of 2015-2021 had none). The
+# season in progress (2026) is not collected: E0 2026-27 is the live test. On the free plan (2022-2024
+# only) the other seasons' lists are refused once each and remembered as blocked.
+SEASONS = list(range(2025, 2014, -1))
 
 
 class PlanLimit(Exception):
@@ -108,6 +131,9 @@ class MemoryStore:
 
     def block(self, league, season, reason):
         self.blocked_[(league, season)] = reason
+
+    def unblock(self, league, season):
+        self.blocked_.pop((league, season), None)
 
     def log(self, row):
         self.requests.append(row)
@@ -172,6 +198,9 @@ class SupabaseStore:
 
     def block(self, league, season, reason):
         self._insert("apif_blocked", [{"league": league, "season": season, "reason": reason[:500]}], upsert=True)
+
+    def unblock(self, league, season):
+        self._req("DELETE", f"/rest/v1/apif_blocked?league=eq.{int(league)}&season=eq.{int(season)}")
 
     def log(self, row):
         self._insert("apif_requests", [row])
@@ -310,12 +339,17 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     store = client.store
     used, limit = quota(client)
     client.budget = min(client.budget, max(0, limit - RESERVE - used) + client.used)
+    paid = limit > FREE_LIMIT
+    if paid:   # 20 matches a request, faster pace, and another try at seasons the free plan refused
+        client.batch, client.pause = True, min(client.pause, PAID_PAUSE_S)
     fetched, blocked = store.fetched_ids(), store.blocked()
-    summary = {"start_used_today": used, "limit_day": limit, "budget": client.budget, "new_fixtures": 0, "lists": 0}
+    retry = set(blocked) if paid else set()
+    summary = {"start_used_today": used, "limit_day": limit, "plan": "paid" if paid else "free",
+               "budget": client.budget, "new_fixtures": 0, "lists": 0, "unblocked": []}
     try:
         for league, _name in leagues:
             for season in seasons:
-                if (league, season) in blocked:
+                if (league, season) in blocked and (league, season) not in retry:
                     continue
                 path = store.list_path(league, season)
                 if path is None:
@@ -329,6 +363,10 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
                     store.put(path, body)
                     store.add_list(league, season, path, len(body.get("response", [])))
                     summary["lists"] += 1
+                    if (league, season) in blocked:
+                        store.unblock(league, season)
+                        blocked.discard((league, season))
+                        summary["unblocked"].append(f"{league}-{season}")
                     listing = body
                 else:
                     listing = store.get(path)
@@ -352,9 +390,98 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     return summary
 
 
+def coverage(client: Client, leagues=LEAGUES) -> dict:
+    """1 + len(leagues) calls: the plan, and per league and season what API-Football says it has
+    (lineups, team statistics, player statistics). Team xG is not a coverage flag; xgcheck samples it."""
+    s = client.get("status")["response"]
+    out = {"plan": (s.get("subscription") or {}).get("plan") if isinstance(s, dict) else None,
+           "requests_today": (s.get("requests") or {}) if isinstance(s, dict) else {}, "leagues": {}}
+    for league, name in leagues:
+        lg = client.get("leagues", id=league)["response"]
+        if lg:   # the API's own name and country, so a wrong id is visible
+            name = f'{lg[0]["league"]["name"]} ({(lg[0].get("country") or {}).get("name")})'
+        out["leagues"][f"{league} {name}"] = {
+            x["year"]: ("".join(c for c, k in (("L", "lineups"), ("T", "statistics_fixtures"), ("P", "statistics_players"))
+                                if x["coverage"]["fixtures"].get(k)) + ("I" if x["coverage"].get("injuries") else "")) or "-"
+            for x in (lg[0]["seasons"] if lg else [])}
+    out["key"] = "L = lineups, T = team statistics, P = player statistics, I = injuries"
+    out["requests_used"] = client.used
+    return out
+
+
+def injcheck(client: Client, league: int = 39, season: int = 2022) -> dict:
+    """One call: what /injuries returns for a league-season (count, reasons, how many are tied to a
+    fixture, date range). Stores the response so a later collector never asks again."""
+    body = client.get("injuries", league=league, season=season)
+    path = f"injuries/{league}-{season}.json.gz"
+    client.store.put(path, body)
+    rows = body.get("response", [])
+    fx = [r.get("fixture") or {} for r in rows]
+    dates = sorted(f.get("date", "")[:10] for f in fx if f.get("date"))
+    reasons = {}
+    for r in rows:
+        k = f'{(r.get("player") or {}).get("type")}: {(r.get("player") or {}).get("reason")}'
+        reasons[k] = reasons.get(k, 0) + 1
+    return {"league": league, "season": season, "rows": len(rows),
+            "with_fixture": sum(1 for f in fx if f.get("id")), "fixtures": len({f.get("id") for f in fx if f.get("id")}),
+            "first_date": dates[0] if dates else None, "last_date": dates[-1] if dates else None,
+            "top_reasons": dict(sorted(reasons.items(), key=lambda kv: -kv[1])[:8]),
+            "sample": rows[:1], "requests_used": client.used}
+
+
+# Domestic leagues whose absences are collected: API-Football has injury records from 2020-21 (coverage
+# check of 2026-11-18: none for 2015-2019; Portugal, Belgium and Scotland patchy). Cups are left out.
+INJURY_LEAGUES = [x for x in LEAGUES if x[0] in {140, 135, 78, 61, 88, 94, 144, 179, 40, 39,
+                                                   218, 207, 119, 197, 203, 136, 79, 62, 141}]
+INJURY_SEASONS = list(range(2025, 2019, -1))
+SEALED_IDS = {218, 207, 119, 197, 203, 136, 79, 62, 141}
+
+
+def injuries(client: Client, leagues=INJURY_LEAGUES, seasons=INJURY_SEASONS) -> dict:
+    """One /injuries call per league-season not stored yet. For the sealed holdout only "stored" is
+    reported, never counts or contents (it is looked at only inside a pre-registered test)."""
+    out = {"seasons": {}, "skipped_stored": 0}
+    try:
+        used, limit = quota(client)
+        if limit > FREE_LIMIT:
+            client.pause = PAID_PAUSE_S
+        out["start_used_today"] = used
+        for league, _ in leagues:
+            for season in seasons:
+                path = f"injuries/{league}-{season}.json.gz"
+                try:
+                    client.store.get(path)
+                    out["skipped_stored"] += 1
+                    continue
+                except Exception:
+                    pass
+                key = f"{league}-{season}"
+                try:
+                    body = client.get("injuries", league=league, season=season)
+                except PlanLimit as e:
+                    out["seasons"][key] = f"refused: {e}"[:120]
+                    continue
+                client.store.put(path, body)
+                paging = body.get("paging") or {}
+                if int(paging.get("total") or 1) > 1:
+                    out["seasons"][key] = f"stored; WARNING {paging.get('total')} pages, only page 1 kept"
+                elif league in SEALED_IDS:
+                    out["seasons"][key] = "stored (sealed)"
+                else:
+                    rows = body.get("response", [])
+                    out["seasons"][key] = {"rows": len(rows), "fixtures": len({(r.get("fixture") or {}).get("id") for r in rows} - {None})}
+    except DailyLimit as e:
+        out["stopped"] = f"DailyLimit: {e}"[:250]
+    out["requests_used"] = client.used
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck", "injuries"])
+    ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
+    ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
+    ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
     ap.add_argument("--budget", type=int, default=50)
     ap.add_argument("--batch", action="store_true", help="20 matches a request (paid plans only)")
     a = ap.parse_args(argv)
@@ -363,12 +490,20 @@ def main(argv=None) -> int:
     if not key:
         print("API_FOOTBALL_KEY is not set; nothing to do.")
         return 0
-    if a.mode == "fetch" and not (url and skey):
+    if a.mode in ("fetch", "injuries") and not (url and skey):
         print("SUPABASE_URL / SUPABASE_SECRET_KEY are not set; fetch stores everything in Supabase, so it stops here.")
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
     client = Client(key, store, a.budget, batch=a.batch)
-    result = {"probe": probe, "fetch": fetch, "xgcheck": xgcheck}[a.mode](client)
+    if a.mode == "xgcheck":
+        result = xgcheck(client, a.league, a.season)
+    elif a.mode == "injcheck":
+        result = injcheck(client, a.league, a.season)
+    else:
+        if a.mode == "coverage" and a.ids:
+            result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
+        else:
+            result = {"probe": probe, "fetch": fetch, "coverage": coverage, "injuries": injuries}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 

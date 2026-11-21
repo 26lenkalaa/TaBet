@@ -1,0 +1,1304 @@
+{
+  "lin_l2": 100.0,
+  "linxi_l2": 100.0,
+  "gbm": [
+    2,
+    200
+  ],
+  "nn": [
+    16,
+    0.01
+  ],
+  "nl": "NN",
+  "mde": {
+    "dev_block_se": 0.0006126794880416972,
+    "n_dev": 8314,
+    "expected_test": 3200,
+    "mde": 0.0027651671767556798
+  },
+  "xia_bands": [
+    0.057886057456484674,
+    0.09928068751269317
+  ],
+  "dev_log_loss": {
+    "DC": 0.9948912095069506,
+    "LIN_0.1": 0.9916299410123998,
+    "LIN_1.0": 0.9915893591147495,
+    "LIN_10.0": 0.9913898454441996,
+    "LIN_100.0": 0.9911590240625547,
+    "LINXI_0.1": 0.9914515015201842,
+    "LINXI_1.0": 0.991411274254473,
+    "LINXI_10.0": 0.9912151817175223,
+    "LINXI_100.0": 0.991004890129002,
+    "GBM_2_50": 0.9931804517014321,
+    "GBM_2_200": 0.9927864335956355,
+    "GBM_3_50": 0.9932537257533469,
+    "GBM_3_200": 0.9930401199881042,
+    "NN_16_0.001": 0.9926113933682617,
+    "NN_16_0.01": 0.9926111490049138,
+    "NN_64_0.001": 0.992707444214082,
+    "NN_64_0.01": 0.9927062842036196
+  },
+  "gbm_rounds": [
+    {
+      "month": "2019-08",
+      "model": "GBM_2_50",
+      "rounds": 454
+    },
+    {
+      "month": "2019-08",
+      "model": "GBM_2_200",
+      "rounds": 141
+    },
+    {
+      "month": "2019-08",
+      "model": "GBM_3_50",
+      "rounds": 354
+    },
+    {
+      "month": "2019-08",
+      "model": "GBM_3_200",
+      "rounds": 140
+    },
+    {
+      "month": "2019-09",
+      "model": "GBM_2_50",
+      "rounds": 442
+    },
+    {
+      "month": "2019-09",
+      "model": "GBM_2_200",
+      "rounds": 150
+    },
+    {
+      "month": "2019-09",
+      "model": "GBM_3_50",
+      "rounds": 366
+    },
+    {
+      "month": "2019-09",
+      "model": "GBM_3_200",
+      "rounds": 136
+    },
+    {
+      "month": "2019-10",
+      "model": "GBM_2_50",
+      "rounds": 453
+    },
+    {
+      "month": "2019-10",
+      "model": "GBM_2_200",
+      "rounds": 219
+    },
+    {
+      "month": "2019-10",
+      "model": "GBM_3_50",
+      "rounds": 312
+    },
+    {
+      "month": "2019-10",
+      "model": "GBM_3_200",
+      "rounds": 265
+    },
+    {
+      "month": "2019-11",
+      "model": "GBM_2_50",
+      "rounds": 147
+    },
+    {
+      "month": "2019-11",
+      "model": "GBM_2_200",
+      "rounds": 185
+    },
+    {
+      "month": "2019-11",
+      "model": "GBM_3_50",
+      "rounds": 104
+    },
+    {
+      "month": "2019-11",
+      "model": "GBM_3_200",
+      "rounds": 46
+    },
+    {
+      "month": "2019-12",
+      "model": "GBM_2_50",
+      "rounds": 132
+    },
+    {
+      "month": "2019-12",
+      "model": "GBM_2_200",
+      "rounds": 115
+    },
+    {
+      "month": "2019-12",
+      "model": "GBM_3_50",
+      "rounds": 51
+    },
+    {
+      "month": "2019-12",
+      "model": "GBM_3_200",
+      "rounds": 53
+    },
+    {
+      "month": "2020-01",
+      "model": "GBM_2_50",
+      "rounds": 116
+    },
+    {
+      "month": "2020-01",
+      "model": "GBM_2_200",
+      "rounds": 97
+    },
+    {
+      "month": "2020-01",
+      "model": "GBM_3_50",
+      "rounds": 69
+    },
+    {
+      "month": "2020-01",
+      "model": "GBM_3_200",
+      "rounds": 40
+    },
+    {
+      "month": "2020-02",
+      "model": "GBM_2_50",
+      "rounds": 127
+    },
+    {
+      "month": "2020-02",
+      "model": "GBM_2_200",
+      "rounds": 130
+    },
+    {
+      "month": "2020-02",
+      "model": "GBM_3_50",
+      "rounds": 87
+    },
+    {
+      "month": "2020-02",
+      "model": "GBM_3_200",
+      "rounds": 79
+    },
+    {
+      "month": "2020-03",
+      "model": "GBM_2_50",
+      "rounds": 250
+    },
+    {
+      "month": "2020-03",
+      "model": "GBM_2_200",
+      "rounds": 174
+    },
+    {
+      "month": "2020-03",
+      "model": "GBM_3_50",
+      "rounds": 131
+    },
+    {
+      "month": "2020-03",
+      "model": "GBM_3_200",
+      "rounds": 82
+    },
+    {
+      "month": "2020-05",
+      "model": "GBM_2_50",
+      "rounds": 220
+    },
+    {
+      "month": "2020-05",
+      "model": "GBM_2_200",
+      "rounds": 161
+    },
+    {
+      "month": "2020-05",
+      "model": "GBM_3_50",
+      "rounds": 191
+    },
+    {
+      "month": "2020-05",
+      "model": "GBM_3_200",
+      "rounds": 99
+    },
+    {
+      "month": "2020-06",
+      "model": "GBM_2_50",
+      "rounds": 209
+    },
+    {
+      "month": "2020-06",
+      "model": "GBM_2_200",
+      "rounds": 179
+    },
+    {
+      "month": "2020-06",
+      "model": "GBM_3_50",
+      "rounds": 152
+    },
+    {
+      "month": "2020-06",
+      "model": "GBM_3_200",
+      "rounds": 101
+    },
+    {
+      "month": "2020-07",
+      "model": "GBM_2_50",
+      "rounds": 219
+    },
+    {
+      "month": "2020-07",
+      "model": "GBM_2_200",
+      "rounds": 130
+    },
+    {
+      "month": "2020-07",
+      "model": "GBM_3_50",
+      "rounds": 83
+    },
+    {
+      "month": "2020-07",
+      "model": "GBM_3_200",
+      "rounds": 57
+    },
+    {
+      "month": "2020-08",
+      "model": "GBM_2_50",
+      "rounds": 196
+    },
+    {
+      "month": "2020-08",
+      "model": "GBM_2_200",
+      "rounds": 186
+    },
+    {
+      "month": "2020-08",
+      "model": "GBM_3_50",
+      "rounds": 142
+    },
+    {
+      "month": "2020-08",
+      "model": "GBM_3_200",
+      "rounds": 130
+    },
+    {
+      "month": "2020-09",
+      "model": "GBM_2_50",
+      "rounds": 281
+    },
+    {
+      "month": "2020-09",
+      "model": "GBM_2_200",
+      "rounds": 227
+    },
+    {
+      "month": "2020-09",
+      "model": "GBM_3_50",
+      "rounds": 174
+    },
+    {
+      "month": "2020-09",
+      "model": "GBM_3_200",
+      "rounds": 154
+    },
+    {
+      "month": "2020-10",
+      "model": "GBM_2_50",
+      "rounds": 201
+    },
+    {
+      "month": "2020-10",
+      "model": "GBM_2_200",
+      "rounds": 129
+    },
+    {
+      "month": "2020-10",
+      "model": "GBM_3_50",
+      "rounds": 167
+    },
+    {
+      "month": "2020-10",
+      "model": "GBM_3_200",
+      "rounds": 134
+    },
+    {
+      "month": "2020-11",
+      "model": "GBM_2_50",
+      "rounds": 244
+    },
+    {
+      "month": "2020-11",
+      "model": "GBM_2_200",
+      "rounds": 178
+    },
+    {
+      "month": "2020-11",
+      "model": "GBM_3_50",
+      "rounds": 187
+    },
+    {
+      "month": "2020-11",
+      "model": "GBM_3_200",
+      "rounds": 122
+    },
+    {
+      "month": "2020-12",
+      "model": "GBM_2_50",
+      "rounds": 236
+    },
+    {
+      "month": "2020-12",
+      "model": "GBM_2_200",
+      "rounds": 125
+    },
+    {
+      "month": "2020-12",
+      "model": "GBM_3_50",
+      "rounds": 137
+    },
+    {
+      "month": "2020-12",
+      "model": "GBM_3_200",
+      "rounds": 174
+    },
+    {
+      "month": "2021-01",
+      "model": "GBM_2_50",
+      "rounds": 222
+    },
+    {
+      "month": "2021-01",
+      "model": "GBM_2_200",
+      "rounds": 170
+    },
+    {
+      "month": "2021-01",
+      "model": "GBM_3_50",
+      "rounds": 108
+    },
+    {
+      "month": "2021-01",
+      "model": "GBM_3_200",
+      "rounds": 82
+    },
+    {
+      "month": "2021-02",
+      "model": "GBM_2_50",
+      "rounds": 259
+    },
+    {
+      "month": "2021-02",
+      "model": "GBM_2_200",
+      "rounds": 188
+    },
+    {
+      "month": "2021-02",
+      "model": "GBM_3_50",
+      "rounds": 101
+    },
+    {
+      "month": "2021-02",
+      "model": "GBM_3_200",
+      "rounds": 104
+    },
+    {
+      "month": "2021-03",
+      "model": "GBM_2_50",
+      "rounds": 133
+    },
+    {
+      "month": "2021-03",
+      "model": "GBM_2_200",
+      "rounds": 85
+    },
+    {
+      "month": "2021-03",
+      "model": "GBM_3_50",
+      "rounds": 99
+    },
+    {
+      "month": "2021-03",
+      "model": "GBM_3_200",
+      "rounds": 70
+    },
+    {
+      "month": "2021-04",
+      "model": "GBM_2_50",
+      "rounds": 100
+    },
+    {
+      "month": "2021-04",
+      "model": "GBM_2_200",
+      "rounds": 169
+    },
+    {
+      "month": "2021-04",
+      "model": "GBM_3_50",
+      "rounds": 45
+    },
+    {
+      "month": "2021-04",
+      "model": "GBM_3_200",
+      "rounds": 35
+    },
+    {
+      "month": "2021-05",
+      "model": "GBM_2_50",
+      "rounds": 77
+    },
+    {
+      "month": "2021-05",
+      "model": "GBM_2_200",
+      "rounds": 134
+    },
+    {
+      "month": "2021-05",
+      "model": "GBM_3_50",
+      "rounds": 63
+    },
+    {
+      "month": "2021-05",
+      "model": "GBM_3_200",
+      "rounds": 87
+    },
+    {
+      "month": "2021-08",
+      "model": "GBM_2_50",
+      "rounds": 202
+    },
+    {
+      "month": "2021-08",
+      "model": "GBM_2_200",
+      "rounds": 143
+    },
+    {
+      "month": "2021-08",
+      "model": "GBM_3_50",
+      "rounds": 111
+    },
+    {
+      "month": "2021-08",
+      "model": "GBM_3_200",
+      "rounds": 69
+    },
+    {
+      "month": "2021-09",
+      "model": "GBM_2_50",
+      "rounds": 203
+    },
+    {
+      "month": "2021-09",
+      "model": "GBM_2_200",
+      "rounds": 83
+    },
+    {
+      "month": "2021-09",
+      "model": "GBM_3_50",
+      "rounds": 69
+    },
+    {
+      "month": "2021-09",
+      "model": "GBM_3_200",
+      "rounds": 47
+    },
+    {
+      "month": "2021-10",
+      "model": "GBM_2_50",
+      "rounds": 56
+    },
+    {
+      "month": "2021-10",
+      "model": "GBM_2_200",
+      "rounds": 94
+    },
+    {
+      "month": "2021-10",
+      "model": "GBM_3_50",
+      "rounds": 67
+    },
+    {
+      "month": "2021-10",
+      "model": "GBM_3_200",
+      "rounds": 48
+    },
+    {
+      "month": "2021-11",
+      "model": "GBM_2_50",
+      "rounds": 46
+    },
+    {
+      "month": "2021-11",
+      "model": "GBM_2_200",
+      "rounds": 149
+    },
+    {
+      "month": "2021-11",
+      "model": "GBM_3_50",
+      "rounds": 33
+    },
+    {
+      "month": "2021-11",
+      "model": "GBM_3_200",
+      "rounds": 36
+    },
+    {
+      "month": "2021-12",
+      "model": "GBM_2_50",
+      "rounds": 40
+    },
+    {
+      "month": "2021-12",
+      "model": "GBM_2_200",
+      "rounds": 32
+    },
+    {
+      "month": "2021-12",
+      "model": "GBM_3_50",
+      "rounds": 44
+    },
+    {
+      "month": "2021-12",
+      "model": "GBM_3_200",
+      "rounds": 26
+    },
+    {
+      "month": "2022-01",
+      "model": "GBM_2_50",
+      "rounds": 37
+    },
+    {
+      "month": "2022-01",
+      "model": "GBM_2_200",
+      "rounds": 61
+    },
+    {
+      "month": "2022-01",
+      "model": "GBM_3_50",
+      "rounds": 26
+    },
+    {
+      "month": "2022-01",
+      "model": "GBM_3_200",
+      "rounds": 26
+    },
+    {
+      "month": "2022-02",
+      "model": "GBM_2_50",
+      "rounds": 214
+    },
+    {
+      "month": "2022-02",
+      "model": "GBM_2_200",
+      "rounds": 256
+    },
+    {
+      "month": "2022-02",
+      "model": "GBM_3_50",
+      "rounds": 29
+    },
+    {
+      "month": "2022-02",
+      "model": "GBM_3_200",
+      "rounds": 66
+    },
+    {
+      "month": "2022-03",
+      "model": "GBM_2_50",
+      "rounds": 73
+    },
+    {
+      "month": "2022-03",
+      "model": "GBM_2_200",
+      "rounds": 112
+    },
+    {
+      "month": "2022-03",
+      "model": "GBM_3_50",
+      "rounds": 54
+    },
+    {
+      "month": "2022-03",
+      "model": "GBM_3_200",
+      "rounds": 77
+    },
+    {
+      "month": "2022-04",
+      "model": "GBM_2_50",
+      "rounds": 142
+    },
+    {
+      "month": "2022-04",
+      "model": "GBM_2_200",
+      "rounds": 102
+    },
+    {
+      "month": "2022-04",
+      "model": "GBM_3_50",
+      "rounds": 81
+    },
+    {
+      "month": "2022-04",
+      "model": "GBM_3_200",
+      "rounds": 74
+    },
+    {
+      "month": "2022-05",
+      "model": "GBM_2_50",
+      "rounds": 179
+    },
+    {
+      "month": "2022-05",
+      "model": "GBM_2_200",
+      "rounds": 159
+    },
+    {
+      "month": "2022-05",
+      "model": "GBM_3_50",
+      "rounds": 60
+    },
+    {
+      "month": "2022-05",
+      "model": "GBM_3_200",
+      "rounds": 87
+    },
+    {
+      "month": "2022-08",
+      "model": "GBM_2_50",
+      "rounds": 83
+    },
+    {
+      "month": "2022-08",
+      "model": "GBM_2_200",
+      "rounds": 327
+    },
+    {
+      "month": "2022-08",
+      "model": "GBM_3_50",
+      "rounds": 43
+    },
+    {
+      "month": "2022-08",
+      "model": "GBM_3_200",
+      "rounds": 105
+    },
+    {
+      "month": "2022-09",
+      "model": "GBM_2_50",
+      "rounds": 316
+    },
+    {
+      "month": "2022-09",
+      "model": "GBM_2_200",
+      "rounds": 314
+    },
+    {
+      "month": "2022-09",
+      "model": "GBM_3_50",
+      "rounds": 105
+    },
+    {
+      "month": "2022-09",
+      "model": "GBM_3_200",
+      "rounds": 122
+    },
+    {
+      "month": "2022-10",
+      "model": "GBM_2_50",
+      "rounds": 159
+    },
+    {
+      "month": "2022-10",
+      "model": "GBM_2_200",
+      "rounds": 215
+    },
+    {
+      "month": "2022-10",
+      "model": "GBM_3_50",
+      "rounds": 87
+    },
+    {
+      "month": "2022-10",
+      "model": "GBM_3_200",
+      "rounds": 92
+    },
+    {
+      "month": "2022-11",
+      "model": "GBM_2_50",
+      "rounds": 216
+    },
+    {
+      "month": "2022-11",
+      "model": "GBM_2_200",
+      "rounds": 183
+    },
+    {
+      "month": "2022-11",
+      "model": "GBM_3_50",
+      "rounds": 123
+    },
+    {
+      "month": "2022-11",
+      "model": "GBM_3_200",
+      "rounds": 204
+    },
+    {
+      "month": "2022-12",
+      "model": "GBM_2_50",
+      "rounds": 128
+    },
+    {
+      "month": "2022-12",
+      "model": "GBM_2_200",
+      "rounds": 197
+    },
+    {
+      "month": "2022-12",
+      "model": "GBM_3_50",
+      "rounds": 117
+    },
+    {
+      "month": "2022-12",
+      "model": "GBM_3_200",
+      "rounds": 137
+    },
+    {
+      "month": "2023-01",
+      "model": "GBM_2_50",
+      "rounds": 209
+    },
+    {
+      "month": "2023-01",
+      "model": "GBM_2_200",
+      "rounds": 262
+    },
+    {
+      "month": "2023-01",
+      "model": "GBM_3_50",
+      "rounds": 144
+    },
+    {
+      "month": "2023-01",
+      "model": "GBM_3_200",
+      "rounds": 158
+    },
+    {
+      "month": "2023-02",
+      "model": "GBM_2_50",
+      "rounds": 199
+    },
+    {
+      "month": "2023-02",
+      "model": "GBM_2_200",
+      "rounds": 220
+    },
+    {
+      "month": "2023-02",
+      "model": "GBM_3_50",
+      "rounds": 129
+    },
+    {
+      "month": "2023-02",
+      "model": "GBM_3_200",
+      "rounds": 160
+    },
+    {
+      "month": "2023-03",
+      "model": "GBM_2_50",
+      "rounds": 175
+    },
+    {
+      "month": "2023-03",
+      "model": "GBM_2_200",
+      "rounds": 453
+    },
+    {
+      "month": "2023-03",
+      "model": "GBM_3_50",
+      "rounds": 131
+    },
+    {
+      "month": "2023-03",
+      "model": "GBM_3_200",
+      "rounds": 174
+    },
+    {
+      "month": "2023-04",
+      "model": "GBM_2_50",
+      "rounds": 197
+    },
+    {
+      "month": "2023-04",
+      "model": "GBM_2_200",
+      "rounds": 417
+    },
+    {
+      "month": "2023-04",
+      "model": "GBM_3_50",
+      "rounds": 166
+    },
+    {
+      "month": "2023-04",
+      "model": "GBM_3_200",
+      "rounds": 170
+    },
+    {
+      "month": "2023-05",
+      "model": "GBM_2_50",
+      "rounds": 256
+    },
+    {
+      "month": "2023-05",
+      "model": "GBM_2_200",
+      "rounds": 412
+    },
+    {
+      "month": "2023-05",
+      "model": "GBM_3_50",
+      "rounds": 214
+    },
+    {
+      "month": "2023-05",
+      "model": "GBM_3_200",
+      "rounds": 136
+    },
+    {
+      "month": "2023-06",
+      "model": "GBM_2_50",
+      "rounds": 362
+    },
+    {
+      "month": "2023-06",
+      "model": "GBM_2_200",
+      "rounds": 530
+    },
+    {
+      "month": "2023-06",
+      "model": "GBM_3_50",
+      "rounds": 176
+    },
+    {
+      "month": "2023-06",
+      "model": "GBM_3_200",
+      "rounds": 210
+    },
+    {
+      "month": "2023-08",
+      "model": "GBM_2_50",
+      "rounds": 291
+    },
+    {
+      "month": "2023-08",
+      "model": "GBM_2_200",
+      "rounds": 484
+    },
+    {
+      "month": "2023-08",
+      "model": "GBM_3_50",
+      "rounds": 116
+    },
+    {
+      "month": "2023-08",
+      "model": "GBM_3_200",
+      "rounds": 284
+    },
+    {
+      "month": "2023-09",
+      "model": "GBM_2_50",
+      "rounds": 308
+    },
+    {
+      "month": "2023-09",
+      "model": "GBM_2_200",
+      "rounds": 584
+    },
+    {
+      "month": "2023-09",
+      "model": "GBM_3_50",
+      "rounds": 157
+    },
+    {
+      "month": "2023-09",
+      "model": "GBM_3_200",
+      "rounds": 222
+    },
+    {
+      "month": "2023-10",
+      "model": "GBM_2_50",
+      "rounds": 262
+    },
+    {
+      "month": "2023-10",
+      "model": "GBM_2_200",
+      "rounds": 345
+    },
+    {
+      "month": "2023-10",
+      "model": "GBM_3_50",
+      "rounds": 150
+    },
+    {
+      "month": "2023-10",
+      "model": "GBM_3_200",
+      "rounds": 194
+    },
+    {
+      "month": "2023-11",
+      "model": "GBM_2_50",
+      "rounds": 234
+    },
+    {
+      "month": "2023-11",
+      "model": "GBM_2_200",
+      "rounds": 198
+    },
+    {
+      "month": "2023-11",
+      "model": "GBM_3_50",
+      "rounds": 134
+    },
+    {
+      "month": "2023-11",
+      "model": "GBM_3_200",
+      "rounds": 209
+    },
+    {
+      "month": "2023-12",
+      "model": "GBM_2_50",
+      "rounds": 234
+    },
+    {
+      "month": "2023-12",
+      "model": "GBM_2_200",
+      "rounds": 222
+    },
+    {
+      "month": "2023-12",
+      "model": "GBM_3_50",
+      "rounds": 152
+    },
+    {
+      "month": "2023-12",
+      "model": "GBM_3_200",
+      "rounds": 254
+    },
+    {
+      "month": "2024-01",
+      "model": "GBM_2_50",
+      "rounds": 232
+    },
+    {
+      "month": "2024-01",
+      "model": "GBM_2_200",
+      "rounds": 229
+    },
+    {
+      "month": "2024-01",
+      "model": "GBM_3_50",
+      "rounds": 119
+    },
+    {
+      "month": "2024-01",
+      "model": "GBM_3_200",
+      "rounds": 96
+    },
+    {
+      "month": "2024-02",
+      "model": "GBM_2_50",
+      "rounds": 209
+    },
+    {
+      "month": "2024-02",
+      "model": "GBM_2_200",
+      "rounds": 274
+    },
+    {
+      "month": "2024-02",
+      "model": "GBM_3_50",
+      "rounds": 126
+    },
+    {
+      "month": "2024-02",
+      "model": "GBM_3_200",
+      "rounds": 110
+    },
+    {
+      "month": "2024-03",
+      "model": "GBM_2_50",
+      "rounds": 236
+    },
+    {
+      "month": "2024-03",
+      "model": "GBM_2_200",
+      "rounds": 175
+    },
+    {
+      "month": "2024-03",
+      "model": "GBM_3_50",
+      "rounds": 114
+    },
+    {
+      "month": "2024-03",
+      "model": "GBM_3_200",
+      "rounds": 184
+    },
+    {
+      "month": "2024-04",
+      "model": "GBM_2_50",
+      "rounds": 251
+    },
+    {
+      "month": "2024-04",
+      "model": "GBM_2_200",
+      "rounds": 332
+    },
+    {
+      "month": "2024-04",
+      "model": "GBM_3_50",
+      "rounds": 131
+    },
+    {
+      "month": "2024-04",
+      "model": "GBM_3_200",
+      "rounds": 243
+    },
+    {
+      "month": "2024-05",
+      "model": "GBM_2_50",
+      "rounds": 231
+    },
+    {
+      "month": "2024-05",
+      "model": "GBM_2_200",
+      "rounds": 245
+    },
+    {
+      "month": "2024-05",
+      "model": "GBM_3_50",
+      "rounds": 150
+    },
+    {
+      "month": "2024-05",
+      "model": "GBM_3_200",
+      "rounds": 171
+    },
+    {
+      "month": "2024-06",
+      "model": "GBM_2_50",
+      "rounds": 186
+    },
+    {
+      "month": "2024-06",
+      "model": "GBM_2_200",
+      "rounds": 157
+    },
+    {
+      "month": "2024-06",
+      "model": "GBM_3_50",
+      "rounds": 130
+    },
+    {
+      "month": "2024-06",
+      "model": "GBM_3_200",
+      "rounds": 208
+    },
+    {
+      "month": "2024-08",
+      "model": "GBM_2_50",
+      "rounds": 208
+    },
+    {
+      "month": "2024-08",
+      "model": "GBM_2_200",
+      "rounds": 185
+    },
+    {
+      "month": "2024-08",
+      "model": "GBM_3_50",
+      "rounds": 168
+    },
+    {
+      "month": "2024-08",
+      "model": "GBM_3_200",
+      "rounds": 124
+    },
+    {
+      "month": "2024-09",
+      "model": "GBM_2_50",
+      "rounds": 243
+    },
+    {
+      "month": "2024-09",
+      "model": "GBM_2_200",
+      "rounds": 200
+    },
+    {
+      "month": "2024-09",
+      "model": "GBM_3_50",
+      "rounds": 194
+    },
+    {
+      "month": "2024-09",
+      "model": "GBM_3_200",
+      "rounds": 119
+    },
+    {
+      "month": "2024-10",
+      "model": "GBM_2_50",
+      "rounds": 218
+    },
+    {
+      "month": "2024-10",
+      "model": "GBM_2_200",
+      "rounds": 250
+    },
+    {
+      "month": "2024-10",
+      "model": "GBM_3_50",
+      "rounds": 209
+    },
+    {
+      "month": "2024-10",
+      "model": "GBM_3_200",
+      "rounds": 166
+    },
+    {
+      "month": "2024-11",
+      "model": "GBM_2_50",
+      "rounds": 274
+    },
+    {
+      "month": "2024-11",
+      "model": "GBM_2_200",
+      "rounds": 269
+    },
+    {
+      "month": "2024-11",
+      "model": "GBM_3_50",
+      "rounds": 126
+    },
+    {
+      "month": "2024-11",
+      "model": "GBM_3_200",
+      "rounds": 143
+    },
+    {
+      "month": "2024-12",
+      "model": "GBM_2_50",
+      "rounds": 162
+    },
+    {
+      "month": "2024-12",
+      "model": "GBM_2_200",
+      "rounds": 160
+    },
+    {
+      "month": "2024-12",
+      "model": "GBM_3_50",
+      "rounds": 164
+    },
+    {
+      "month": "2024-12",
+      "model": "GBM_3_200",
+      "rounds": 150
+    },
+    {
+      "month": "2025-01",
+      "model": "GBM_2_50",
+      "rounds": 175
+    },
+    {
+      "month": "2025-01",
+      "model": "GBM_2_200",
+      "rounds": 251
+    },
+    {
+      "month": "2025-01",
+      "model": "GBM_3_50",
+      "rounds": 79
+    },
+    {
+      "month": "2025-01",
+      "model": "GBM_3_200",
+      "rounds": 124
+    },
+    {
+      "month": "2025-02",
+      "model": "GBM_2_50",
+      "rounds": 212
+    },
+    {
+      "month": "2025-02",
+      "model": "GBM_2_200",
+      "rounds": 158
+    },
+    {
+      "month": "2025-02",
+      "model": "GBM_3_50",
+      "rounds": 78
+    },
+    {
+      "month": "2025-02",
+      "model": "GBM_3_200",
+      "rounds": 129
+    },
+    {
+      "month": "2025-03",
+      "model": "GBM_2_50",
+      "rounds": 221
+    },
+    {
+      "month": "2025-03",
+      "model": "GBM_2_200",
+      "rounds": 203
+    },
+    {
+      "month": "2025-03",
+      "model": "GBM_3_50",
+      "rounds": 94
+    },
+    {
+      "month": "2025-03",
+      "model": "GBM_3_200",
+      "rounds": 138
+    },
+    {
+      "month": "2025-04",
+      "model": "GBM_2_50",
+      "rounds": 171
+    },
+    {
+      "month": "2025-04",
+      "model": "GBM_2_200",
+      "rounds": 120
+    },
+    {
+      "month": "2025-04",
+      "model": "GBM_3_50",
+      "rounds": 124
+    },
+    {
+      "month": "2025-04",
+      "model": "GBM_3_200",
+      "rounds": 102
+    },
+    {
+      "month": "2025-05",
+      "model": "GBM_2_50",
+      "rounds": 111
+    },
+    {
+      "month": "2025-05",
+      "model": "GBM_2_200",
+      "rounds": 198
+    },
+    {
+      "month": "2025-05",
+      "model": "GBM_3_50",
+      "rounds": 112
+    },
+    {
+      "month": "2025-05",
+      "model": "GBM_3_200",
+      "rounds": 114
+    }
+  ]
+}

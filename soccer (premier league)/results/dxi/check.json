@@ -1,0 +1,139 @@
+{
+  "completeness": {
+    "SP1 2022-23": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "SP1 2023-24": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "SP1 2024-25": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "I1 2022-23": {
+      "finished": 381,
+      "with_player_stats": 381,
+      "share": 1.0
+    },
+    "I1 2023-24": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "I1 2024-25": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "D1 2022-23": {
+      "finished": 308,
+      "with_player_stats": 308,
+      "share": 1.0
+    },
+    "D1 2023-24": {
+      "finished": 307,
+      "with_player_stats": 307,
+      "share": 1.0
+    },
+    "D1 2024-25": {
+      "finished": 308,
+      "with_player_stats": 308,
+      "share": 1.0
+    },
+    "F1 2022-23": {
+      "finished": 380,
+      "with_player_stats": 380,
+      "share": 1.0
+    },
+    "F1 2023-24": {
+      "finished": 307,
+      "with_player_stats": 307,
+      "share": 1.0
+    },
+    "F1 2024-25": {
+      "finished": 307,
+      "with_player_stats": 307,
+      "share": 1.0
+    },
+    "N1 2022-23": {
+      "finished": 320,
+      "with_player_stats": 320,
+      "share": 1.0
+    },
+    "N1 2023-24": {
+      "finished": 320,
+      "with_player_stats": 320,
+      "share": 1.0
+    },
+    "N1 2024-25": {
+      "finished": 317,
+      "with_player_stats": 317,
+      "share": 1.0
+    },
+    "P1 2022-23": {
+      "finished": 307,
+      "with_player_stats": 307,
+      "share": 1.0
+    },
+    "P1 2023-24": {
+      "finished": 308,
+      "with_player_stats": 308,
+      "share": 1.0
+    },
+    "P1 2024-25": {
+      "finished": 308,
+      "with_player_stats": 308,
+      "share": 1.0
+    },
+    "B1 2022-23": {
+      "finished": 328,
+      "with_player_stats": 328,
+      "share": 1.0
+    },
+    "B1 2023-24": {
+      "finished": 314,
+      "with_player_stats": 310,
+      "share": 0.9873
+    },
+    "B1 2024-25": {
+      "finished": 315,
+      "with_player_stats": 315,
+      "share": 1.0
+    },
+    "SC0 2022-23": {
+      "finished": 233,
+      "with_player_stats": 228,
+      "share": 0.9785
+    },
+    "SC0 2023-24": {
+      "finished": 233,
+      "with_player_stats": 228,
+      "share": 0.9785
+    },
+    "SC0 2024-25": {
+      "finished": 234,
+      "with_player_stats": 228,
+      "share": 0.9744
+    }
+  },
+  "fields": {
+    "starters_with_stats": 169989,
+    "won_gt_total_rows": 0,
+    "positions": {
+      "M": 66188,
+      "D": 57707,
+      "F": 30636,
+      "G": 15458
+    },
+    "starter_minutes_zero_share": 0.0,
+    "possession_missing_share": 0.0032,
+    "team_duels_vs_opponent_corr (starters only)": 0.871,
+    "team_duels_won_share_mean": 0.505,
+    "note": "API-Football's duels.total counts ground and aerial duels together (no split is provided)"
+  }
+}
