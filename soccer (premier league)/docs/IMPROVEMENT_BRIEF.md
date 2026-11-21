@@ -1224,6 +1224,37 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
 - **Ledger:** both families' rows are spent. No untouched cross-league cells remain except the
   sealed holdout.
 
+### 5.34 Injuries checked; fatigue (addendum FAT) pre-registered and developed, test not yet run
+
+- **Injuries (API-Football `/injuries`):** collected for 19 leagues, 2020-21 → 2025-26 (114 requests;
+  2020-21 starts in April 2021; Portugal, Belgium and Scotland nearly empty). **Unusable as a
+  pre-match input:** the lists are reconciled after the match. Across La Liga and Serie A 2021-25,
+  3 of about 18,000 "Missing Fixture" records and 2 of about 3,500 "Questionable" records are for
+  players who started. A genuine pre-match list of doubtful players would include many starters.
+- **FAT (PREREGISTRATION addendum FAT, PR #78):** rest, 14-day load and the XI's starts in the
+  previous 7 days, counted over the league, European competitions and domestic cups. The model is
+  LIN+FAT against LIN (G's ten and league indicators). Five sealed-league cups were collected for it
+  (351 requests).
+- **Development** (`prototypes/run_fat.py dev`, `results/fat/dev.json`): eight leagues, 2021-22 →
+  2025-26, 12,730 matches.
+  - **Run condition:** league matches with lineups and shots 97-100%; counted other fixtures with
+    lineups 95-100%.
+  - **Log-loss:**
+
+    | Model | Log-loss | vs LIN |
+    |---|---|---|
+    | DC | 0.97837 | |
+    | LIN | 0.97368 | |
+    | FAT | 0.97354 | −0.00014 |
+    | F1 only | 0.97367 | about 0 |
+    | F2 only | 0.97360 | −0.00008 |
+
+  - Every model chose L2 = 100, the edge of the grid.
+  - MDE 0.00043 for an expected 15,000 test matches.
+- **Reading:** the development effect is about a third of the confirmation bar (−0.0005), so the
+  likely test outcome is "closed". The sealed test (one of three remaining slots) waits for the
+  user's go-ahead.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not

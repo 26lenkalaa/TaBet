@@ -319,7 +319,7 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
       <dl class="facts">
         <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
         <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
-        <div><dt>Last updated</dt><dd>16 November 2026</dd></div>
+        <div><dt>Last updated</dt><dd>21 November 2026</dd></div>
       </dl>
     </div>
   </div>
@@ -593,11 +593,14 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Shorter memory<span class="note">Team ratings with a 116-day half-life instead of 173</span></td><td class="num">+0.0056</td><td><span class="tag t-red">Worse</span></td></tr>
               <tr><td class="name">A neural network<span class="note">Replaces the lineup model's linear adjustment with a small neural net, same inputs, trained with early stopping</span></td><td class="num">+0.0034</td><td><span class="tag t-gray">No better</span></td></tr>
               <tr><td class="name">Re-tuning the lineup model<span class="note">27 combinations of how fast player form fades and how much to trust low-minute players</span></td><td class="num">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Defensive lineup strength<span class="note">How good the starting XI is at winning the ball back and winning duels. Four other leagues, written down before it ran</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
+              <tr><td class="name">Attacking lineup strength, other leagues<span class="note">The Premier League lineup idea, retested on four other leagues, written down before it ran</span></td><td class="num">−0.0007</td><td><span class="tag t-gray">Not confirmed</span></td></tr>
+              <tr><td class="name">Neural network with player-level inputs<span class="note">The network again, now with starting-XI player stats, on eight leagues, written down before it ran</span></td><td class="num">+0.0002</td><td><span class="tag t-gray">No better</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran.</p>
+      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran. The last three rows were tested on the Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership (2,624 and 3,109 matches), against the same model without the idea. The network ruled out any gain bigger than 0.0025.</p>
 
       <details class="acc">
         <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
@@ -607,7 +610,8 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
             <li><strong>A star signing shows up in the results anyway.</strong> The new-signing ratings did pick out the big names, such as Wirtz, Cherki and Ekitiké. But a regular starter is part of the team's usual lineup, so the lineup comparison barely moves. The team's own xG catches the improvement within a few matches.</li>
             <li><strong>Stats from the same match describe the game, not the teams.</strong> Teams that are winning stop passing and start defending, so possession looks bad and tackles look good. Only stats from earlier matches can predict anything.</li>
             <li><strong>Three promoted teams a year is too few</strong> to learn how Championship form carries over.</li>
-            <li><strong>A neural network needs careful training and more matches.</strong> Our first version, trained without early stopping, was far worse than even our simplest model. With early stopping (training stops once it stops improving on recent matches it hasn't seen), it came within 0.003 of the current model but still didn't beat it. We'll retest it on the multi-league data below.</li>
+            <li><strong>A neural network needs careful training and more matches.</strong> Our first version, trained without early stopping, was far worse than even our simplest model. With early stopping (training stops once it stops improving on recent matches it hasn't seen), it came within 0.003 of the current model but still didn't beat it. Retested on eight leagues with player-level lineup inputs (November 2026), it still matched a straight line and no more.</li>
+            <li><strong>Lineup quality is mostly already in the team ratings.</strong> Measuring how strong a starting XI is, in attack or defence, added little in other leagues. Its gain sits in matches where a team fields an unusual XI, which is also where it showed up in the Premier League.</li>
             <li><strong>Championship form says little about Premier League survival.</strong> Even learned from 13 seasons of promotions and tested on data we'd never used, it didn't reliably help. The market probably knows what results can't show: signings, managers and pre-season form.</li>
             <li><strong>The lineup model is limited by what it knows, not how it's tuned.</strong> All 27 settings scored within 0.0004 of each other. To improve it, it needs new information about players, not new settings.</li>
           </ul>
@@ -662,7 +666,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
   <section class="sec" id="neural">
     <div class="sec-head">
       <h2>Can a neural network do better?</h2>
-      <p>Not yet. With the right training it comes close, but it doesn't beat our current model.</p>
+      <p>No. With the right training it matches our current model, but on two separate tests it never beat it.</p>
     </div>
     <div class="sec-body">
       <p>Our lineup model starts from each team's strength (Dixon-Coles), then makes a small <em>straight-line</em> adjustment using chance quality and the starting XI. We replaced that adjustment with a small neural network, which can learn curved and combined effects the straight line can't. Everything else stayed the same: the same inputs, the same matches, and the same rule that a forecast only uses information from before kickoff. The network starts out as exactly Dixon-Coles and only learns corrections, so it can't do worse simply by starting badly.</p>
@@ -683,19 +687,24 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
         <li><strong>The first try overfitted.</strong> It memorised quirks of the matches it was trained on, and did worst when it had the fewest matches to learn from. An outside reviewer spotted that the training setup was part of the problem.</li>
         <li><strong>Early stopping fixed most of it.</strong> It closed about 80–90% of the gap, but the network still isn't better than the straight line.</li>
         <li><strong>How much data is enough?</strong> We trained both on 17 other leagues (shots and goals, no xG), from 2,000 up to about 36,000 matches. The network was clearly worse at 2,000, roughly level from 5,000 to 20,000, and only edged ahead (by 0.0004) at about 36,000.</li>
-        <li><strong>What's next.</strong> More data alone isn't enough: those inputs carry little extra information, so neither model has much to learn. A network is worth it only with tens of thousands of matches <em>and</em> richer inputs such as xG and lineups. For now, better inputs matter more than a bigger model.</li>
+        <li><strong>Richer inputs didn't change it.</strong> In November 2026 we gave the network (and gradient-boosted trees) player-level lineup stats on eight leagues, with everything written down before the test. Scored on 3,109 matches it was level with a straight line (+0.0002, and any gain bigger than 0.0025 ruled out). We've closed this line until a genuinely new kind of input exists, such as player-level xG.</li>
       </ul>
     </div>
   </section>
 
   <section class="sec" id="data">
     <div class="sec-head">
-      <h2>More data on the way</h2>
+      <h2>The multi-league data</h2>
       <p>Most remaining ideas need more matches than the Premier League alone can give.</p>
     </div>
     <div class="sec-body">
-      <p>Since 16 November we've been collecting matches from other leagues through API-Football: La Liga, Serie A, the Bundesliga and Ligue 1 first, then the Championship. For each match we get both teams' expected goals, the starting lineups and per-player stats such as shots, passes, tackles and duels. The free plan allows about 45 matches a day, so the four big leagues take about three months. The data is stored privately and is used for testing only, never for live forecasts.</p>
-      <p>We plan two uses for it. The first is checking whether one or two new player stats improve the lineup model; we'll choose the stats before looking at results. The second is a fair rerun of the neural network on many more matches.</p>
+      <p>In November 2026 we bought one month of API-Football's paid plan and collected about 100,000 matches: ten leagues from 2015-16 to 2025-26, the European competitions and domestic cups, and nine more leagues kept sealed. For each match we have the starting lineups and team and player stats. The data is stored privately and is used for testing only, never for live forecasts.</p>
+      <ul>
+        <li><strong>Used so far:</strong> the lineup-strength and neural-network tests above. None of them beat the simpler model.</li>
+        <li><strong>A sealed holdout.</strong> Nine leagues (Austria, Switzerland, Denmark, Greece, Turkey, and the second divisions of Italy, Germany, France and Spain) are stored but never looked at. Each one-off test written down in advance can be scored on them, at most three in total.</li>
+        <li><strong>Injury lists can't be used.</strong> We checked: they are filled in after the match (almost no player listed as missing or doubtful ever started), so using them would leak the result.</li>
+        <li><strong>Being tested now: fatigue.</strong> Our models only see league matches, so a team that played in Europe three days earlier looks rested. We've written down a test of rest, fixture congestion and how many recent starts the XI has made across all competitions. On the leagues used for tuning it helped by only 0.0001; the one-off test on the sealed leagues is next.</li>
+      </ul>
     </div>
   </section>
 
@@ -725,7 +734,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name"><a href="https://fantasy.premierleague.com/">Fantasy Premier League</a> and the <a href="https://github.com/vaastav/Fantasy-Premier-League">vaastav FPL archive</a><span class="note">Every player's minutes, starts, expected goals (xG) and expected assists (xA), match by match since 2021, plus injury and suspension flags. <strong>Used for:</strong> rating each player's attacking threat, so the lineup model (V2x) can tell how strong a particular starting XI is compared with the team's usual one; each team's chance-quality strength (V1x); and dropping unavailable players from our own projected lineups.</span></td><td><span class="tag t-green">Model input</span></td></tr>
               <tr><td class="name"><a href="https://www.fantasyfootballscout.co.uk/">Fantasy Football Scout</a> and <a href="https://www.rotowire.com/soccer/lineups.php">RotoWire</a><span class="note">Experts' predicted starting XIs, published a day or more before official team news. <strong>Used for:</strong> the live test. Each logged forecast plugs both predicted XIs into the lineup model, so we can measure whether knowing the likely lineup a day early makes forecasts better.</span></td><td><span class="tag t-blue">Live-test input</span></td></tr>
               <tr><td class="name"><a href="https://the-odds-api.com/">The Odds API</a><span class="note">Odds from about 40 bookmakers, including Pinnacle, fetched when each forecast is logged and once a day. <strong>Used for:</strong> the fair comparison with the market at the same moment ("Market at our forecast time" on the match pages) and the "Latest market odds" shown for upcoming matches. Never a model input.</span></td><td><span class="tag t-gray">Benchmark only</span></td></tr>
-              <tr><td class="name"><a href="https://www.api-football.com/">API-Football</a><span class="note">Lineups, team xG and per-player stats (shots, passes, tackles, duels) for other leagues, 2022-25, collected a little each day. <strong>Used for:</strong> testing whether new player stats improve the lineup model, and retrying the neural network on many more matches. Not used in live forecasts.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
+              <tr><td class="name"><a href="https://www.api-football.com/">API-Football</a><span class="note">Lineups, team and per-player stats (shots, passes, tackles, duels) and fixtures for 19 other leagues, the European competitions and domestic cups, 2015-16 to 2025-26. <strong>Used for:</strong> pre-registered tests of new ideas on other leagues. Not used in live forecasts.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
               <tr><td class="name"><a href="https://huggingface.co/datasets/eatpizzanot/soccer-dataset">Hugging Face soccer dataset</a><span class="note">Player match stats for the top five European leagues, 2021-25. <strong>Used for:</strong> two finished studies: rating new signings from their previous league, and testing whether recent dribbles, duels and passing predict results. Neither earned a place in the model.</span></td><td><span class="tag t-yellow">Testing only</span></td></tr>
               <tr><td class="name">Wyscout public dataset<span class="note">Every pass, shot and tackle for five leagues in 2017-18. <strong>Used for:</strong> our first prototype of rating lineups from player actions, before FPL's xG data replaced it. Pappalardo et al. (2019), <em>Scientific Data</em>, CC BY 4.0.</span></td><td><span class="tag t-gray">Early prototype</span></td></tr>
             </tbody>

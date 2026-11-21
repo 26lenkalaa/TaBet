@@ -11,7 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.resolve(here, "..", "..", "soccer (premier league)", "site", "data");
 const readJSON = async (f) => JSON.parse(await readFile(path.join(DATA, f), "utf8"));
 
-const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql"];
+const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql", "0005_awaiting_status.sql"];
 let db;
 let payload;
 
