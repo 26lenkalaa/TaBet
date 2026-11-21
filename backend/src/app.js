@@ -5,7 +5,7 @@ import express from "express";
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SEASON = /^\d{4}-\d{2}$/;
 const MATCH_ID = /^[a-z0-9-]+:\d{4}-\d{2}:[a-z0-9-]+-v-[a-z0-9-]+$/;
-const STATUSES = new Set(["upcoming", "played"]);
+const STATUSES = new Set(["upcoming", "awaiting", "played"]);
 
 export class HttpError extends Error {
   constructor(status, code, message) {
@@ -117,7 +117,7 @@ export function createApp({ repo, log = console }) {
       filters.gameweek = gw;
     }
     if (req.query.status !== undefined) {
-      if (!STATUSES.has(req.query.status)) throw bad("status must be upcoming or played");
+      if (!STATUSES.has(req.query.status)) throw bad("status must be upcoming, awaiting or played");
       filters.status = req.query.status;
     }
     if (!(await repo.competition(competition))) throw notFound(`unknown competition ${competition}`);
