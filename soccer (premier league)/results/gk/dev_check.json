@@ -1,0 +1,182 @@
+{
+  "E0 2021-22": {
+    "finished": 380,
+    "both_keepers_share": 0.8684
+  },
+  "E0 2022-23": {
+    "finished": 380,
+    "both_keepers_share": 0.8263
+  },
+  "E0 2023-24": {
+    "finished": 380,
+    "both_keepers_share": 0.8895
+  },
+  "E0 2024-25": {
+    "finished": 380,
+    "both_keepers_share": 0.8789
+  },
+  "E0 2025-26": {
+    "finished": 380,
+    "both_keepers_share": 0.8605
+  },
+  "SP1 2021-22": {
+    "finished": 380,
+    "both_keepers_share": 0.8316
+  },
+  "SP1 2022-23": {
+    "finished": 380,
+    "both_keepers_share": 0.8526
+  },
+  "SP1 2023-24": {
+    "finished": 380,
+    "both_keepers_share": 0.8447
+  },
+  "SP1 2024-25": {
+    "finished": 380,
+    "both_keepers_share": 0.8211
+  },
+  "SP1 2025-26": {
+    "finished": 380,
+    "both_keepers_share": 0.8289
+  },
+  "I1 2021-22": {
+    "finished": 380,
+    "both_keepers_share": 0.8474
+  },
+  "I1 2022-23": {
+    "finished": 381,
+    "both_keepers_share": 0.8241
+  },
+  "I1 2023-24": {
+    "finished": 380,
+    "both_keepers_share": 0.8211
+  },
+  "I1 2024-25": {
+    "finished": 380,
+    "both_keepers_share": 0.8526
+  },
+  "I1 2025-26": {
+    "finished": 380,
+    "both_keepers_share": 0.8158
+  },
+  "D1 2021-22": {
+    "finished": 308,
+    "both_keepers_share": 0.8799
+  },
+  "D1 2022-23": {
+    "finished": 308,
+    "both_keepers_share": 0.8539
+  },
+  "D1 2023-24": {
+    "finished": 307,
+    "both_keepers_share": 0.8925
+  },
+  "D1 2024-25": {
+    "finished": 308,
+    "both_keepers_share": 0.8701
+  },
+  "D1 2025-26": {
+    "finished": 307,
+    "both_keepers_share": 0.873
+  },
+  "F1 2021-22": {
+    "finished": 381,
+    "both_keepers_share": 0.8084
+  },
+  "F1 2022-23": {
+    "finished": 380,
+    "both_keepers_share": 0.8579
+  },
+  "F1 2023-24": {
+    "finished": 307,
+    "both_keepers_share": 0.8762
+  },
+  "F1 2024-25": {
+    "finished": 307,
+    "both_keepers_share": 0.8599
+  },
+  "F1 2025-26": {
+    "finished": 307,
+    "both_keepers_share": 0.8404
+  },
+  "N1 2021-22": {
+    "finished": 322,
+    "both_keepers_share": 0.8292
+  },
+  "N1 2022-23": {
+    "finished": 320,
+    "both_keepers_share": 0.8781
+  },
+  "N1 2023-24": {
+    "finished": 320,
+    "both_keepers_share": 0.8281
+  },
+  "N1 2024-25": {
+    "finished": 317,
+    "both_keepers_share": 0.8738
+  },
+  "N1 2025-26": {
+    "finished": 308,
+    "both_keepers_share": 0.9123
+  },
+  "P1 2021-22": {
+    "finished": 308,
+    "both_keepers_share": 0.8117
+  },
+  "P1 2022-23": {
+    "finished": 307,
+    "both_keepers_share": 0.8143
+  },
+  "P1 2023-24": {
+    "finished": 308,
+    "both_keepers_share": 0.8474
+  },
+  "P1 2024-25": {
+    "finished": 308,
+    "both_keepers_share": 0.8312
+  },
+  "P1 2025-26": {
+    "finished": 308,
+    "both_keepers_share": 0.8377
+  },
+  "B1 2021-22": {
+    "finished": 332,
+    "both_keepers_share": 0.8404
+  },
+  "B1 2022-23": {
+    "finished": 328,
+    "both_keepers_share": 0.8659
+  },
+  "B1 2023-24": {
+    "finished": 314,
+    "both_keepers_share": 0.9045
+  },
+  "B1 2024-25": {
+    "finished": 315,
+    "both_keepers_share": 0.8444
+  },
+  "B1 2025-26": {
+    "finished": 319,
+    "both_keepers_share": 0.8558
+  },
+  "SC0 2021-22": {
+    "finished": 233,
+    "both_keepers_share": 0.7382
+  },
+  "SC0 2022-23": {
+    "finished": 233,
+    "both_keepers_share": 0.7511
+  },
+  "SC0 2023-24": {
+    "finished": 233,
+    "both_keepers_share": 0.7854
+  },
+  "SC0 2024-25": {
+    "finished": 234,
+    "both_keepers_share": 0.7991
+  },
+  "SC0 2025-26": {
+    "finished": 234,
+    "both_keepers_share": 0.8462
+  }
+}
