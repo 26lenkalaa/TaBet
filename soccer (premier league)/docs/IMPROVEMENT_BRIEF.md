@@ -1224,7 +1224,7 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
 - **Ledger:** both families' rows are spent. No untouched cross-league cells remain except the
   sealed holdout.
 
-### 5.34 Injuries checked; fatigue (addendum FAT) pre-registered and developed, test not yet run
+### 5.34 Injuries checked; fatigue (addendum FAT): closed
 
 - **Injuries (API-Football `/injuries`):** collected for 19 leagues, 2020-21 → 2025-26 (114 requests;
   2020-21 starts in April 2021; Portugal, Belgium and Scotland nearly empty). **Unusable as a
@@ -1251,9 +1251,31 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
 
   - Every model chose L2 = 100, the edge of the grid.
   - MDE 0.00043 for an expected 15,000 test matches.
-- **Reading:** the development effect is about a third of the confirmation bar (−0.0005), so the
-  likely test outcome is "closed". The sealed test (one of three remaining slots) waits for the
-  user's go-ahead.
+- **Run condition (first test run, 2026-11-22):** nine sealed league-seasons fell short (provider
+  gaps in cup and European lineups, plus Turkey's earthquake season). The run stopped before any
+  fitting. An amendment made them history only (PREREGISTRATION, amendment to FAT); 45
+  league-seasons were scored.
+- **Test** (sealed holdout, `results/fat/results.json`): 13,826 matches, scored once.
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **FAT − LIN (primary)** | **+0.00021** | [−0.00020, +0.00063] |
+  | F1 only − LIN | +0.00020 | [−0.00004, +0.00045] |
+  | F2 only − LIN | +0.00010 | [−0.00030, +0.00050] |
+  | LIN − DC | −0.0036 | [−0.0056, −0.0016] |
+
+  - **Decision: closed.** Not confirmed, and the lower bound (−0.0002) rules out any gain larger
+    than 0.0015.
+  - **Subgroups (descriptive):** top flights +0.0004 (5,250 matches), second tiers 0.0000 (8,576);
+    "European hangover" matches +0.0010 (605).
+  - Each league lies between −0.0004 and +0.0007 (Switzerland +0.0015 on 182 matches).
+- **Reading:**
+  - All-competition rest, congestion and the XI's recent starts add nothing beyond league-only rest
+    and the lineup itself. The lineup already reflects rotation.
+  - Even matches right after a European game show no gain.
+  - G's team-form stage 2 again beats plain Dixon-Coles by about 0.0036 on fresh leagues. That is
+    the robust finding of the multi-league work.
+  - The sealed holdout has two test slots left.
 
 ## 6. Known weaknesses and open questions
 
