@@ -54,6 +54,10 @@ FINISHED = {"FT", "AET", "PEN"}
 REST_CAP, MIN_XI = 14, 10
 MIN_LEAGUE_COMPLETE, MIN_OTHER_COMPLETE = 0.95, 0.90
 EXPECTED_TEST_MATCHES = 15000
+# Amendment of 2026-11-22 (before any model was fitted): these failed the run condition (provider gaps);
+# they stay loaded as history but are never scored.
+EXCLUDED = {("SWZ", s) for s in ("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")} | {
+    ("DNK", "2020-21"), ("G1", "2024-25"), ("T1", "2022-23"), ("F2", "2025-26")}
 L2S = N.L2S
 FORM = N.FORM
 F1 = ["rest_own", "rest_opp", "load14_own", "load14_opp"]
@@ -287,8 +291,9 @@ def _rows(leagues: dict, comps: dict, tag: str, check_on: dict | None = None):
         comp = check(lt, ct, *(check_on or (leagues, DEV_SEASONS)))
         OUT.mkdir(parents=True, exist_ok=True)
         (OUT / f"{tag}_check.json").write_text(json.dumps(comp, indent=2))
-        if tag == "test" and failing(comp):
-            raise SystemExit(f"run condition not met: {failing(comp)}")
+        short = {k: v for k, v in failing(comp).items() if tuple(k.split(" ")) not in EXCLUDED}
+        if tag == "test" and short:
+            raise SystemExit(f"run condition not met: {short}")
         rows = side_rows(lt, ct, leagues)
         buf = io.BytesIO()
         rows.to_parquet(buf, index=False)
@@ -326,10 +331,11 @@ def test():
     _claim(include_test=True)
     leagues = {**DEV8, **SEALED9}
     rows, _ = _rows(leagues, {**EUROPE, **CUPS_DEV, **CUPS_SEALED}, "test", check_on=(SEALED9, TEST_SEASONS))
+    N.EXCLUDED = EXCLUDED          # walk_forward skips these when scoring (they stay as history)
     w, _ = N.walk_forward(rows, list(SEALED9.values()), TEST_SEASONS, specs(leagues, choice))
     for a, b, col in (("FAT", "LIN", "fat"), ("F1", "LIN", "f1"), ("F2", "LIN", "f2"), ("LIN", "DC", "lin_dc")):
         w[col] = w[a] - w[b]
-    res = {"addendum": "FAT", "frozen_dev_choice": {k: choice[k] for k in ("l2", "mde")},
+    res = {"addendum": "FAT", "excluded_by_amendment": sorted(" ".join(x) for x in EXCLUDED), "frozen_dev_choice": {k: choice[k] for k in ("l2", "mde")},
            "n_test_matches": int(len(w)),
            "matches_per_league_season": {f"{d} {s}": int(len(g)) for (d, s), g in w.groupby(["div", "season"])},
            "log_loss": {c: D.league_balanced(w, c) for c in ("DC", "LIN", "FAT", "F1", "F2")}}

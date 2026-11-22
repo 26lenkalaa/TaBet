@@ -640,3 +640,25 @@ on the sealed holdout. Nothing about the live Premier League model changes.
 - **Ledger:** family FAT. Rows are in this commit; the test cells are added to SEALED's closed set
   (quota 4: SEALED itself and FAT, leaving two). The script calls `tabet.ledger.claim` for every role
   before loading data.
+
+## Amendment to FAT (2026-11-22, before any model was fitted or any test result seen): nine sealed league-seasons excluded
+
+The test phase's run condition stopped the first test run before any model was fitted
+(`results/fat/test_check.json`). Nine of the 54 scored league-seasons fell short:
+
+| League-season | Shortfall |
+|---|---|
+| SWZ 2021-22 → 2025-26 | Lineups for 76-85% of counted cup and European fixtures |
+| DNK 2020-21 | 66% |
+| G1 2024-25 | 88% |
+| F2 2025-26 | 41% (cups only) |
+| T1 2022-23 | League matches with lineups and shots 91.8%: the earthquake season |
+
+Counting only the league's own team's lineup, rather than both teams', changes none of these
+(checked on completeness alone). The gaps are the provider's, so re-fetching cannot close them.
+
+- **Change:** these nine league-seasons are never scored. They stay loaded as history (ratings, rest
+  and starts for later matches). All nine leagues remain equally weighted test leagues. Switzerland
+  is scored on 2020-21 only, as Belgium was in NLX.
+- **Basis:** only the completeness check, which reads no results or forecasts. Nothing else changes:
+  the frozen development choices, the primary, the thresholds and the inference.
