@@ -1,5 +1,5 @@
 {
- "rule": "10% of the bankroll on the most likely result, Pinnacle pre-closing price (else the bookmaker average), $100 at the start of each season",
+ "rule": "10% of the bankroll a bet, Pinnacle pre-closing price (else the bookmaker average), $100 at the start of each season; favourite = the model's most likely result, value = the result with the largest positive expected value by the model",
  "seasons": [
   "2022-23",
   "2023-24",
@@ -7,7 +7,7 @@
   "2025-26",
   "2026-27"
  ],
- "models": {
+ "favourite": {
   "V0: results only": {
    "2022-23": {
     "bankroll": 10.98,
@@ -17,7 +17,13 @@
     "roi": -0.0905,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 4.32
+    "lowest": 4.32,
+    "picks": {
+     "H": 251,
+     "D": 0,
+     "A": 129
+    },
+    "flat_roi": -0.0114
    },
    "2023-24": {
     "bankroll": 35.63,
@@ -27,7 +33,13 @@
     "roi": -0.0197,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 27.48
+    "lowest": 27.48,
+    "picks": {
+     "H": 245,
+     "D": 0,
+     "A": 135
+    },
+    "flat_roi": 0.0171
    },
    "2024-25": {
     "bankroll": 0.74,
@@ -37,7 +49,13 @@
     "roi": -0.0651,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 0.67
+    "lowest": 0.67,
+    "picks": {
+     "H": 230,
+     "D": 0,
+     "A": 150
+    },
+    "flat_roi": -0.0801
    },
    "2025-26": {
     "bankroll": 0.09,
@@ -47,7 +65,13 @@
     "roi": -0.0578,
     "n_pinnacle": 210,
     "n_average": 170,
-    "lowest": 0.09
+    "lowest": 0.09,
+    "picks": {
+     "H": 237,
+     "D": 0,
+     "A": 143
+    },
+    "flat_roi": -0.1219
    },
    "2026-27": {
     "bankroll": 12.94,
@@ -57,7 +81,13 @@
     "roi": -0.154,
     "n_pinnacle": 0,
     "n_average": 90,
-    "lowest": 12.69
+    "lowest": 12.69,
+    "picks": {
+     "H": 57,
+     "D": 0,
+     "A": 33
+    },
+    "flat_roi": -0.1304
    }
   },
   "V1x: chances created": {
@@ -69,7 +99,13 @@
     "roi": -0.0935,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 4.32
+    "lowest": 4.32,
+    "picks": {
+     "H": 252,
+     "D": 0,
+     "A": 128
+    },
+    "flat_roi": -0.0172
    },
    "2023-24": {
     "bankroll": 40.57,
@@ -79,7 +115,13 @@
     "roi": -0.0196,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 18.01
+    "lowest": 18.01,
+    "picks": {
+     "H": 244,
+     "D": 0,
+     "A": 136
+    },
+    "flat_roi": 0.0228
    },
    "2024-25": {
     "bankroll": 0.91,
@@ -89,7 +131,13 @@
     "roi": -0.069,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 0.82
+    "lowest": 0.82,
+    "picks": {
+     "H": 229,
+     "D": 0,
+     "A": 151
+    },
+    "flat_roi": -0.074
    },
    "2025-26": {
     "bankroll": 0.26,
@@ -99,7 +147,13 @@
     "roi": -0.037,
     "n_pinnacle": 210,
     "n_average": 170,
-    "lowest": 0.26
+    "lowest": 0.26,
+    "picks": {
+     "H": 237,
+     "D": 0,
+     "A": 143
+    },
+    "flat_roi": -0.0978
    },
    "2026-27": {
     "bankroll": 12.94,
@@ -109,7 +163,13 @@
     "roi": -0.154,
     "n_pinnacle": 0,
     "n_average": 90,
-    "lowest": 12.69
+    "lowest": 12.69,
+    "picks": {
+     "H": 56,
+     "D": 0,
+     "A": 34
+    },
+    "flat_roi": -0.1304
    }
   },
   "V2x: lineups": {
@@ -121,7 +181,13 @@
     "roi": -0.0905,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 4.32
+    "lowest": 4.32,
+    "picks": {
+     "H": 251,
+     "D": 0,
+     "A": 129
+    },
+    "flat_roi": -0.0114
    },
    "2023-24": {
     "bankroll": 22.74,
@@ -131,7 +197,13 @@
     "roi": -0.0278,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 10.11
+    "lowest": 10.11,
+    "picks": {
+     "H": 244,
+     "D": 0,
+     "A": 136
+    },
+    "flat_roi": 0.0104
    },
    "2024-25": {
     "bankroll": 3.69,
@@ -141,7 +213,13 @@
     "roi": -0.0872,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 2.8
+    "lowest": 2.8,
+    "picks": {
+     "H": 227,
+     "D": 0,
+     "A": 153
+    },
+    "flat_roi": -0.039
    },
    "2025-26": {
     "bankroll": 0.12,
@@ -151,7 +229,13 @@
     "roi": -0.0402,
     "n_pinnacle": 210,
     "n_average": 170,
-    "lowest": 0.12
+    "lowest": 0.12,
+    "picks": {
+     "H": 241,
+     "D": 1,
+     "A": 138
+    },
+    "flat_roi": -0.1041
    },
    "2026-27": {
     "bankroll": 7.63,
@@ -161,7 +245,13 @@
     "roi": -0.1762,
     "n_pinnacle": 0,
     "n_average": 90,
-    "lowest": 5.95
+    "lowest": 5.95,
+    "picks": {
+     "H": 59,
+     "D": 0,
+     "A": 31
+    },
+    "flat_roi": -0.1621
    }
   },
   "Market favourite (baseline)": {
@@ -173,7 +263,13 @@
     "roi": -0.0369,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 10.1
+    "lowest": 10.1,
+    "picks": {
+     "H": 239,
+     "D": 0,
+     "A": 141
+    },
+    "flat_roi": 0.0231
    },
    "2023-24": {
     "bankroll": 29.1,
@@ -183,7 +279,13 @@
     "roi": -0.0395,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 5.8
+    "lowest": 5.8,
+    "picks": {
+     "H": 230,
+     "D": 0,
+     "A": 150
+    },
+    "flat_roi": 0.0143
    },
    "2024-25": {
     "bankroll": 3.4,
@@ -193,7 +295,13 @@
     "roi": -0.0804,
     "n_pinnacle": 380,
     "n_average": 0,
-    "lowest": 1.1
+    "lowest": 1.1,
+    "picks": {
+     "H": 243,
+     "D": 0,
+     "A": 137
+    },
+    "flat_roi": -0.0404
    },
    "2025-26": {
     "bankroll": 0.36,
@@ -203,7 +311,13 @@
     "roi": -0.0925,
     "n_pinnacle": 210,
     "n_average": 170,
-    "lowest": 0.26
+    "lowest": 0.26,
+    "picks": {
+     "H": 243,
+     "D": 0,
+     "A": 137
+    },
+    "flat_roi": -0.0898
    },
    "2026-27": {
     "bankroll": 15.32,
@@ -213,7 +327,261 @@
     "roi": -0.2117,
     "n_pinnacle": 0,
     "n_average": 90,
-    "lowest": 14.79
+    "lowest": 14.79,
+    "picks": {
+     "H": 58,
+     "D": 0,
+     "A": 32
+    },
+    "flat_roi": -0.1217
+   }
+  }
+ },
+ "value": {
+  "V0: results only": {
+   "2022-23": {
+    "bankroll": 1.06,
+    "n_settled": 368,
+    "n_won": 111,
+    "staked": 824.72,
+    "roi": -0.12,
+    "n_pinnacle": 368,
+    "n_average": 0,
+    "lowest": 1.06,
+    "picks": {
+     "H": 183,
+     "D": 18,
+     "A": 167
+    },
+    "flat_roi": 0.0542
+   },
+   "2023-24": {
+    "bankroll": 0.05,
+    "n_settled": 362,
+    "n_won": 90,
+    "staked": 335.1,
+    "roi": -0.2983,
+    "n_pinnacle": 362,
+    "n_average": 0,
+    "lowest": 0.05,
+    "picks": {
+     "H": 173,
+     "D": 9,
+     "A": 180
+    },
+    "flat_roi": -0.1989
+   },
+   "2024-25": {
+    "bankroll": 0.05,
+    "n_settled": 357,
+    "n_won": 106,
+    "staked": 257.15,
+    "roi": -0.3887,
+    "n_pinnacle": 357,
+    "n_average": 0,
+    "lowest": 0.05,
+    "picks": {
+     "H": 102,
+     "D": 48,
+     "A": 207
+    },
+    "flat_roi": -0.0343
+   },
+   "2025-26": {
+    "bankroll": 0.04,
+    "n_settled": 345,
+    "n_won": 91,
+    "staked": 669.77,
+    "roi": -0.1492,
+    "n_pinnacle": 200,
+    "n_average": 145,
+    "lowest": 0.04,
+    "picks": {
+     "H": 111,
+     "D": 66,
+     "A": 168
+    },
+    "flat_roi": -0.0908
+   },
+   "2026-27": {
+    "bankroll": 4.41,
+    "n_settled": 72,
+    "n_won": 16,
+    "staked": 306.03,
+    "roi": -0.3124,
+    "n_pinnacle": 0,
+    "n_average": 72,
+    "lowest": 2.32,
+    "picks": {
+     "H": 30,
+     "D": 18,
+     "A": 24
+    },
+    "flat_roi": -0.2689
+   }
+  },
+  "V1x: chances created": {
+   "2022-23": {
+    "bankroll": 0.85,
+    "n_settled": 371,
+    "n_won": 113,
+    "staked": 827.74,
+    "roi": -0.1198,
+    "n_pinnacle": 371,
+    "n_average": 0,
+    "lowest": 0.85,
+    "picks": {
+     "H": 188,
+     "D": 19,
+     "A": 164
+    },
+    "flat_roi": 0.0518
+   },
+   "2023-24": {
+    "bankroll": 0.03,
+    "n_settled": 358,
+    "n_won": 105,
+    "staked": 475.07,
+    "roi": -0.2104,
+    "n_pinnacle": 358,
+    "n_average": 0,
+    "lowest": 0.03,
+    "picks": {
+     "H": 168,
+     "D": 10,
+     "A": 180
+    },
+    "flat_roi": -0.132
+   },
+   "2024-25": {
+    "bankroll": 0.19,
+    "n_settled": 353,
+    "n_won": 120,
+    "staked": 194.39,
+    "roi": -0.5135,
+    "n_pinnacle": 353,
+    "n_average": 0,
+    "lowest": 0.1,
+    "picks": {
+     "H": 107,
+     "D": 42,
+     "A": 204
+    },
+    "flat_roi": -0.0163
+   },
+   "2025-26": {
+    "bankroll": 0.05,
+    "n_settled": 336,
+    "n_won": 93,
+    "staked": 686.23,
+    "roi": -0.1457,
+    "n_pinnacle": 192,
+    "n_average": 144,
+    "lowest": 0.05,
+    "picks": {
+     "H": 104,
+     "D": 74,
+     "A": 158
+    },
+    "flat_roi": -0.0808
+   },
+   "2026-27": {
+    "bankroll": 7.39,
+    "n_settled": 67,
+    "n_won": 16,
+    "staked": 313.02,
+    "roi": -0.2959,
+    "n_pinnacle": 0,
+    "n_average": 67,
+    "lowest": 3.46,
+    "picks": {
+     "H": 26,
+     "D": 17,
+     "A": 24
+    },
+    "flat_roi": -0.2143
+   }
+  },
+  "V2x: lineups": {
+   "2022-23": {
+    "bankroll": 0.74,
+    "n_settled": 371,
+    "n_won": 112,
+    "staked": 825.39,
+    "roi": -0.1203,
+    "n_pinnacle": 371,
+    "n_average": 0,
+    "lowest": 0.74,
+    "picks": {
+     "H": 188,
+     "D": 18,
+     "A": 165
+    },
+    "flat_roi": 0.0476
+   },
+   "2023-24": {
+    "bankroll": 0.03,
+    "n_settled": 359,
+    "n_won": 99,
+    "staked": 436.31,
+    "roi": -0.2291,
+    "n_pinnacle": 359,
+    "n_average": 0,
+    "lowest": 0.03,
+    "picks": {
+     "H": 179,
+     "D": 9,
+     "A": 171
+    },
+    "flat_roi": -0.2048
+   },
+   "2024-25": {
+    "bankroll": 4.31,
+    "n_settled": 349,
+    "n_won": 123,
+    "staked": 350.14,
+    "roi": -0.2733,
+    "n_pinnacle": 349,
+    "n_average": 0,
+    "lowest": 0.81,
+    "picks": {
+     "H": 105,
+     "D": 36,
+     "A": 208
+    },
+    "flat_roi": 0.0511
+   },
+   "2025-26": {
+    "bankroll": 0.39,
+    "n_settled": 333,
+    "n_won": 96,
+    "staked": 487.44,
+    "roi": -0.2044,
+    "n_pinnacle": 194,
+    "n_average": 139,
+    "lowest": 0.08,
+    "picks": {
+     "H": 114,
+     "D": 67,
+     "A": 152
+    },
+    "flat_roi": -0.0517
+   },
+   "2026-27": {
+    "bankroll": 25.65,
+    "n_settled": 74,
+    "n_won": 22,
+    "staked": 637.95,
+    "roi": -0.1165,
+    "n_pinnacle": 0,
+    "n_average": 74,
+    "lowest": 24.17,
+    "picks": {
+     "H": 29,
+     "D": 20,
+     "A": 25
+    },
+    "flat_roi": -0.0691
    }
   }
  }

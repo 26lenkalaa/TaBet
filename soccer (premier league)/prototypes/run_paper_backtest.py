@@ -9,7 +9,10 @@ Descriptive only. Fixed before running:
   * price: Pinnacle's pre-closing decimal odds from football-data (PSH/PSD/PSA, collected Friday or
     Tuesday afternoon), margin included; where football-data has no Pinnacle price (from mid-2025-26),
     the bookmaker average (AvgH/AvgD/AvgA), also with its margin. The counts of each are reported;
-  * baseline: always back the market favourite (the shortest of the same prices), same staking.
+  * baseline: always back the market favourite (the shortest of the same prices), same staking;
+  * value rule (added 2026-11-22, same prices and staking): bet only on a result whose model chance
+    times the price exceeds 1 (positive expected value by the model), choosing the largest such edge;
+    no such result, no bet.
 V2x's forecasts use the confirmed lineups, so they come later than the price they are paired with.
 """
 from __future__ import annotations
@@ -44,14 +47,34 @@ def prices(odds: pd.DataFrame) -> dict[str, tuple[list[float], str]]:
     return out
 
 
+def pick(rule: str, p: list[float], odds: list[float]) -> int | None:
+    if rule == "favourite":
+        return int(np.argmax(p))
+    ev = [p[k] * odds[k] - 1 for k in range(3)]
+    k = int(np.argmax(ev))
+    return k if ev[k] > 0 else None
+
+
 def run() -> dict:
     matches, odds = load_all(ROOT / "res")
     price = prices(odds)
     led = pd.read_csv(ROOT / "results" / "xg_strength" / "ledger.csv")
     led = led[led["season"].isin(SEASONS)]
+    out = {}
+    for rule in ("favourite", "value"):
+        out[rule] = table(led, price, rule)
+    data = {"rule": "10% of the bankroll a bet, Pinnacle pre-closing price (else the bookmaker average), "
+                    "$100 at the start of each season; favourite = the model's most likely result, value = "
+                    "the result with the largest positive expected value by the model", "seasons": SEASONS, **out}
+    OUT.write_text(json.dumps(data, indent=1) + "\n")
+    return data
+
+
+def table(led, price, rule) -> dict:
     rows = {}
     base = led[led["variant"] == "V0 Dixon-Coles"].drop_duplicates("match_id")
-    for name, label in list(MODELS.items()) + [("market", "Market favourite (baseline)")]:
+    extra = [("market", "Market favourite (baseline)")] if rule == "favourite" else []
+    for name, label in list(MODELS.items()) + extra:
         src = base if name == "market" else led[led["variant"] == name].drop_duplicates("match_id")
         per = {}
         for season, g in src.groupby("season"):
@@ -63,7 +86,9 @@ def run() -> dict:
                 if name == "market":
                     i = int(np.argmin(pr[0]))
                 else:
-                    i = int(np.argmax([r.p_home, r.p_draw, r.p_away]))
+                    i = pick(rule, [r.p_home, r.p_draw, r.p_away], pr[0])
+                    if i is None:
+                        continue
                 bets.append({"fixture": r.match_id, "logged": r.cutoff_utc, "kickoff": r.kickoff_utc, "pick": PICK[i],
                              "odds": pr[0], "result": r.result, "price": pr[1]})
             s = settle(bets)
@@ -71,17 +96,17 @@ def run() -> dict:
             per[season]["n_pinnacle"] = sum(b["price"] == "pinnacle" for b in bets)
             per[season]["n_average"] = sum(b["price"] == "average" for b in bets)
             per[season]["lowest"] = round(min([100.0] + list(np.cumsum([b["pnl"] for b in s["bets"] if b["pnl"] is not None]) + 100.0)), 2)
+            per[season]["picks"] = {k: sum(b["pick"] == k for b in bets) for k in PICK}
+            flat = [(b["odds"][PICK.index(b["pick"])] - 1) if b["result"] == b["pick"] else -1.0 for b in bets]
+            per[season]["flat_roi"] = round(float(np.mean(flat)), 4) if flat else None   # $1 on every bet
         rows[label] = per
-    data = {"rule": "10% of the bankroll on the most likely result, Pinnacle pre-closing price (else the bookmaker average), "
-                    "$100 at the start of each season", "seasons": SEASONS, "models": rows}
-    OUT.write_text(json.dumps(data, indent=1) + "\n")
-    return data
+    return rows
 
 
 if __name__ == "__main__":
     d = run()
-    for label, per in d["models"].items():
+    for label, per in [(f"{r}: {k}", v) for r in ("favourite", "value") for k, v in d[r].items()]:
         print(label)
         for s, v in per.items():
-            print(f"  {s}: ${v['bankroll']:>8.2f}  won {v['n_won']}/{v['n_settled']}  roi {v['roi']:+.3f}  low ${v['lowest']}  "
-                  f"(Pinnacle {v['n_pinnacle']}, average {v['n_average']})")
+            print(f"  {s}: ${v['bankroll']:>8.2f}  won {v['n_won']}/{v['n_settled']}  roi {v['roi']:+.3f} flat {v['flat_roi']:+.3f}  low ${v['lowest']}  "
+                  f"(Pinnacle {v['n_pinnacle']}, average {v['n_average']}) picks {v['picks']}")
