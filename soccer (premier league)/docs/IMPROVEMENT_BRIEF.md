@@ -1312,6 +1312,30 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     is development data. Any adoption would need a frozen prospective comparison.
   - The sealed holdout has one test slot left.
 
+### 5.36 Lineup accuracy, manager data, and new-manager shifts (addendum MGR): withdrawn after development
+
+- **Lineup accuracy** (`prototypes/lineup_accuracy.py`, descriptive, GW10–11):
+  - Predicted starters who started, out of 11: RotoWire 9.25, FFS 9.1, FPL's projection 8.1, our
+    history-only projection 7.7.
+  - From 96 h before kickoff, accuracy is flat at about 9.4–9.5, so earlier logging costs little.
+  - Most misses are shared: when FFS and RotoWire agree, 12% of those players still do not start.
+  - The open lever is a probability that each player starts, rather than a single XI. It cannot
+    change this season's frozen pE.
+- **Manager data:**
+  - Wikipedia's "Managerial changes" tables, loaded into Supabase table `manager_changes`
+    (`tabet/managers.py`; migration 0006; private): 1,885 changes in our ten leagues, 2015–27.
+  - The sealed leagues are stored without result-derived columns.
+  - Names are matched to API-Football ids for 99% of rows.
+- **MGR (F5):** Dixon-Coles with per-appointment attack and defence shifts, learnt only from matches
+  under the new manager and shrunk toward 0.
+  - On development (nine leagues, 2016-26, the 8,919 matches in a team's first 10 after an
+    appointment), every setting was worse than LO. The best, the strongest shrinkage, was +0.0008;
+    weaker shrinkage was up to +0.040. E0 was +0.0010.
+  - **Withdrawn before its test** (amendment), so the sealed holdout's last slot stays free.
+  - **Reading:** a handful of matches under a new manager is mostly noise, the same lesson as the
+    shorter half-life (§5.18). The "new manager bounce" looks like regression to the mean, which
+    the ratings already handle.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not

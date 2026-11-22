@@ -58,4 +58,4 @@ def test_the_real_ledger_parses_and_is_consistent():
     assert not led.duplicated(["division", "season", "family", "role"]).any()
     # the live test is the only reserved test set until a new pre-registration adds one
     reserved_tests = led[(led.role == "test") & (led.status == "reserved")]
-    assert set(reserved_tests.family) <= {"live", "G", "DXI", "NLX", "XIA", "SEALED", "FAT", "XC", "MGR"}
+    assert set(reserved_tests.family) <= {"live", "G", "DXI", "NLX", "XIA", "SEALED", "FAT", "XC"}
