@@ -1,0 +1,272 @@
+{
+  "AUT 2020-21": {
+    "finished": 197,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "AUT 2021-22": {
+    "finished": 195,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "AUT 2022-23": {
+    "finished": 194,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "AUT 2023-24": {
+    "finished": 195,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "AUT 2024-25": {
+    "finished": 195,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "AUT 2025-26": {
+    "finished": 195,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9548
+  },
+  "SWZ 2020-21": {
+    "finished": 182,
+    "keepers_identified_share": 0.989,
+    "league_lines_complete": 0.9485
+  },
+  "SWZ 2021-22": {
+    "finished": 182,
+    "keepers_identified_share": 0.989,
+    "league_lines_complete": 0.9485
+  },
+  "SWZ 2022-23": {
+    "finished": 182,
+    "keepers_identified_share": 0.9835,
+    "league_lines_complete": 0.9485
+  },
+  "SWZ 2023-24": {
+    "finished": 230,
+    "keepers_identified_share": 0.9913,
+    "league_lines_complete": 0.9485
+  },
+  "SWZ 2024-25": {
+    "finished": 230,
+    "keepers_identified_share": 0.9913,
+    "league_lines_complete": 0.9485
+  },
+  "SWZ 2025-26": {
+    "finished": 229,
+    "keepers_identified_share": 0.9956,
+    "league_lines_complete": 0.9485
+  },
+  "DNK 2020-21": {
+    "finished": 192,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.951
+  },
+  "DNK 2021-22": {
+    "finished": 192,
+    "keepers_identified_share": 0.9948,
+    "league_lines_complete": 0.951
+  },
+  "DNK 2022-23": {
+    "finished": 193,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.951
+  },
+  "DNK 2023-24": {
+    "finished": 193,
+    "keepers_identified_share": 0.9948,
+    "league_lines_complete": 0.951
+  },
+  "DNK 2024-25": {
+    "finished": 193,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.951
+  },
+  "DNK 2025-26": {
+    "finished": 192,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.951
+  },
+  "G1 2020-21": {
+    "finished": 242,
+    "keepers_identified_share": 0.0,
+    "league_lines_complete": 0.8948
+  },
+  "G1 2021-22": {
+    "finished": 242,
+    "keepers_identified_share": 0.0,
+    "league_lines_complete": 0.8948
+  },
+  "G1 2022-23": {
+    "finished": 240,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.8948
+  },
+  "G1 2023-24": {
+    "finished": 240,
+    "keepers_identified_share": 0.9958,
+    "league_lines_complete": 0.8948
+  },
+  "G1 2024-25": {
+    "finished": 236,
+    "keepers_identified_share": 0.9873,
+    "league_lines_complete": 0.8948
+  },
+  "G1 2025-26": {
+    "finished": 236,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.8948
+  },
+  "T1 2020-21": {
+    "finished": 420,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9557
+  },
+  "T1 2021-22": {
+    "finished": 380,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9557
+  },
+  "T1 2022-23": {
+    "finished": 341,
+    "keepers_identified_share": 0.9179,
+    "league_lines_complete": 0.9557
+  },
+  "T1 2023-24": {
+    "finished": 380,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9557
+  },
+  "T1 2024-25": {
+    "finished": 342,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9557
+  },
+  "T1 2025-26": {
+    "finished": 306,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9557
+  },
+  "I2 2020-21": {
+    "finished": 387,
+    "keepers_identified_share": 0.9974,
+    "league_lines_complete": 0.9366
+  },
+  "I2 2021-22": {
+    "finished": 388,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9366
+  },
+  "I2 2022-23": {
+    "finished": 390,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9366
+  },
+  "I2 2023-24": {
+    "finished": 389,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9366
+  },
+  "I2 2024-25": {
+    "finished": 389,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9366
+  },
+  "I2 2025-26": {
+    "finished": 390,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9366
+  },
+  "D2 2020-21": {
+    "finished": 308,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9612
+  },
+  "D2 2021-22": {
+    "finished": 308,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9612
+  },
+  "D2 2022-23": {
+    "finished": 308,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9612
+  },
+  "D2 2023-24": {
+    "finished": 308,
+    "keepers_identified_share": 0.9968,
+    "league_lines_complete": 0.9612
+  },
+  "D2 2024-25": {
+    "finished": 307,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9612
+  },
+  "D2 2025-26": {
+    "finished": 308,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9612
+  },
+  "F2 2020-21": {
+    "finished": 384,
+    "keepers_identified_share": 0.9974,
+    "league_lines_complete": 0.9456
+  },
+  "F2 2021-22": {
+    "finished": 383,
+    "keepers_identified_share": 0.9974,
+    "league_lines_complete": 0.9456
+  },
+  "F2 2022-23": {
+    "finished": 379,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9456
+  },
+  "F2 2023-24": {
+    "finished": 381,
+    "keepers_identified_share": 0.9974,
+    "league_lines_complete": 0.9456
+  },
+  "F2 2024-25": {
+    "finished": 310,
+    "keepers_identified_share": 0.9935,
+    "league_lines_complete": 0.9456
+  },
+  "F2 2025-26": {
+    "finished": 308,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9456
+  },
+  "SP2 2020-21": {
+    "finished": 468,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  },
+  "SP2 2021-22": {
+    "finished": 468,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  },
+  "SP2 2022-23": {
+    "finished": 468,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  },
+  "SP2 2023-24": {
+    "finished": 468,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  },
+  "SP2 2024-25": {
+    "finished": 467,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  },
+  "SP2 2025-26": {
+    "finished": 468,
+    "keepers_identified_share": 1.0,
+    "league_lines_complete": 0.9484
+  }
+}

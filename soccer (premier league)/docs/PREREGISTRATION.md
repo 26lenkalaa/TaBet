@@ -934,3 +934,37 @@ keeper, improve the linear stage 2. Nothing about the live Premier League model 
   - each league; each season;
   - the development E0 result (development data).
 - **Ledger:** family GK, rows in this commit.
+
+## Amendment to GK (2026-11-22, before any model was fitted or any test result seen): the run condition measures what the model uses
+
+The first test run stopped at the run condition (`results/gk/test_check.json`). Every scored
+league-season had both keepers' saves and goals conceded recorded for the current match in only
+78–92% of matches. The development leagues show the same, at 74–91% (`results/gk/dev_check.json`);
+that check was set at 95% without being compared with the development data.
+
+The model never uses the current match's keeper statistics. Its inputs are the starting keeper's
+identity and his earlier matches' lines, and a line without a saves count is skipped. On those terms
+(counts only, no values read):
+
+| What the model needs | Sealed leagues |
+|---|---|
+| Both starting keepers identified | 99.9–100% of finished league matches, in every league |
+| Keeper lines (≥ 45 minutes) with saves and conceded recorded | 89.5–96% |
+
+The development leagues are similar (La Liga 95%).
+
+- **Change:** the run condition becomes, per scored league-season:
+  - both starting keepers identified in at least 95% of finished league matches;
+  - at least 85% of that league's keeper lines (≥ 45 minutes) complete.
+- **Nothing else changes:** the frozen choices (k = 20, L2 = 100), the model, the primary, the
+  thresholds and the inference.
+
+## Second amendment to GK (2026-11-22, before any model was fitted or any test result seen): Süper Lig 2022-23 excluded
+
+Under the amended run condition, one league-season failed: T1 2022-23, with both starting keepers
+identified in 91.8% of finished league matches (`results/gk/test_check.json`). That is the
+earthquake season, which addendum FAT's run condition also failed (lineups). Every other scored
+league-season passes.
+
+- **Change:** T1 2022-23 is history only, never scored, as FAT treated it. Turkey remains one of
+  the nine equally weighted test leagues. Nothing else changes.
