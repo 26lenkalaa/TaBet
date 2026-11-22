@@ -168,38 +168,66 @@ def _ctx():
         return ssl.create_default_context()
 
 
+class RateLimited(RuntimeError):
+    """Wikipedia kept refusing (429/503) after every retry: stop rather than record a gap."""
+
+
+CACHE = Path.home() / ".cache" / "tabet" / "managers"   # parsed rows per article, so a rerun resumes
+
+
 def fetch_html(title: str) -> str | None:
+    """One article's HTML via the MediaWiki API; None if it does not exist. Honours Retry-After."""
     q = urllib.parse.urlencode({"action": "parse", "page": title, "prop": "text", "format": "json",
-                                "formatversion": 2, "redirects": 1})
+                                "formatversion": 2, "redirects": 1, "maxlag": 5})
     req = urllib.request.Request(f"{API}?{q}", headers={"User-Agent": AGENT})
-    for attempt in range(4):
+    for attempt in range(7):
         try:
             body = json.load(urllib.request.urlopen(req, timeout=60, context=_ctx()))
+            if (body.get("error") or {}).get("code") == "maxlag":
+                time.sleep(10)
+                continue
             return (body.get("parse") or {}).get("text")     # None when the article does not exist
         except urllib.error.HTTPError as e:
-            if e.code not in (429, 503) or attempt == 3:
+            if e.code not in (429, 503):
                 raise
-            time.sleep(5 * 2 ** attempt)
-    return None
+            wait = e.headers.get("Retry-After") if e.headers else None
+            time.sleep(min(300.0, float(wait) if wait and wait.isdigit() else 15.0 * 2 ** attempt))
+    raise RateLimited(title)
 
 
-def build(leagues=LEAGUES, seasons=SEASONS, fetch=fetch_html, pause: float = 1.0) -> pd.DataFrame:
+def build(leagues=LEAGUES, seasons=SEASONS, fetch=fetch_html, pause: float = 3.0, cache: Path | None = None,
+          sealed: bool = False) -> pd.DataFrame:
+    """All leagues and seasons. Each article's parsed rows are cached (sealed ones without the
+    result-derived columns), so a run stopped by rate limits resumes where it stopped."""
     rows, missing = [], []
+    total, k = len(leagues) * len(seasons), 0
     for code, names in leagues.items():
         for s in seasons:
-            got = []
-            for name in names:
-                try:
+            k += 1
+            f = cache / f"{code}_{s}.json" if cache else None
+            if f is not None and f.exists():
+                got = json.loads(f.read_text())
+                for r in got:
+                    for c in ("vacancy_date", "appointment_date"):
+                        r[c] = pd.Timestamp(r[c]) if r[c] else None
+            else:
+                got = []
+                for name in names:
                     html = fetch(f"{s} {name}")
-                except Exception:
-                    html = None
-                time.sleep(pause)
-                got = changes_from_html(html, code, s) if html else []
-                if got:
-                    break
+                    time.sleep(pause)
+                    got = changes_from_html(html, code, s) if html else []
+                    if got:
+                        break
+                if sealed:
+                    for r in got:
+                        r["manner"], r["position"] = "", ""
+                if f is not None:
+                    f.parent.mkdir(parents=True, exist_ok=True)
+                    f.write_text(json.dumps(got, default=lambda x: x.isoformat() if hasattr(x, "isoformat") else None))
             if not got:
                 missing.append(f"{s} {names[0]}")
             rows += got
+            print(f"  {k}/{total} {code} {s}: {len(got)}", flush=True) if not sealed else print(f"  {k}/{total}", flush=True)
     df = pd.DataFrame(rows)
     df.attrs["missing"] = missing
     return df
@@ -242,12 +270,12 @@ def main(argv=None) -> int:
     ap.add_argument("--sealed", action="store_true", help="the sealed holdout's leagues (addendum MGR): counts only")
     a = ap.parse_args(argv)
     if a.sealed:
-        df = build(SEALED_LEAGUES, SEALED_SEASONS)
+        df = build(SEALED_LEAGUES, SEALED_SEASONS, cache=CACHE / "sealed", sealed=True)
         n = upload(to_rows(df, sealed=True))
         print(json.dumps({"rows_upserted": n, "by_league": df.groupby("league").size().to_dict() if len(df) else {},
                           "articles_without_a_table": len(df.attrs.get("missing", []))}, indent=1))
         return 0
-    df = build()
+    df = build(cache=CACHE / "ours")
     rows = to_rows(df)
     n = upload(rows)
     if a.csv:
