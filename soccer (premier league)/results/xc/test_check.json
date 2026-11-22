@@ -1,0 +1,326 @@
+{
+  "AUT 2020-21": {
+    "finished": 197,
+    "league_share": 1.0,
+    "cross": 60,
+    "cross_share": 1.0
+  },
+  "AUT 2021-22": {
+    "finished": 195,
+    "league_share": 1.0,
+    "cross": 67,
+    "cross_share": 1.0
+  },
+  "AUT 2022-23": {
+    "finished": 194,
+    "league_share": 1.0,
+    "cross": 60,
+    "cross_share": 1.0
+  },
+  "AUT 2023-24": {
+    "finished": 195,
+    "league_share": 1.0,
+    "cross": 60,
+    "cross_share": 1.0
+  },
+  "AUT 2024-25": {
+    "finished": 195,
+    "league_share": 1.0,
+    "cross": 68,
+    "cross_share": 1.0
+  },
+  "AUT 2025-26": {
+    "finished": 195,
+    "league_share": 1.0,
+    "cross": 61,
+    "cross_share": 1.0
+  },
+  "SWZ 2020-21": {
+    "finished": 182,
+    "league_share": 1.0,
+    "cross": 27,
+    "cross_share": 1.0
+  },
+  "SWZ 2021-22": {
+    "finished": 182,
+    "league_share": 1.0,
+    "cross": 63,
+    "cross_share": 1.0
+  },
+  "SWZ 2022-23": {
+    "finished": 182,
+    "league_share": 1.0,
+    "cross": 75,
+    "cross_share": 1.0
+  },
+  "SWZ 2023-24": {
+    "finished": 230,
+    "league_share": 1.0,
+    "cross": 76,
+    "cross_share": 1.0
+  },
+  "SWZ 2024-25": {
+    "finished": 230,
+    "league_share": 1.0,
+    "cross": 82,
+    "cross_share": 1.0
+  },
+  "SWZ 2025-26": {
+    "finished": 229,
+    "league_share": 1.0,
+    "cross": 76,
+    "cross_share": 1.0
+  },
+  "DNK 2020-21": {
+    "finished": 192,
+    "league_share": 1.0,
+    "cross": 53,
+    "cross_share": 1.0
+  },
+  "DNK 2021-22": {
+    "finished": 192,
+    "league_share": 1.0,
+    "cross": 81,
+    "cross_share": 1.0
+  },
+  "DNK 2022-23": {
+    "finished": 193,
+    "league_share": 1.0,
+    "cross": 73,
+    "cross_share": 1.0
+  },
+  "DNK 2023-24": {
+    "finished": 193,
+    "league_share": 1.0,
+    "cross": 71,
+    "cross_share": 1.0
+  },
+  "DNK 2024-25": {
+    "finished": 193,
+    "league_share": 1.0,
+    "cross": 76,
+    "cross_share": 1.0
+  },
+  "DNK 2025-26": {
+    "finished": 192,
+    "league_share": 1.0,
+    "cross": 79,
+    "cross_share": 1.0
+  },
+  "G1 2020-21": {
+    "finished": 242,
+    "league_share": 1.0,
+    "cross": 57,
+    "cross_share": 1.0
+  },
+  "G1 2021-22": {
+    "finished": 242,
+    "league_share": 1.0,
+    "cross": 57,
+    "cross_share": 1.0
+  },
+  "G1 2022-23": {
+    "finished": 240,
+    "league_share": 1.0,
+    "cross": 38,
+    "cross_share": 1.0
+  },
+  "G1 2023-24": {
+    "finished": 240,
+    "league_share": 1.0,
+    "cross": 79,
+    "cross_share": 1.0
+  },
+  "G1 2024-25": {
+    "finished": 236,
+    "league_share": 1.0,
+    "cross": 69,
+    "cross_share": 1.0
+  },
+  "G1 2025-26": {
+    "finished": 236,
+    "league_share": 1.0,
+    "cross": 95,
+    "cross_share": 1.0
+  },
+  "T1 2020-21": {
+    "finished": 420,
+    "league_share": 1.0,
+    "cross": 67,
+    "cross_share": 1.0
+  },
+  "T1 2021-22": {
+    "finished": 380,
+    "league_share": 1.0,
+    "cross": 81,
+    "cross_share": 1.0
+  },
+  "T1 2022-23": {
+    "finished": 341,
+    "league_share": 1.0,
+    "cross": 95,
+    "cross_share": 1.0
+  },
+  "T1 2023-24": {
+    "finished": 380,
+    "league_share": 1.0,
+    "cross": 94,
+    "cross_share": 1.0
+  },
+  "T1 2024-25": {
+    "finished": 342,
+    "league_share": 1.0,
+    "cross": 109,
+    "cross_share": 1.0
+  },
+  "T1 2025-26": {
+    "finished": 306,
+    "league_share": 1.0,
+    "cross": 110,
+    "cross_share": 1.0
+  },
+  "I2 2020-21": {
+    "finished": 387,
+    "league_share": 1.0,
+    "cross": 41,
+    "cross_share": 1.0
+  },
+  "I2 2021-22": {
+    "finished": 388,
+    "league_share": 1.0,
+    "cross": 6,
+    "cross_share": 1.0
+  },
+  "I2 2022-23": {
+    "finished": 390,
+    "league_share": 1.0,
+    "cross": 9,
+    "cross_share": 1.0
+  },
+  "I2 2023-24": {
+    "finished": 389,
+    "league_share": 1.0,
+    "cross": 7,
+    "cross_share": 1.0
+  },
+  "I2 2024-25": {
+    "finished": 389,
+    "league_share": 1.0,
+    "cross": 10,
+    "cross_share": 1.0
+  },
+  "I2 2025-26": {
+    "finished": 390,
+    "league_share": 1.0,
+    "cross": 6,
+    "cross_share": 1.0
+  },
+  "D2 2020-21": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 19,
+    "cross_share": 1.0
+  },
+  "D2 2021-22": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 33,
+    "cross_share": 1.0
+  },
+  "D2 2022-23": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 34,
+    "cross_share": 1.0
+  },
+  "D2 2023-24": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 36,
+    "cross_share": 1.0
+  },
+  "D2 2024-25": {
+    "finished": 307,
+    "league_share": 1.0,
+    "cross": 34,
+    "cross_share": 1.0
+  },
+  "D2 2025-26": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 35,
+    "cross_share": 1.0
+  },
+  "F2 2020-21": {
+    "finished": 384,
+    "league_share": 1.0,
+    "cross": 26,
+    "cross_share": 1.0
+  },
+  "F2 2021-22": {
+    "finished": 383,
+    "league_share": 1.0,
+    "cross": 54,
+    "cross_share": 1.0
+  },
+  "F2 2022-23": {
+    "finished": 379,
+    "league_share": 1.0,
+    "cross": 58,
+    "cross_share": 1.0
+  },
+  "F2 2023-24": {
+    "finished": 381,
+    "league_share": 1.0,
+    "cross": 59,
+    "cross_share": 1.0
+  },
+  "F2 2024-25": {
+    "finished": 310,
+    "league_share": 1.0,
+    "cross": 60,
+    "cross_share": 1.0
+  },
+  "F2 2025-26": {
+    "finished": 308,
+    "league_share": 1.0,
+    "cross": 54,
+    "cross_share": 1.0
+  },
+  "SP2 2020-21": {
+    "finished": 468,
+    "league_share": 1.0,
+    "cross": 48,
+    "cross_share": 1.0
+  },
+  "SP2 2021-22": {
+    "finished": 468,
+    "league_share": 1.0,
+    "cross": 46,
+    "cross_share": 1.0
+  },
+  "SP2 2022-23": {
+    "finished": 468,
+    "league_share": 1.0,
+    "cross": 42,
+    "cross_share": 1.0
+  },
+  "SP2 2023-24": {
+    "finished": 468,
+    "league_share": 1.0,
+    "cross": 43,
+    "cross_share": 1.0
+  },
+  "SP2 2024-25": {
+    "finished": 467,
+    "league_share": 1.0,
+    "cross": 44,
+    "cross_share": 1.0
+  },
+  "SP2 2025-26": {
+    "finished": 468,
+    "league_share": 1.0,
+    "cross": 49,
+    "cross_share": 1.0
+  }
+}
