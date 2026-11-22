@@ -786,3 +786,65 @@ confirming. Running it would only spend the sealed holdout's last test slot.
   re-proposed unless it comes with a new reason.
 - **XC's run still reports LO-cap − LO and XC-cap − XC as descriptive numbers only:** no decision,
   and no ledger claim of their own. They use the same cells XC claims.
+
+## Addendum MGR (2026-11-22, committed before any code for it exists and before any sealed-league manager data is collected): new-manager rating shifts (F5)
+
+After a permanent new manager arrives, Dixon-Coles still judges the team mostly on matches under the
+old one. MGR lets each team's rating shift after each appointment, learning the shift from matches
+under the new manager only. Nothing about the live Premier League model changes.
+
+- **Model.** The base is **LO**: league-only Dixon-Coles, the joint code of addendum XC with
+  cross-competition weights at 0 (the current fit, reproduced exactly). It is refitted weekly on the
+  previous 3 years with `Hyperparams()` time decay and L2.
+  - **MGR** adds, for each counted appointment of team i at date T inside the fit window, two
+    parameters Δa and Δd. They are added to the team's attack and defence in matches on or after T,
+    so successive appointments stack.
+  - An L2 penalty λ pulls each Δ toward 0. Right after an appointment Δ ≈ 0, so the forecast equals
+    LO's. It moves as matches under the new manager accrue.
+  - Forecasts use the shifts in force at kickoff. A team with no counted appointment in the window
+    gets exactly LO's forecast.
+- **Development choices (only these):**
+  - λ ∈ {3, 10, 30, 100};
+  - whether caretaker or interim appointments count as appointments (yes or no; permanent
+    appointments always count).
+- **Manager data:** Wikipedia season articles' "Managerial changes" tables (`tabet/managers.py`,
+  Supabase table `manager_changes`).
+  - A change counts from its date of appointment; with no appointment date, the date of vacancy.
+  - Wikipedia team names are matched to API-Football team ids by a normalised-name rule, plus an
+    alias list written during development. Unmatched rows are reported and dropped.
+  - **Sealed leagues** (AUT, SWZ, DNK, G1, T1, I2, D2, F2, SP2; 2015-16 → 2025-26) are collected
+    after this commit, storing only team, outgoing and incoming manager, the interim flag, the dates
+    and the source article.
+    - **Not stored:** "position in table" and "manner of departure", which reflect results.
+    - Before the test, nothing about them is looked at except row counts, missing articles and
+      unmatched-name counts. The alias list for sealed teams may only be written from team names,
+      never from results.
+- **Data and periods:** API-Football league results (90-minute scores), as in XC. No cup or
+  European matches.
+  - **Development (scored):** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2016-17 → 2025-26 (spent
+    cells, allowed for development), with 2015-16 as history.
+  - **Test (scored once): the sealed holdout, 2020-21 → 2025-26,** with history as in XC (AUT, SWZ
+    and DNK 2015-16 → 2019-20 registered as test use, never scored; the others as training).
+  - This is **the last place in SEALED's closed set** (SEALED, FAT, XC, MGR).
+- **Affected matches:** a league match where either team is within its first 10 league matches
+  after a counted appointment. Only these can differ between MGR and LO.
+- **Run condition:** at least 95% of each scored league-season's finished league matches have a
+  90-minute score. At least 80% of its Wikipedia managerial-change rows match a team id. Failures
+  stop the run and need a written amendment.
+- **MDE:** recorded in `dev.json` before the test, from the development SE on affected matches,
+  scaled to the expected affected test matches (also recorded there).
+- **Primary: MGR − LO on affected matches** of the nine test leagues. Per league, the mean paired
+  log-loss difference; then the leagues averaged with equal weight. The inference uses 14-day
+  blocks, 2,000 resamples, seed 0, and a two-sided 95% interval.
+- **Decision.**
+  - **Confirmed** if the mean is ≤ −0.001 and the upper bound is below 0. Live use needs current
+    appointments (public) and a frozen prospective comparison.
+  - **Closed** if not confirmed and the lower bound is above −0.003.
+  - **Inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - MGR − LO on all matches;
+  - matches 1–5 against 6–10 after an appointment;
+  - appointments during the season against those in the off-season;
+  - each league; each season;
+  - the development E0 result, reported as Premier League evidence (development data).
+- **Ledger:** family MGR, rows in this commit.
