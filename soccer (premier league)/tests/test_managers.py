@@ -47,3 +47,10 @@ def test_build_tries_renamed_articles():
         return HTML if title.endswith("Belgian First Division A") else None
     df = M.build({"B1": ("Belgian Pro League", "Belgian First Division A")}, ["2018–19"], fetch=fetch, pause=0)
     assert seen == ["2018–19 Belgian Pro League", "2018–19 Belgian First Division A"] and len(df) == 3
+
+
+def test_sealed_rows_drop_result_columns():
+    df = pd.DataFrame(M.changes_from_html(HTML, "AUT", "2023–24"))
+    rows = M.to_rows(df, sealed=True)
+    assert all(r["manner"] == "" and r["table_position"] == "" for r in rows)
+    assert rows[0]["incoming"] == "Mauricio Pochettino" and rows[0]["appointment_date"] == "2023-05-29"

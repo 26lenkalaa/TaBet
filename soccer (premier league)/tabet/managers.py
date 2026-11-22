@@ -37,6 +37,12 @@ LEAGUES = {"E0": ("Premier League",), "E1": ("EFL Championship", "Football Leagu
            "P1": ("Primeira Liga",), "B1": ("Belgian Pro League", "Belgian First Division A"),
            "SC0": ("Scottish Premiership",)}
 SEASONS = [f"{y}–{(y + 1) % 100:02d}" for y in range(2015, 2027)]       # en dash, as Wikipedia titles
+# The sealed holdout (addendum MGR): collected without "position in table" or "manner of departure"
+# (they reflect results), and nothing but counts is printed.
+SEALED_LEAGUES = {"AUT": ("Austrian Football Bundesliga",), "SWZ": ("Swiss Super League",),
+                  "DNK": ("Danish Superliga",), "G1": ("Super League Greece",), "T1": ("Süper Lig",),
+                  "I2": ("Serie B",), "D2": ("2. Bundesliga",), "F2": ("Ligue 2",), "SP2": ("Segunda División",)}
+SEALED_SEASONS = SEASONS[:-1]                                             # 2015-16 .. 2025-26
 INTERIM = re.compile(r"caretaker|interim|\(c\)|\(i\)", re.I)
 
 
@@ -150,7 +156,7 @@ def changes_from_html(html: str, league: str, season: str) -> list[dict]:
                         "vacancy_date": _date(r[c_vac]) if c_vac is not None else None,
                         "incoming": INTERIM.sub("", inc).strip(" ()"), "interim": bool(INTERIM.search(inc)),
                         "appointment_date": _date(r[c_app]) if c_app is not None else None,
-                        "position": r[c_pos] if c_pos is not None else "", "source": f"{season} {LEAGUES[league][0]}"})
+                        "position": r[c_pos] if c_pos is not None else "", "source": f"{season} {({**LEAGUES, **SEALED_LEAGUES}[league])[0]}"})
     return out
 
 
@@ -199,8 +205,9 @@ def build(leagues=LEAGUES, seasons=SEASONS, fetch=fetch_html, pause: float = 1.0
     return df
 
 
-def to_rows(df: pd.DataFrame) -> list[dict]:
-    """Rows for the Supabase table: seasons as "2023-24", dates as ISO strings, one row per key."""
+def to_rows(df: pd.DataFrame, sealed: bool = False) -> list[dict]:
+    """Rows for the Supabase table: seasons as "2023-24", dates as ISO strings, one row per key. Sealed
+    leagues keep no "position in table" or "manner of departure"."""
     out = {}
     for r in df.itertuples():
         key = (r.league, r.season.replace("–", "-"), r.team_name, r.outgoing, r.incoming)
@@ -210,6 +217,8 @@ def to_rows(df: pd.DataFrame) -> list[dict]:
                     "vacancy_date": r.vacancy_date.date().isoformat() if pd.notna(r.vacancy_date) else None,
                     "appointment_date": r.appointment_date.date().isoformat() if pd.notna(r.appointment_date) else None,
                     "table_position": r.position, "source": r.source.replace("–", "-")}
+        if sealed:
+            out[key].update(manner="", table_position="")
     return list(out.values())
 
 
@@ -230,7 +239,14 @@ def main(argv=None) -> int:
     import argparse
     ap = argparse.ArgumentParser(description="Managerial changes from Wikipedia into Supabase")
     ap.add_argument("--csv", default=None, help="also write a local CSV here (keep it outside the repo)")
+    ap.add_argument("--sealed", action="store_true", help="the sealed holdout's leagues (addendum MGR): counts only")
     a = ap.parse_args(argv)
+    if a.sealed:
+        df = build(SEALED_LEAGUES, SEALED_SEASONS)
+        n = upload(to_rows(df, sealed=True))
+        print(json.dumps({"rows_upserted": n, "by_league": df.groupby("league").size().to_dict() if len(df) else {},
+                          "articles_without_a_table": len(df.attrs.get("missing", []))}, indent=1))
+        return 0
     df = build()
     rows = to_rows(df)
     n = upload(rows)
