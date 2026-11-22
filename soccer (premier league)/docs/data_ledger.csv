@@ -213,3 +213,39 @@ I2,2015-16,2019-20,CAP,training,spent,1,PREREGISTRATION addendum CAP,blowout cap
 D2,2015-16,2019-20,CAP,training,spent,1,PREREGISTRATION addendum CAP,blowout cap: history only; withdrawn after development 2026-11-22
 F2,2015-16,2019-20,CAP,training,spent,1,PREREGISTRATION addendum CAP,blowout cap: history only; withdrawn after development 2026-11-22
 SP2,2015-16,2019-20,CAP,training,spent,1,PREREGISTRATION addendum CAP,blowout cap: history only; withdrawn after development 2026-11-22
+E0,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+E0,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+SP1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+SP1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+I1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+I1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+D1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+D1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+F1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+F1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+N1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+N1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+P1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+P1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+B1,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+B1,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+SC0,2015-16,2015-16,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+SC0,2016-17,2025-26,MGR,development,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: development choices
+G1,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+T1,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+I2,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+D2,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+F2,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+SP2,2015-16,2019-20,MGR,training,reserved,1,PREREGISTRATION addendum MGR,new-manager shifts: history only
+AUT,2015-16,2019-20,MGR,test,reserved,4,PREREGISTRATION addendum MGR,sealed cells loaded as history only; never scored (closed set with SEALED)
+SWZ,2015-16,2019-20,MGR,test,reserved,4,PREREGISTRATION addendum MGR,sealed cells loaded as history only; never scored (closed set with SEALED)
+DNK,2015-16,2019-20,MGR,test,reserved,4,PREREGISTRATION addendum MGR,sealed cells loaded as history only; never scored (closed set with SEALED)
+AUT,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+SWZ,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+DNK,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+G1,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+T1,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+I2,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+D2,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+F2,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
+SP2,2020-21,2025-26,MGR,test,reserved,4,PREREGISTRATION addendum MGR,new-manager shifts: scored once (closed set with SEALED; last place)
