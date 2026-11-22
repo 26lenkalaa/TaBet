@@ -301,6 +301,7 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
 </header>
 <div class="page-tools"><nav class="links" aria-label="Sections">
       <a href="#scoreboard">Scoreboard</a>
+      <a href="#paper">Paper betting</a>
       <a href="#models">Models</a>
       <a href="#tested">What we tested</a>
       <a href="#method">Method</a>
@@ -342,6 +343,13 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
     <h2 id="live-title">Forecasts made before the matches</h2>
     <p>Since gameweek 10, TaBet saves a forecast for every match about a day before kickoff, with the market's prices from the same moment, and never changes it. The question: do predicted lineups make that forecast better? The blend is fixed after gameweek 19, a first read comes after gameweek 29, and the verdict at the end of the season. Every logged forecast is on the <a href="/matches">match pages</a>.</p>
     <div id="tracker" class="tracker" aria-live="polite"><p class="tk-note">Loading the logged forecasts…</p></div>
+  </section>
+
+  <section class="live" id="paper" aria-labelledby="paper-title">
+    <span class="ctx ctx-live">PAPER BETTING · FROM GAMEWEEK 12 · IMAGINARY MONEY</span>
+    <h2 id="paper-title">What if we bet on our own forecasts?</h2>
+    <p>From gameweek 12, every logged forecast places an imaginary bet: 10% of the bankroll on the result TaBet thinks is most likely, at Pinnacle's real price from the same moment, bookmaker's cut included. The bankroll starts at $100. Each stake is 10% of what the bankroll was when that forecast was logged, so a full gameweek puts about the whole bankroll on the line. This is an experiment to watch, not a strategy: no real money, and nothing here changes a forecast.</p>
+    <div id="paper-bets" class="tracker" aria-live="polite"><p class="tk-note">Loading the bets…</p></div>
   </section>
 
   <section class="sec" id="judged">
@@ -813,6 +821,49 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
       '<p class="tk-note">Log-loss, lower is better; a negative pE − p0 means the predicted lineups helped. Pinnacle is shown only where a snapshot was taken in the same run as our forecast. ' +
       "This is a running description, not the verdict: whether predicted lineups help is decided once, after gameweek 38 (pα against p0), and one season cannot settle how we compare with the market.</p>";
   }).catch(function () { el.innerHTML = '<p class="tk-note">The live results could not be loaded right now.</p>'; });
+})();
+</script>
+
+<script>
+/* Paper betting: read site/data/paper-bets.json (built by tabet/paper_bets.py with the site data). */
+(function () {
+  var el = document.getElementById("paper-bets");
+  if (!el) return;
+  function money(x) { return x == null ? "–" : (x < 0 ? "−$" : "$") + Math.abs(x).toFixed(2); }
+  function signedMoney(x) { return x == null ? "–" : (x > 0 ? "+" : "") + money(x); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  fetch("data/paper-bets.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+    var bets = (d.bets || []).slice().sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : a.kickoff > b.kickoff ? 1 : 0; });
+    if (!bets.length) {
+      el.innerHTML = '<p class="tk-note">No bets yet. The first ones are placed when the gameweek-12 forecasts are logged, about a day before each kickoff.</p>';
+      return;
+    }
+    var profit = d.bankroll - d.start;
+    var stats = [
+      [money(d.bankroll), "Bankroll (started at " + money(d.start) + ")"],
+      [signedMoney(profit), "Profit so far"],
+      [d.n_won + " of " + d.n_settled, "Bets won"],
+      [d.roi == null ? "–" : (d.roi > 0 ? "+" : d.roi < 0 ? "−" : "") + Math.abs(100 * d.roi).toFixed(1) + "%", "Return per $ staked"]
+    ];
+    function pickName(b) { return b.pick === "H" ? b.home : b.pick === "A" ? b.away : "Draw"; }
+    function outcome(b) {
+      if (b.status === "won") return '<span class="tag t-green">Won</span>';
+      if (b.status === "lost") return '<span class="tag t-red">Lost</span>';
+      if (b.status === "no price") return '<span class="tag t-gray">No price, no bet</span>';
+      return '<span class="tag t-yellow">Pending</span>';
+    }
+    var rows = bets.map(function (b) {
+      var o = b.odds ? b.odds[["H", "D", "A"].indexOf(b.pick)] : null;
+      return "<tr><td>GW " + b.gameweek + '</td><td class="name">' + esc(b.home) + " v " + esc(b.away) +
+        '</td><td>' + esc(pickName(b)) + ' <span class="muted small">(' + Math.round(100 * b.p_pick) + '%)</span></td><td class="num">' + (o ? o.toFixed(2) : "–") +
+        '</td><td class="num">' + money(b.stake) + '</td><td>' + outcome(b) + '</td><td class="num">' + signedMoney(b.pnl) + "</td></tr>";
+    }).join("");
+    el.innerHTML =
+      '<div class="tk-stats">' + stats.map(function (s) { return '<div class="tk-stat"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("") + "</div>" +
+      '<div class="panel"><div class="scroll"><table><thead><tr><th>Week</th><th>Match</th><th>Our pick (our chance)</th><th class="num">Odds</th><th class="num">Stake</th><th>Result</th><th class="num">Profit</th></tr></thead><tbody>' +
+      rows + "</tbody></table></div></div>" +
+      '<p class="tk-note">Odds are Pinnacle\'s decimal prices in the snapshot saved with our forecast: a winning $10 bet at 2.50 returns $25, so $15 profit. A bet waits as pending until its result is in, and a later stake waits for any earlier result it depends on. Backing the favourite at bookmaker prices usually loses a little over time, because the price already includes the bookmaker\'s cut. To make money, the forecast has to be better than the market on the matches it picks.</p>';
+  }).catch(function () { el.innerHTML = '<p class="tk-note">The paper bets could not be loaded right now.</p>'; });
 })();
 </script>
 

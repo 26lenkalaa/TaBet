@@ -81,6 +81,8 @@ jobs:
       - name: Refresh the match explorer's data (daily, when a forecast was logged, or when new odds arrive)
         if: env.MODE == 'log' || env.MODE == 'score' || env.MODE == 'odds-api'
         continue-on-error: true   # the site data must never block the forecast log
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}   # paper bets read Pinnacle's price from the private odds bucket
         run: python -m tabet site-data --if-stale 20
       - name: Commit log
         id: commit
