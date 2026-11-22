@@ -237,3 +237,39 @@ I2,2015-16,2019-20,MGR,training,spent,1,PREREGISTRATION addendum MGR,new-manager
 D2,2015-16,2019-20,MGR,training,spent,1,PREREGISTRATION addendum MGR,new-manager shifts: history only; withdrawn after development 2026-11-22
 F2,2015-16,2019-20,MGR,training,spent,1,PREREGISTRATION addendum MGR,new-manager shifts: history only; withdrawn after development 2026-11-22
 SP2,2015-16,2019-20,MGR,training,spent,1,PREREGISTRATION addendum MGR,new-manager shifts: history only; withdrawn after development 2026-11-22
+E0,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+E0,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+SP1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+SP1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+I1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+I1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+D1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+D1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+F1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+F1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+N1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+N1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+P1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+P1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+B1,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+B1,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+SC0,2015-16,2020-21,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+SC0,2021-22,2025-26,GK,development,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: development choices
+G1,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+T1,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+I2,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+D2,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+F2,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+SP2,2015-16,2019-20,GK,training,reserved,1,PREREGISTRATION addendum GK,goalkeeper quality: history only
+AUT,2015-16,2019-20,GK,test,reserved,4,PREREGISTRATION addendum GK,sealed cells loaded as history only; never scored (closed set with SEALED)
+SWZ,2015-16,2019-20,GK,test,reserved,4,PREREGISTRATION addendum GK,sealed cells loaded as history only; never scored (closed set with SEALED)
+DNK,2015-16,2019-20,GK,test,reserved,4,PREREGISTRATION addendum GK,sealed cells loaded as history only; never scored (closed set with SEALED)
+AUT,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+SWZ,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+DNK,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+G1,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+T1,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+I2,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+D2,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+F2,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)
+SP2,2020-21,2025-26,GK,test,reserved,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once (closed set with SEALED; last place; G1 2020-22 history only)

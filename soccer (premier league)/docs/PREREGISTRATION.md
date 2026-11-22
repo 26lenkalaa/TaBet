@@ -871,3 +871,66 @@ The pre-registered test (confirmation needs a gain of 0.001) has no realistic ch
   (names and dates, no result-derived columns), of which only counts were looked at.
 - **Status:** closed on development evidence, without a test. Not re-proposed without a new reason.
   The `manager_changes` table and the name matcher stay available.
+
+## Addendum GK (2026-11-22, committed before any code for it exists and before any sealed keeper data is loaded): goalkeeper quality (F7)
+
+The models rate outfield players and teams, but not the goalkeeper. A keeper who saves more shots on
+target than average concedes fewer goals than the team's ratings imply, and a stand-in keeper may
+concede more. GK asks whether the opposing keeper's shot-stopping, and whether he is the usual
+keeper, improve the linear stage 2. Nothing about the live Premier League model changes.
+
+- **Prior expectation:** low. Save percentages are noisy and keepers' true differences are small.
+  Any gain is likely under 0.001, and largest when a weak or reserve keeper plays.
+- **Data:** API-Football only (Supabase): league results, team shots on target (addendum G's form
+  inputs), starting lineups, and each goalkeeper's per-match `goals.saves` and `goals.conceded` with
+  `games.minutes`.
+- **Keeper rating** (from earlier dates only, within the league):
+  - Over a keeper's previous league matches with at least 45 minutes, saves S and goals conceded C
+    are each decayed with a 365-day half-life.
+  - His shrunk save rate is q = (S + k·q̄) / (S + C + k), where q̄ is the league's save rate over
+    the previous 365 days.
+  - **Input g** = log((1 − q) / (1 − q̄)): his conceded-per-shot-on-target relative to the league.
+    It is 0 for a keeper with no history.
+- **Usual-keeper flag u:** 1 if this match's starting keeper is not the one with the most league
+  starts for the team in its previous 10 league matches. It is 0 when no history exists.
+- **Inputs, per side-row** (the scoring side against the opposing keeper): g_opp and u_opp, from
+  this match's starting keeper, so they are lineup-time inputs like V2's XI layer.
+- **Models** (Poisson on goals with offset log DC rate, DC per league as in addendum FAT; pooled;
+  refitted monthly; standardised inputs; L2 from {0.1, 1, 10, 100}):
+  - **LIN:** addendum G's ten team-form features plus league indicators;
+  - **LIN+GK:** the same plus g_opp and u_opp.
+- **Development choices (only these):**
+  - k ∈ {20, 50, 100} shots on target;
+  - each model's L2.
+  - Both are chosen by equal-weight mean log-loss on development.
+- **Periods:**
+  - **Training:** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2015-16 → 2020-21; G1, T1, I2, D2, F2
+    and SP2, 2015-16 → 2019-20.
+  - **Development (scored):** the nine development leagues, 2021-22 → 2025-26 (spent cells, allowed
+    for development).
+  - **Test (scored once): the sealed holdout,** AUT, SWZ, DNK, G1, T1, I2, D2, F2 and SP2,
+    **2020-21 → 2025-26**, with history as in XC.
+  - **Excluded in advance:** G1 2020-21 and 2021-22. API-Football's coverage flags (metadata,
+    2026-11-19) show no player statistics for them; they are history only, never scored.
+  - This is **the last place in SEALED's closed set** (SEALED, FAT, XC, GK).
+- **Eligibility:**
+  - both starting keepers are known;
+  - both teams have at least 5 earlier league matches with shots data;
+  - a DC rate exists.
+- **Run condition:** at least 95% of each scored league-season's finished league matches have both
+  starting keepers with saves and goals conceded recorded. Failures stop the run before any fitting
+  and need a written amendment.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, expected 14,000 test matches).
+- **Primary: LIN+GK − LIN,** the equal-weight mean over the nine test leagues, with 14-day blocks,
+  2,000 resamples, seed 0, and a 95% interval.
+- **Decision** (FAT's thresholds, for a small expected effect):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - matches where u_opp = 1 (a stand-in keeper);
+  - g_opp only and u_opp only;
+  - top flights against second tiers;
+  - each league; each season;
+  - the development E0 result (development data).
+- **Ledger:** family GK, rows in this commit.
