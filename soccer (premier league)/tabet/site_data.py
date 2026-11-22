@@ -428,9 +428,30 @@ def stale(max_age_h: float = 20.0, out: Path = INDEX) -> bool:
         pd.Timestamp(head["built_utc"])
     except (ValueError, KeyError, TypeError):
         return True
-    age = (pd.Timestamp.now(tz="UTC") - pd.Timestamp(head["built_utc"])).total_seconds() / 3600
+    built, now = pd.Timestamp(head["built_utc"]), pd.Timestamp.now(tz="UTC")
+    age = (now - built).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
-    return age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(pd.Timestamp(head["built_utc"]))
+    return (age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(built)
+            or _match_moment_passed(built, now))
+
+
+# After these offsets from a logged match's kickoff the site should show something new: "awaiting
+# result" at kickoff, then the score (FPL marks a match finished about two hours after kickoff).
+RESULT_MOMENTS = (pd.Timedelta(0), pd.Timedelta(hours=2, minutes=15), pd.Timedelta(hours=4))
+
+
+def _match_moment_passed(built: pd.Timestamp, now: pd.Timestamp) -> bool:
+    """True if a logged match kicked off, or reached the time its result should be in, since the build."""
+    if not LOG.exists():
+        return False
+    for line in LOG.read_text().splitlines():
+        k = json.loads(line).get("kickoff_utc")
+        if not k:
+            continue
+        ko = pd.Timestamp(k)
+        if any(built < ko + d <= now for d in RESULT_MOMENTS):
+            return True
+    return False
 
 
 def _newer_odds(built: pd.Timestamp) -> bool:
