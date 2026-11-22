@@ -1348,6 +1348,39 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     shorter half-life (§5.18). The "new manager bounce" looks like regression to the mean, which
     the ratings already handle.
 
+### 5.37 Goalkeeper quality (addendum GK): consistent on development, closed on the sealed test
+
+- **Design:** for the opposing keeper, his shrunk save rate on shots on target (k = 20) and a
+  "not the usual keeper" flag (most starts in the previous 10), added to G's linear stage 2.
+  Built from API-Football's per-match keeper lines.
+- **Development** (`results/gk/dev.json`; 9 leagues, 2021-26, 14,597 matches):
+  - GK − LIN −0.0006, better in **all nine** leagues (E0 −0.0015);
+  - recently changed keepers: −0.0013.
+- **Run condition:**
+  - **Amended once:** it had required the current match's keeper statistics, which the model never
+    uses. It now requires the starting keepers to be identified and history lines to be complete.
+  - **Then once more:** T1 2022-23 (the earthquake season) was excluded. Both amendments came
+    before any fitting.
+- **Test** (sealed holdout, 2020-26, 15,049 matches; `results/gk/results.json`):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **LIN+GK − LIN (primary)** | **−0.00025** | [−0.0006, +0.0002] |
+  | Save rate only | −0.000003 | [−0.0002, +0.0002] |
+  | Usual-keeper flag only | −0.00026 | [−0.0006, +0.0001] |
+
+  - **Decision: closed** (not confirmed; a gain over 0.0015 is ruled out).
+  - **Recently changed keepers:** −0.0007 (5,156 matches).
+  - **By league:** 6 of 9 leagues were better (Ligue 2 −0.0010, Denmark −0.0007); Serie B
+    +0.0006 and Segunda +0.0003 were worse.
+- **Reading:**
+  - Shot-stopping ratings add nothing: save rates are too noisy to separate keepers.
+  - The small signal is in keeper *changes*, a "disrupted defence" effect that the lineup layer
+    partly captures.
+  - The development effect again shrank, by about 60%, on fresh leagues.
+- **The sealed holdout is now fully used** (SEALED, FAT, XC, GK). Future tests need the live log or
+  new data.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
