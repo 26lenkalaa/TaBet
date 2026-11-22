@@ -1277,6 +1277,41 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     the robust finding of the multi-league work.
   - The sealed holdout has two test slots left.
 
+### 5.35 All-competition ratings (addendum XC): strong on development, closed on the sealed test; blowout cap withdrawn
+
+- **Design (PREREGISTRATION, addendum XC):** one joint Dixon-Coles over all loaded leagues plus
+  European and domestic-cup matches.
+  - Ratings are per team in a league, with a league-strength shift that only cross-league matches
+    identify.
+  - The base, LO, is the same code with the extra matches off; it reproduces the current fit.
+- **Development** (`results/xc/dev.json`): nine leagues including E0, 2021-26, 14,822 matches.
+  - The chosen setting, variant B (cross matches only between teams from loaded leagues, so no
+    "Real Madrid v Slavia") with w_E = w_C = 1, gave XC − LO −0.00115, 95% CI [−0.0018, −0.0005].
+  - It improved 8 of 9 leagues (E0 −0.0014). With G's stage 2 on top, −0.0007 remained.
+- **CAP (blowout cap):** every cap was worse on development (+0.0003 to +0.0054). Withdrawn before
+  its test (amendment), so its sealed slot was returned.
+- **Test** (sealed holdout, 2020-26, 16,298 matches; `results/xc/results.json`):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **XC − LO (primary)** | **−0.00026** | [−0.0008, +0.0003] |
+  | with stage 2: XC+LIN − LO+LIN | −0.00009 | [−0.0008, +0.0006] |
+  | LO-cap − LO (descriptive) | +0.00006 | [−0.0002, +0.0002] |
+
+  - **Decision: closed.** Not confirmed, and a gain larger than 0.003 is ruled out (in fact one
+    larger than 0.0008).
+  - **Top flights −0.0005, second tiers 0.0000.**
+  - **Early season −0.0006; matches of European-heavy teams +0.0010.**
+  - **Greece −0.0019** was the only clear league gain; the others lay between −0.0004 and +0.0003.
+- **Reading:**
+  - The development gain shrank to about a fifth on fresh leagues. The sealed leagues have fewer
+    cross-league links (smaller leagues, fewer European meetings with loaded leagues; second tiers
+    only through cups), so less information flows in.
+  - The development result may also partly reflect tuning to the big leagues.
+  - For the Premier League, the development effect (−0.0014) is the best evidence available, but it
+    is development data. Any adoption would need a frozen prospective comparison.
+  - The sealed holdout has one test slot left.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
