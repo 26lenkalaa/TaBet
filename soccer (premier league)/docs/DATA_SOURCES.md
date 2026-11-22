@@ -21,7 +21,7 @@ it. Odds are a benchmark only and never a model input. `tests/test_odds_archive.
 | The forecast log (the live test's record) | `results/prospective/log.jsonl` | Append-only; never edited by hand |
 | Raw lineup pages saved with each forecast | `results/prospective/raw/` | Never modified |
 | Lineup snapshots | `results/lineup_snapshots/` | Predicted XIs over time |
-| Derived odds summaries (margin-free probabilities only) | `results/prospective/odds/` | Raw prices moved to `odds-archive` on 2026-11-16. Earlier raw files remain in git history (open decision, 2026-11-22) |
+| Derived odds summaries (margin-free probabilities only) | `results/prospective/odds/` | Raw prices moved to `odds-archive` on 2026-11-16. Earlier raw files (10–16 Nov) remain in git history: accepted by the project owner on 2026-11-22, no history rewrite |
 | football-data results and odds | `res/` | Public source |
 | Site data | `site/data/` (`index.json`, `matches-*.json`, `lineups-*.json`, `paper-bets*.json`) | Rebuilt by the logger |
 | Experiment results | `results/<experiment>/` | Frozen `dev.json` before each test; `results.json` after |
