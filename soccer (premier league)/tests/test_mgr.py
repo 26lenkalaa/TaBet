@@ -102,4 +102,4 @@ def test_names_match_by_normalised_and_closest_name():
 
 
 def test_ledger_claims_are_registered():
-    mg._claim(include_test=True)
+    mg._claim(include_test=False)      # MGR's test was withdrawn after development

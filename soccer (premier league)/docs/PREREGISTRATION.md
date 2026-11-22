@@ -848,3 +848,26 @@ under the new manager only. Nothing about the live Premier League model changes.
   - each league; each season;
   - the development E0 result, reported as Premier League evidence (development data).
 - **Ledger:** family MGR, rows in this commit.
+
+## Amendment to MGR (2026-11-22, after development, before any sealed-league result was loaded): MGR withdrawn
+
+MGR's development run (`results/mgr/dev.json`) found that every setting made forecasts worse. It used
+the nine development leagues, 2016-17 → 2025-26, scored on the 8,919 matches within a team's first 10
+league matches after an appointment. The more the shifts were trusted, the worse it got:
+
+| Setting | MGR − LO |
+|---|---|
+| λ = 100, permanent managers only (best) | +0.0008 |
+| λ = 30 | +0.0047 |
+| λ = 10 | +0.016 |
+| λ = 3 | +0.040 |
+
+The pre-registered test (confirmation needs a gain of 0.001) has no realistic chance of confirming.
+
+- **Change:** MGR's test is withdrawn before any sealed-league match data is loaded for it. Its test
+  rows are removed from `docs/data_ledger.csv`, so the slot returns to SEALED's closed set. Its other
+  rows are marked spent.
+- **What was touched in the sealed leagues:** only the manager rows collected under the addendum
+  (names and dates, no result-derived columns), of which only counts were looked at.
+- **Status:** closed on development evidence, without a test. Not re-proposed without a new reason.
+  The `manager_changes` table and the name matcher stay available.
