@@ -1319,8 +1319,20 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     history-only projection 7.7.
   - From 96 h before kickoff, accuracy is flat at about 9.4–9.5, so earlier logging costs little.
   - Most misses are shared: when FFS and RotoWire agree, 12% of those players still do not start.
-  - The open lever is a probability that each player starts, rather than a single XI. It cannot
-    change this season's frozen pE.
+  - **A probability that each player starts adds little,** so it was not built. By category, the
+    share who started was:
+
+    | Predicted by | Players | Started |
+    |---|---|---|
+    | Both media sources | 193 | 88% |
+    | RotoWire only | 26 | 58% |
+    | FFS only | 27 | 44% |
+    | FPL's projection only | 25 | 8% |
+
+    pE's average over the two sources already counts disputed players at about 50%. Shrinking the
+    agreed players is what the pre-registered pα blend does. The remaining miss, about 1 starter per
+    team (21 in 20 team-matches) in no predicted XI, no weighting of these sources can reach. Only a
+    third, independent source could.
 - **Manager data:**
   - Wikipedia's "Managerial changes" tables, loaded into Supabase table `manager_changes`
     (`tabet/managers.py`; migration 0006; private): 1,885 changes in our ten leagues, 2015–27.
