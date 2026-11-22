@@ -79,8 +79,11 @@ def test_run_condition():
     m, k = league(n_rounds=4)
     k.loc[k["match_id"] == "1", ["saves", "conceded"]] = None
     tb = {"matches": m.assign(status_short="FT")}
+    k = k.assign(league=39)
     c = gk.check(tb, k, {39: "E0"}, ["2021-22"])
-    assert c["E0 2021-22"]["both_keepers_share"] == round(11 / 12, 4)
+    assert c["E0 2021-22"]["keepers_identified_share"] == 1.0           # identities are all there
+    assert c["E0 2021-22"]["league_lines_complete"] == round(22 / 24, 4)  # 2 of 24 lines lack numbers
+    assert not gk.failing(c)
 
 
 def test_ledger_claims_are_registered():

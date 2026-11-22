@@ -47,7 +47,8 @@ HALF_LIFE = 365.0
 MIN_MINUTES = 45
 USUAL_N = 10
 EXPECTED_TEST_MATCHES = 14000
-MIN_COMPLETE = 0.95
+MIN_COMPLETE = 0.95          # starting keepers identified (amended 2026-11-22)
+MIN_LINES = 0.85             # keeper lines complete, per league (amended 2026-11-22)
 L2S = N.L2S
 
 
@@ -200,17 +201,28 @@ def side_rows(tb: dict, k: pd.DataFrame, leagues: dict[int, str]) -> pd.DataFram
 
 
 def check(tb: dict, k: pd.DataFrame, leagues: dict[int, str], seasons: list[str]) -> dict:
+    """Run condition (as amended on 2026-11-22): per scored league-season, the share of finished league matches
+    with both starting keepers identified, and the share of that league's keeper lines (>= 45 minutes) with
+    saves and conceded recorded."""
     m = tb["matches"]
     m = m[m["status_short"] == "FT"]
     st = starters(k)
-    ok = st.dropna(subset=["saves", "conceded"]).groupby("match_id")["team_id"].nunique()
+    known = st.groupby("match_id")["team_id"].nunique()
     out = {}
     for lg, code in leagues.items():
+        kl = k[(k["league"] == lg) & (k["minutes"] >= MIN_MINUTES)] if "league" in k else k[k["minutes"] >= MIN_MINUTES]
+        lines = float(kl[["saves", "conceded"]].notna().all(axis=1).mean()) if len(kl) else 0.0
         for s in seasons:
             g = m[(m["league"] == lg) & (m["season"] == s)]
-            share = float(g["match_id"].map(ok).fillna(0).ge(2).mean()) if len(g) else 0.0
-            out[f"{code} {s}"] = {"finished": int(len(g)), "both_keepers_share": round(share, 4)}
+            share = float(g["match_id"].map(known).fillna(0).ge(2).mean()) if len(g) else 0.0
+            out[f"{code} {s}"] = {"finished": int(len(g)), "keepers_identified_share": round(share, 4),
+                                  "league_lines_complete": round(lines, 4)}
     return out
+
+
+def failing(comp: dict) -> dict:
+    return {c: v for c, v in comp.items() if tuple(c.split(" ")) not in EXCLUDED
+            and (v["keepers_identified_share"] < MIN_COMPLETE or v["league_lines_complete"] < MIN_LINES)}
 
 
 # ---------------------------------------------------------------- models and phases
@@ -252,7 +264,7 @@ def _rows(leagues, tag, check_on=None):
             comp = check(tb, k, *check_on)
             OUT.mkdir(parents=True, exist_ok=True)
             (OUT / f"{tag}_check.json").write_text(json.dumps(comp, indent=2))
-            short = {c: v for c, v in comp.items() if v["both_keepers_share"] < MIN_COMPLETE and tuple(c.split(" ")) not in EXCLUDED}
+            short = failing(comp)
             if tag == "test" and short:
                 raise SystemExit(f"run condition not met: {short}")
         rows = side_rows(tb, k, leagues)

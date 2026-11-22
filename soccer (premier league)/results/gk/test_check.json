@@ -1,0 +1,218 @@
+{
+  "AUT 2020-21": {
+    "finished": 197,
+    "both_keepers_share": 0.8782
+  },
+  "AUT 2021-22": {
+    "finished": 195,
+    "both_keepers_share": 0.8308
+  },
+  "AUT 2022-23": {
+    "finished": 194,
+    "both_keepers_share": 0.8505
+  },
+  "AUT 2023-24": {
+    "finished": 195,
+    "both_keepers_share": 0.841
+  },
+  "AUT 2024-25": {
+    "finished": 195,
+    "both_keepers_share": 0.8564
+  },
+  "AUT 2025-26": {
+    "finished": 195,
+    "both_keepers_share": 0.8154
+  },
+  "SWZ 2020-21": {
+    "finished": 182,
+    "both_keepers_share": 0.8681
+  },
+  "SWZ 2021-22": {
+    "finished": 182,
+    "both_keepers_share": 0.8626
+  },
+  "SWZ 2022-23": {
+    "finished": 182,
+    "both_keepers_share": 0.8407
+  },
+  "SWZ 2023-24": {
+    "finished": 230,
+    "both_keepers_share": 0.8913
+  },
+  "SWZ 2024-25": {
+    "finished": 230,
+    "both_keepers_share": 0.9087
+  },
+  "SWZ 2025-26": {
+    "finished": 229,
+    "both_keepers_share": 0.8603
+  },
+  "DNK 2020-21": {
+    "finished": 192,
+    "both_keepers_share": 0.875
+  },
+  "DNK 2021-22": {
+    "finished": 192,
+    "both_keepers_share": 0.8802
+  },
+  "DNK 2022-23": {
+    "finished": 193,
+    "both_keepers_share": 0.8912
+  },
+  "DNK 2023-24": {
+    "finished": 193,
+    "both_keepers_share": 0.9016
+  },
+  "DNK 2024-25": {
+    "finished": 193,
+    "both_keepers_share": 0.8653
+  },
+  "DNK 2025-26": {
+    "finished": 192,
+    "both_keepers_share": 0.8958
+  },
+  "G1 2020-21": {
+    "finished": 242,
+    "both_keepers_share": 0.0
+  },
+  "G1 2021-22": {
+    "finished": 242,
+    "both_keepers_share": 0.0
+  },
+  "G1 2022-23": {
+    "finished": 240,
+    "both_keepers_share": 0.7625
+  },
+  "G1 2023-24": {
+    "finished": 240,
+    "both_keepers_share": 0.825
+  },
+  "G1 2024-25": {
+    "finished": 236,
+    "both_keepers_share": 0.7797
+  },
+  "G1 2025-26": {
+    "finished": 236,
+    "both_keepers_share": 0.8136
+  },
+  "T1 2020-21": {
+    "finished": 420,
+    "both_keepers_share": 0.85
+  },
+  "T1 2021-22": {
+    "finished": 380,
+    "both_keepers_share": 0.8921
+  },
+  "T1 2022-23": {
+    "finished": 341,
+    "both_keepers_share": 0.7771
+  },
+  "T1 2023-24": {
+    "finished": 380,
+    "both_keepers_share": 0.8237
+  },
+  "T1 2024-25": {
+    "finished": 342,
+    "both_keepers_share": 0.8626
+  },
+  "T1 2025-26": {
+    "finished": 306,
+    "both_keepers_share": 0.8333
+  },
+  "I2 2020-21": {
+    "finished": 387,
+    "both_keepers_share": 0.8656
+  },
+  "I2 2021-22": {
+    "finished": 388,
+    "both_keepers_share": 0.8376
+  },
+  "I2 2022-23": {
+    "finished": 390,
+    "both_keepers_share": 0.8487
+  },
+  "I2 2023-24": {
+    "finished": 389,
+    "both_keepers_share": 0.8406
+  },
+  "I2 2024-25": {
+    "finished": 389,
+    "both_keepers_share": 0.8766
+  },
+  "I2 2025-26": {
+    "finished": 390,
+    "both_keepers_share": 0.8333
+  },
+  "D2 2020-21": {
+    "finished": 308,
+    "both_keepers_share": 0.8377
+  },
+  "D2 2021-22": {
+    "finished": 308,
+    "both_keepers_share": 0.8864
+  },
+  "D2 2022-23": {
+    "finished": 308,
+    "both_keepers_share": 0.8734
+  },
+  "D2 2023-24": {
+    "finished": 308,
+    "both_keepers_share": 0.8929
+  },
+  "D2 2024-25": {
+    "finished": 307,
+    "both_keepers_share": 0.9153
+  },
+  "D2 2025-26": {
+    "finished": 308,
+    "both_keepers_share": 0.8474
+  },
+  "F2 2020-21": {
+    "finished": 384,
+    "both_keepers_share": 0.8411
+  },
+  "F2 2021-22": {
+    "finished": 383,
+    "both_keepers_share": 0.8094
+  },
+  "F2 2022-23": {
+    "finished": 379,
+    "both_keepers_share": 0.8232
+  },
+  "F2 2023-24": {
+    "finished": 381,
+    "both_keepers_share": 0.8451
+  },
+  "F2 2024-25": {
+    "finished": 310,
+    "both_keepers_share": 0.8516
+  },
+  "F2 2025-26": {
+    "finished": 308,
+    "both_keepers_share": 0.8019
+  },
+  "SP2 2020-21": {
+    "finished": 468,
+    "both_keepers_share": 0.7863
+  },
+  "SP2 2021-22": {
+    "finished": 468,
+    "both_keepers_share": 0.8483
+  },
+  "SP2 2022-23": {
+    "finished": 468,
+    "both_keepers_share": 0.812
+  },
+  "SP2 2023-24": {
+    "finished": 468,
+    "both_keepers_share": 0.844
+  },
+  "SP2 2024-25": {
+    "finished": 467,
+    "both_keepers_share": 0.8608
+  },
+  "SP2 2025-26": {
+    "finished": 468,
+    "both_keepers_share": 0.8547
+  }
+}
