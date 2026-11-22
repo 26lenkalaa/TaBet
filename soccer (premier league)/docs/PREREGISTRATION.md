@@ -764,3 +764,25 @@ forecasts are still scored on the real results.
 - **Secondary:** XC with the cap, against XC; each league.
 - **Ledger:** family CAP, rows in this commit. Its test cells take **the last place** in SEALED's
   closed set (SEALED, FAT, XC, CAP). After it, the sealed holdout has no test slots left.
+
+## Amendment to CAP (2026-11-22, after development, before any sealed data was loaded): CAP withdrawn
+
+CAP's development run (`results/xc/dev.json`) found that every cap made Dixon-Coles worse, on 14,822
+matches in nine leagues:
+
+| Cap | LO-cap − LO |
+|---|---|
+| c = 5 (best) | +0.0003 |
+| c = 4 | +0.0014 |
+| c = 3 | +0.0054 |
+
+The pre-registered test (confirmation needs a gain of 0.0005) has no realistic chance of
+confirming. Running it would only spend the sealed holdout's last test slot.
+
+- **Change:** CAP's test is withdrawn before any sealed data is loaded. Its test rows are removed
+  from `docs/data_ledger.csv`, so the slot returns to SEALED's closed set. Its training and
+  development rows are marked spent.
+- **Status:** CAP is closed on development evidence, without a test. A blowout cap is not
+  re-proposed unless it comes with a new reason.
+- **XC's run still reports LO-cap − LO and XC-cap − XC as descriptive numbers only:** no decision,
+  and no ledger claim of their own. They use the same cells XC claims.

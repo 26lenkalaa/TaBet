@@ -486,8 +486,7 @@ def dev():
 
 def test():
     choice = json.loads((OUT / "dev.json").read_text())      # frozen development choices
-    for fam in ("XC", "CAP"):
-        _claim(fam, include_test=True)
+    _claim("XC", include_test=True)              # CAP was withdrawn after development (amendment)
     leagues = {**DEV9, **E1, **SEALED9}
     m, raw = tables(leagues, {**EUROPE, **CUPS_DEV, **CUPS_SEALED})
     comp = check(raw, m, SEALED9, TEST_SEASONS)
@@ -508,8 +507,8 @@ def test():
     res["XC"] = {"primary": {"XC - LO": {"mean": mm, "ci_95": [lo, hi]}},
                  "decision": "confirmed" if (mm <= -0.001 and hi < 0) else ("closed" if lo > -0.003 else "inconclusive")}
     mm, lo, hi = D.block_ci(w, "cap")
-    res["CAP"] = {"primary": {"LO-cap - LO": {"mean": mm, "ci_95": [lo, hi]}},
-                  "decision": "confirmed" if (mm <= -0.0005 and hi < 0) else ("closed" if lo > -0.0015 else "inconclusive")}
+    res["CAP"] = {"withdrawn": "after development (PREREGISTRATION, amendment to CAP); descriptive only",
+                  "LO-cap - LO": {"mean": mm, "ci_95": [lo, hi]}}
     sec = {}
     mm, lo, hi = D.block_ci(w, "xc_cap")
     sec["XC with cap - XC"] = {"mean": mm, "ci_95": [lo, hi]}

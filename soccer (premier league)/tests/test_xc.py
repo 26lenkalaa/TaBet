@@ -114,5 +114,5 @@ def test_walk_forward_uses_only_earlier_matches(monkeypatch):
 
 
 def test_ledger_claims_are_registered():
-    for fam in ("XC", "CAP"):
-        xc._claim(fam, include_test=True)
+    xc._claim("XC", include_test=True)
+    xc._claim("CAP", include_test=False)
