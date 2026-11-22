@@ -117,37 +117,37 @@ I2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed ho
 D2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
 F2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
 SP2,2020-21,2025-26,SEALED,test,reserved,4,PREREGISTRATION ledger note: sealed holdout,sealed before collection (2026-11-17): test use only; SEALED counts as one of the four
-SP1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-SP1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-I1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-I1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-D1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-D1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-F1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-F1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-N1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-N1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-P1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-P1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-B1,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-B1,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-SC0,2015-16,2020-21,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-SC0,2021-22,2025-26,FAT,development,reserved,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
-G1,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-T1,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-I2,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-D2,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-F2,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-SP2,2015-16,2019-20,FAT,training,reserved,1,PREREGISTRATION addendum FAT,fatigue block: history only
-AUT,2015-16,2019-20,FAT,test,reserved,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
-SWZ,2015-16,2019-20,FAT,test,reserved,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
-DNK,2015-16,2019-20,FAT,test,reserved,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
-AUT,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED)
-SWZ,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
-DNK,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
-G1,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
-T1,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
-I2,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED)
-D2,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED)
-F2,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
-SP2,2020-21,2025-26,FAT,test,reserved,4,PREREGISTRATION addendum FAT,fatigue block: scored once (closed set with SEALED)
+SP1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+SP1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+I1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+I1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+D1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+D1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+F1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+F1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+N1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+N1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+P1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+P1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+B1,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+B1,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+SC0,2015-16,2020-21,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+SC0,2021-22,2025-26,FAT,development,spent,1,PREREGISTRATION addendum FAT,fatigue block: L2 choice
+G1,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+T1,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+I2,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+D2,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+F2,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+SP2,2015-16,2019-20,FAT,training,spent,1,PREREGISTRATION addendum FAT,fatigue block: history only
+AUT,2015-16,2019-20,FAT,test,spent,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
+SWZ,2015-16,2019-20,FAT,test,spent,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
+DNK,2015-16,2019-20,FAT,test,spent,4,PREREGISTRATION addendum FAT,sealed cells loaded as history only; never scored (closed set with SEALED)
+AUT,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)
+SWZ,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
+DNK,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
+G1,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
+T1,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
+I2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)
+D2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)
+F2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
+SP2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)

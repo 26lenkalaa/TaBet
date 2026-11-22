@@ -319,7 +319,7 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
       <dl class="facts">
         <div><dt>Scored on</dt><dd>760 Premier League matches, 2024-25 and 2025-26</dd></div>
         <div><dt>Main measure</dt><dd>Log-loss (lower is better)</dd></div>
-        <div><dt>Last updated</dt><dd>21 November 2026</dd></div>
+        <div><dt>Last updated</dt><dd>22 November 2026</dd></div>
       </dl>
     </div>
   </div>
@@ -595,12 +595,13 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
               <tr><td class="name">Re-tuning the lineup model<span class="note">27 combinations of how fast player form fades and how much to trust low-minute players</span></td><td class="num">0.0000</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Defensive lineup strength<span class="note">How good the starting XI is at winning the ball back and winning duels. Four other leagues, written down before it ran</span></td><td class="num">−0.0003</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Attacking lineup strength, other leagues<span class="note">The Premier League lineup idea, retested on four other leagues, written down before it ran</span></td><td class="num">−0.0007</td><td><span class="tag t-gray">Not confirmed</span></td></tr>
+              <tr><td class="name">Fatigue across all competitions<span class="note">Rest, fixture congestion and the XI's recent starts, counting European and cup matches. Nine sealed leagues, written down before it ran</span></td><td class="num">+0.0002</td><td><span class="tag t-gray">No effect</span></td></tr>
               <tr><td class="name">Neural network with player-level inputs<span class="note">The network again, now with starting-XI player stats, on eight leagues, written down before it ran</span></td><td class="num">+0.0002</td><td><span class="tag t-gray">No better</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran. The last three rows were tested on the Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership (2,624 and 3,109 matches), against the same model without the idea. The network ruled out any gain bigger than 0.0025.</p>
+      <p class="table-note">Changes are in log-loss against the model each idea extends, mostly on 2024-26. The weekly ratings and shorter memory were tested on 2018-21. The neural network's change is against V2x (before early stopping it was +0.0308). The 13-season promoted-team test is on early-season matches of promoted sides in 2008-15, and was written down before it ran. The defensive, attacking-lineup and neural-network rows were tested on the Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership (2,624 and 3,109 matches), against the same model without the idea. The network ruled out any gain bigger than 0.0025.</p>
 
       <details class="acc">
         <summary><span class="lab">What the dropped ideas taught us</span><span class="chev" aria-hidden="true"></span></summary>
@@ -703,7 +704,7 @@ away goals ~ Poisson( exp(base + attack[away] − defence[home]) )</pre>
         <li><strong>Used so far:</strong> the lineup-strength and neural-network tests above. None of them beat the simpler model.</li>
         <li><strong>A sealed holdout.</strong> Nine leagues (Austria, Switzerland, Denmark, Greece, Turkey, and the second divisions of Italy, Germany, France and Spain) are stored but never looked at. Each one-off test written down in advance can be scored on them, at most three in total.</li>
         <li><strong>Injury lists can't be used.</strong> We checked: they are filled in after the match (almost no player listed as missing or doubtful ever started), so using them would leak the result.</li>
-        <li><strong>Being tested now: fatigue.</strong> Our models only see league matches, so a team that played in Europe three days earlier looks rested. We've written down a test of rest, fixture congestion and how many recent starts the XI has made across all competitions. On the leagues used for tuning it helped by only 0.0001; the one-off test on the sealed leagues is next.</li>
+        <li><strong>Fatigue: no effect.</strong> Our models only see league matches, so a team that played in Europe three days earlier looks rested. We tested rest, fixture congestion and how many recent starts the XI had made across all competitions, written down in advance and scored once on 13,826 sealed matches. It made no difference (+0.0002), not even straight after a European game. The starting lineup already shows when a team rotates.</li>
       </ul>
     </div>
   </section>
