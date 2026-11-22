@@ -958,3 +958,13 @@ The development leagues are similar (La Liga 95%).
   - at least 85% of that league's keeper lines (≥ 45 minutes) complete.
 - **Nothing else changes:** the frozen choices (k = 20, L2 = 100), the model, the primary, the
   thresholds and the inference.
+
+## Second amendment to GK (2026-11-22, before any model was fitted or any test result seen): Süper Lig 2022-23 excluded
+
+Under the amended run condition, one league-season failed: T1 2022-23, with both starting keepers
+identified in 91.8% of finished league matches (`results/gk/test_check.json`). That is the
+earthquake season, which addendum FAT's run condition also failed (lineups). Every other scored
+league-season passes.
+
+- **Change:** T1 2022-23 is history only, never scored, as FAT treated it. Turkey remains one of
+  the nine equally weighted test leagues. Nothing else changes.

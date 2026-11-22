@@ -41,7 +41,8 @@ DEV9 = {39: "E0", **F.DEV8}
 SEALED9 = F.SEALED9
 DEV_SEASONS = F.DEV_SEASONS
 TEST_SEASONS = F.TEST_SEASONS
-EXCLUDED = {("G1", "2020-21"), ("G1", "2021-22")}     # no player statistics (coverage flags), set in advance
+EXCLUDED = {("G1", "2020-21"), ("G1", "2021-22"),     # no player statistics (coverage flags), set in advance
+            ("T1", "2022-23")}                     # second amendment (2026-11-22): run condition failed
 KS = (20, 50, 100)
 HALF_LIFE = 365.0
 MIN_MINUTES = 45
