@@ -151,3 +151,77 @@ I2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: 
 D2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)
 F2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED); amendment 2026-11-22: some seasons history only (run condition)
 SP2,2020-21,2025-26,FAT,test,spent,4,PREREGISTRATION addendum FAT,fatigue block: scored once on 2026-11-22 (FAT closed) (closed set with SEALED)
+E0,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+E0,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+SP1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+SP1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+I1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+I1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+D1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+D1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+F1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+F1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+N1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+N1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+P1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+P1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+B1,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+B1,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+SC0,2015-16,2020-21,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+SC0,2021-22,2025-26,XC,development,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: development choices
+E1,2015-16,2025-26,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only (cup opponents)
+G1,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+T1,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+I2,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+D2,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+F2,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+SP2,2015-16,2019-20,XC,training,reserved,1,PREREGISTRATION addendum XC,all-competition ratings: history only
+AUT,2015-16,2019-20,XC,test,reserved,4,PREREGISTRATION addendum XC,sealed cells loaded as history only; never scored (closed set with SEALED)
+SWZ,2015-16,2019-20,XC,test,reserved,4,PREREGISTRATION addendum XC,sealed cells loaded as history only; never scored (closed set with SEALED)
+DNK,2015-16,2019-20,XC,test,reserved,4,PREREGISTRATION addendum XC,sealed cells loaded as history only; never scored (closed set with SEALED)
+AUT,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+SWZ,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+DNK,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+G1,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+T1,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+I2,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+D2,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+F2,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+SP2,2020-21,2025-26,XC,test,reserved,4,PREREGISTRATION addendum XC,all-competition ratings: scored once (closed set with SEALED)
+E0,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+E0,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+SP1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+SP1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+I1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+I1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+D1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+D1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+F1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+F1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+N1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+N1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+P1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+P1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+B1,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+B1,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+SC0,2015-16,2020-21,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+SC0,2021-22,2025-26,CAP,development,reserved,1,PREREGISTRATION addendum CAP,blowout cap: development choices
+E1,2015-16,2025-26,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only (cup opponents)
+G1,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+T1,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+I2,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+D2,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+F2,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+SP2,2015-16,2019-20,CAP,training,reserved,1,PREREGISTRATION addendum CAP,blowout cap: history only
+AUT,2015-16,2019-20,CAP,test,reserved,4,PREREGISTRATION addendum CAP,sealed cells loaded as history only; never scored (closed set with SEALED)
+SWZ,2015-16,2019-20,CAP,test,reserved,4,PREREGISTRATION addendum CAP,sealed cells loaded as history only; never scored (closed set with SEALED)
+DNK,2015-16,2019-20,CAP,test,reserved,4,PREREGISTRATION addendum CAP,sealed cells loaded as history only; never scored (closed set with SEALED)
+AUT,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+SWZ,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+DNK,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+G1,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+T1,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+I2,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+D2,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+F2,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)
+SP2,2020-21,2025-26,CAP,test,reserved,4,PREREGISTRATION addendum CAP,blowout cap: scored once (closed set with SEALED)

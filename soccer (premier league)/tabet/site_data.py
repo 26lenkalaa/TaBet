@@ -371,7 +371,7 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         fin = fpl[fpl["finished"].astype(bool) | fpl["finished_provisional"].astype(bool)]
         results = {int(f.id): ("H" if f.team_h_score > f.team_a_score else "A" if f.team_a_score > f.team_h_score else "D")
                    for f in fin.itertuples() if pd.notna(f.team_h_score) and pd.notna(f.team_a_score)}
-        build_bets(logged, odds_log, results, TEAMS)
+        build_bets(logged, odds_log, results, TEAMS, out=out.parent / "paper-bets.json")
     except Exception as ex:  # the site data must still build
         print(f"paper bets skipped ({ex})")
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0

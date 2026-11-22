@@ -662,3 +662,105 @@ Counting only the league's own team's lineup, rather than both teams', changes n
   is scored on 2020-21 only, as Belgium was in NLX.
 - **Basis:** only the completeness check, which reads no results or forecasts. Nothing else changes:
   the frozen development choices, the primary, the thresholds and the inference.
+
+## Addendum XC (2026-11-22, committed before any code for it exists): team ratings from all competitions
+
+Dixon-Coles rates each league's teams from that league's matches only. Arsenal's Champions League
+and FA Cup matches, and every European meeting between our leagues, are ignored. XC fits **one joint
+Dixon-Coles over all loaded leagues plus their European and domestic-cup matches**, so each team has
+one attack and one defence rating across competitions, and European matches place the leagues on
+one scale. The question: do league forecasts improve? Nothing about the live Premier League model
+changes.
+
+- **Prior expectation:** modest. Most of a team's information is its own league. Any gain should
+  sit early in the season, for teams with many European matches, and in second tiers through cup
+  ties with top-flight sides. Recent-form inputs in stage 2 may already capture part of it, so the
+  primary is judged at stage 1, where the idea lives.
+- **Data:** API-Football only (Supabase). Results only: no lineups or statistics are needed.
+  - **Domestic leagues (rated teams):** the Premier League (E0), Championship (E1), La Liga, Serie A,
+    Bundesliga, Ligue 1, Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership; in
+    the test phase also the nine sealed leagues.
+  - **Cross-competition matches:** the Champions League, Europa League and Conference League
+    (qualifiers included), plus the domestic cups listed in addendum FAT. The five sealed-league cups
+    are loaded only in the test phase.
+  - **Scores:** the 90-minute score (`score.fulltime`). Extra time and penalties are ignored.
+  - **Neutral venue:** a cup or European match whose round is "Final", and FA Cup semi-finals, get no
+    home advantage.
+  - **Training only:** the nine development leagues (below), 2015-16 → 2020-21; E1, 2015-16 →
+    2025-26; G1, T1, I2, D2, F2 and SP2, 2015-16 → 2019-20.
+  - **Development (scored):** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2021-22 → 2025-26. All are
+    spent cells, which the ledger allows for development.
+  - **Test (scored once): the sealed holdout,** AUT, SWZ, DNK, G1, T1, I2, D2, F2 and SP2, **2020-21
+    → 2025-26.**
+    - AUT, SWZ and DNK 2015-16 → 2019-20 are loaded as history only and never scored, registered as
+      test use, as in FAT.
+    - FAT's nine exclusions concerned lineups, which XC does not use. They are scored here, subject
+      to XC's own run condition.
+  - **The development phase loads nothing from the nine sealed leagues or their five cups.** Their
+    clubs appear only as opponents in European or other cup matches, as unrated teams (below).
+  - **Run condition,** checked before any fitting:
+    - each scored league-season has at least 95% of its finished league matches with a 90-minute
+      score;
+    - at least 95% of cross-competition matches involving its teams have one too.
+    - A failure stops the run and is handled by a written amendment.
+- **Models.** Stage 1 only: Dixon-Coles probabilities from the score grid. Refitted weekly on
+  matches from the previous 3 years before the week, with time decay and L2 from `Hyperparams()`
+  (half-life about 173 days, L2 = 10 on team ratings).
+  - **LO (league only, the base):** the joint code with both cross-competition weights at 0. That is
+    one fit per league: a scoring level, home advantage and ρ per league. It is the current
+    Dixon-Coles, computed by the same code, so the comparison isolates the extra matches.
+  - **XC:** the same, plus the cross-competition matches. Each match is weighted w_E (European) or
+    w_C (domestic cup) on top of the time decay. European and cup matches each get their own scoring
+    level and home advantage, and no low-score correction (ρ = 0).
+    - A team is **rated** if it has at least 20 matches in a loaded domestic league within the fit
+      window; otherwise it is **unrated**.
+    - **Variant A:** all cross-competition matches. Unrated teams get L2 = 100, so they are shrunk
+      hard toward a lower-level average.
+    - **Variant B:** only cross-competition matches between two rated teams. This drops, for
+      example, Real Madrid against an unloaded league's club, or Chelsea against a League One side.
+  - **Development choices (only these):**
+    - the variant (A or B);
+    - w_E ∈ {0.25, 0.5, 1};
+    - w_C ∈ {0, 0.5, 1}.
+    - They are chosen by equal-weight mean log-loss over the nine development leagues on 2021-22 →
+      2025-26, and frozen in `dev.json` before the test.
+- **MDE:** recorded in `dev.json` before the test, as in FAT, with an expected 15,500 test matches.
+- **Primary: XC − LO** on the test leagues' league matches. Per league, the mean paired log-loss
+  difference; then the nine leagues averaged with equal weight. The inference uses 14-day blocks,
+  2,000 resamples, seed 0, and a two-sided 95% interval.
+- **Decision.**
+  - **Confirmed** if the mean is ≤ −0.001 and the 95% upper bound is below 0. XC then becomes a
+    candidate stage 1 for the Premier League, judged by a frozen prospective comparison before
+    adoption.
+  - **Closed** if not confirmed and the lower bound is above −0.003.
+  - **Inconclusive** otherwise.
+  - No secondary can rescue the primary.
+- **Secondary, never decisive:**
+  - XC and LO each with addendum G's linear stage 2 on top (L2 chosen on development): does the gain
+    survive stage 2?
+  - top flights against second tiers;
+  - early season (either side within its first 10 league matches);
+  - matches where either side played 4 or more European matches in the previous 365 days;
+  - each league; each season;
+  - the development E0 result, reported as Premier League evidence (development data, not a test).
+- **Ledger:** family XC, rows in this commit. The test cells join SEALED's closed set (SEALED, FAT
+  and XC use 3 of its 4 places).
+
+## Addendum CAP (2026-11-22, committed with XC, before any code for it exists): capping blowouts in Dixon-Coles
+
+A 6-0 moves Dixon-Coles ratings six times as far as a 1-0, though late goals in decided games say
+little about strength. CAP fits LO with each side's goals **capped at c** in the likelihood. The
+forecasts are still scored on the real results.
+
+- **Prior expectation:** small, likely under 0.001. Blowouts are rare, and the time decay already
+  dilutes each one.
+- **Data, periods, base, refits, eligibility and inference:** exactly XC's. The base is LO, and only
+  league matches are used.
+- **Development choice (only this):** c ∈ {3, 4, 5}, by the same rule as XC.
+- **Primary: LO-cap − LO,** the equal-weight mean over the nine sealed leagues.
+- **Decision.** The thresholds are FAT's, for an expected small effect: **confirmed** if the mean is
+  ≤ −0.0005 and the upper bound is below 0; **closed** if not confirmed and the lower bound is above
+  −0.0015; **inconclusive** otherwise.
+- **Secondary:** XC with the cap, against XC; each league.
+- **Ledger:** family CAP, rows in this commit. Its test cells take **the last place** in SEALED's
+  closed set (SEALED, FAT, XC, CAP). After it, the sealed holdout has no test slots left.
