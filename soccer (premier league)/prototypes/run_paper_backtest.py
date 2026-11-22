@@ -12,7 +12,8 @@ Descriptive only. Fixed before running:
   * baseline: always back the market favourite (the shortest of the same prices), same staking;
   * value rule (added 2026-11-22, same prices and staking): bet only on a result whose model chance
     times the price exceeds 1 (positive expected value by the model), choosing the largest such edge;
-    no such result, no bet.
+    no such result, no bet;
+  * 5% edge rule (added 2026-11-22): the value rule, but only when that edge is at least 0.05.
 V2x's forecasts use the confirmed lineups, so they come later than the price they are paired with.
 """
 from __future__ import annotations
@@ -52,7 +53,7 @@ def pick(rule: str, p: list[float], odds: list[float]) -> int | None:
         return int(np.argmax(p))
     ev = [p[k] * odds[k] - 1 for k in range(3)]
     k = int(np.argmax(ev))
-    return k if ev[k] > 0 else None
+    return k if ev[k] > (0.05 if rule == "value5" else 0.0) else None
 
 
 def run() -> dict:
@@ -61,11 +62,11 @@ def run() -> dict:
     led = pd.read_csv(ROOT / "results" / "xg_strength" / "ledger.csv")
     led = led[led["season"].isin(SEASONS)]
     out = {}
-    for rule in ("favourite", "value"):
+    for rule in ("favourite", "value", "value5"):
         out[rule] = table(led, price, rule)
     data = {"rule": "10% of the bankroll a bet, Pinnacle pre-closing price (else the bookmaker average), "
                     "$100 at the start of each season; favourite = the model's most likely result, value = "
-                    "the result with the largest positive expected value by the model", "seasons": SEASONS, **out}
+                    "the result with the largest positive expected value by the model; value5 = the same with an edge of at least 5%", "seasons": SEASONS, **out}
     OUT.write_text(json.dumps(data, indent=1) + "\n")
     return data
 
@@ -105,7 +106,7 @@ def table(led, price, rule) -> dict:
 
 if __name__ == "__main__":
     d = run()
-    for label, per in [(f"{r}: {k}", v) for r in ("favourite", "value") for k, v in d[r].items()]:
+    for label, per in [(f"{r}: {k}", v) for r in ("favourite", "value", "value5") for k, v in d[r].items()]:
         print(label)
         for s, v in per.items():
             print(f"  {s}: ${v['bankroll']:>8.2f}  won {v['n_won']}/{v['n_settled']}  roi {v['roi']:+.3f} flat {v['flat_roi']:+.3f}  low ${v['lowest']}  "
