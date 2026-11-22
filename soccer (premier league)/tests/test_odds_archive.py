@@ -23,8 +23,9 @@ HEADER_ONLY = (DATA / "fixtures_header_only.csv").read_bytes()
 
 # Modules allowed to refer to the odds archive at all: the archiver, the benchmark, the CLI that wires
 # them into the logging run and score-forecasts, and site_data, which reads it for display only
-# (amendment A7). Model, feature, tuning and forecast code may not.
-ARCHIVE_ALLOWED = {"odds_archive.py", "market_benchmark.py", "cli.py", "site_data.py"}
+# (amendment A7), and paper_bets, which prices the notebook's imaginary bets (display only, 2026-11-22).
+# Model, feature, tuning and forecast code may not.
+ARCHIVE_ALLOWED = {"odds_archive.py", "market_benchmark.py", "cli.py", "site_data.py", "paper_bets.py"}
 MODEL_CODE = {"model.py", "features.py", "forecast.py", "experiments.py", "xg_strength.py", "lineup.py", "dynamic.py",
               "elo.py", "calibration.py", "outcome_model.py", "multileague.py", "adaptation.py", "history.py",
               "prospective.py", "store.py", "lineup_sources.py", "fpl.py"}
@@ -50,7 +51,7 @@ def test_no_model_code_refers_to_the_odds_archive():
 
 
 def test_model_code_never_imports_the_odds_or_site_modules():
-    pat = re.compile(r"\b(?:odds_archive|market_benchmark|site_data|ingest\s+import\s+[^\n]*implied_probabilities)\b")
+    pat = re.compile(r"\b(?:odds_archive|market_benchmark|site_data|paper_bets|ingest\s+import\s+[^\n]*implied_probabilities)\b")
     bad = [p.name for p in _modules() if p.name in MODEL_CODE and pat.search(p.read_text())]
     assert bad == []
 

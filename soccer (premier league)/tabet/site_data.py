@@ -366,6 +366,14 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         entries.append(e)
 
     entries.sort(key=lambda x: x["kickoff"])
+    try:   # paper betting from GW12 (descriptive; tabet/paper_bets.py)
+        from .paper_bets import build as build_bets
+        fin = fpl[fpl["finished"].astype(bool) | fpl["finished_provisional"].astype(bool)]
+        results = {int(f.id): ("H" if f.team_h_score > f.team_a_score else "A" if f.team_a_score > f.team_h_score else "D")
+                   for f in fin.itertuples() if pd.notna(f.team_h_score) and pd.notna(f.team_a_score)}
+        build_bets(logged, odds_log, results, TEAMS)
+    except Exception as ex:  # the site data must still build
+        print(f"paper bets skipped ({ex})")
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
     data = {"built_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat(), "n_log_records": n_log,
             "seasons": sorted({e["season"] for e in entries}), "matches": entries}
