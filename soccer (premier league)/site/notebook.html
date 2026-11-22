@@ -350,6 +350,23 @@ p.ctx-hist { text-transform: none; letter-spacing: .02em; }
     <h2 id="paper-title">What if we bet on our own forecasts?</h2>
     <p>From gameweek 12, every logged forecast places an imaginary bet: 10% of the bankroll on the result TaBet thinks is most likely, at Pinnacle's real price from the same moment, bookmaker's cut included. The bankroll starts at $100. Each stake is 10% of what the bankroll was when that forecast was logged, so a full gameweek puts about the whole bankroll on the line. This is an experiment to watch, not a strategy: no real money, and nothing here changes a forecast.</p>
     <div id="paper-bets" class="tracker" aria-live="polite"><p class="tk-note">Loading the bets…</p></div>
+
+    <details class="acc">
+      <summary><span class="lab">The same rule on past seasons <span class="sub">Every model would have lost money</span></span><span class="chev" aria-hidden="true"></span></summary>
+      <div class="acc-body">
+        <p>We replayed the rule on our frozen backtest forecasts. Each season starts at $100, every match stakes 10% of the bankroll on the model's most likely result, and the price is Pinnacle's from a day or two before kickoff, margin included. For the last row we always backed the bookmakers' favourite instead.</p>
+        <div class="panel"><div class="scroll"><table>
+          <thead><tr><th>Strategy</th><th class="num">2022-23</th><th class="num">2023-24</th><th class="num">2024-25</th><th class="num">2025-26</th><th class="num">2026-27 GW 1-9</th></tr></thead>
+          <tbody><tr><td class="name">V0: results only</td><td class="num">$10.98<span class="note">−9.0% per $</span></td><td class="num">$35.63<span class="note">−2.0% per $</span></td><td class="num">$0.74<span class="note">−6.5% per $</span></td><td class="num">$0.09<span class="note">−5.8% per $</span></td><td class="num">$12.94<span class="note">−15.4% per $</span></td></tr><tr><td class="name">V1x: chances created</td><td class="num">$8.90<span class="note">−9.3% per $</span></td><td class="num">$40.57<span class="note">−2.0% per $</span></td><td class="num">$0.91<span class="note">−6.9% per $</span></td><td class="num">$0.26<span class="note">−3.7% per $</span></td><td class="num">$12.94<span class="note">−15.4% per $</span></td></tr><tr><td class="name">V2x: lineups</td><td class="num">$10.98<span class="note">−9.0% per $</span></td><td class="num">$22.74<span class="note">−2.8% per $</span></td><td class="num">$3.69<span class="note">−8.7% per $</span></td><td class="num">$0.12<span class="note">−4.0% per $</span></td><td class="num">$7.63<span class="note">−17.6% per $</span></td></tr><tr><td class="name">Market favourite (baseline)</td><td class="num">$48.43<span class="note">−3.7% per $</span></td><td class="num">$29.10<span class="note">−4.0% per $</span></td><td class="num">$3.40<span class="note">−8.0% per $</span></td><td class="num">$0.36<span class="note">−9.2% per $</span></td><td class="num">$15.32<span class="note">−21.2% per $</span></td></tr></tbody>
+        </table></div></div>
+        <p class="table-note">Bankroll at the end of each season, from $100, and the average return per dollar staked. Pinnacle's price covers every match to 2024-25, 210 of 380 in 2025-26 and none of 2026-27. The rest use the bookmaker average, whose margin is bigger, so those seasons look worse.</p>
+        <ul>
+          <li><strong>Every strategy lost, every season,</strong> including backing the market's favourite. In full seasons each dollar staked lost about 2 to 9 cents. That's roughly the bookmaker's margin plus a little more.</li>
+          <li><strong>10% a match is far too much.</strong> At about 380 bets a season, the bankroll compounds down to a few dollars or less, even when the loss per dollar is small.</li>
+          <li><strong>The models nearly always pick the same result</strong> (96–100% of matches), so this rule barely separates them. Our edge, where we have one, is in the probabilities, not in which result is the favourite.</li>
+        </ul>
+      </div>
+    </details>
   </section>
 
   <section class="sec" id="judged">

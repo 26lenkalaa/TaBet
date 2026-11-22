@@ -93,21 +93,30 @@ def build(logged: dict, odds_log: pd.DataFrame, results: dict, names: dict, get=
                      "logged": r["logged_utc"], "home": names.get(r["home_id"], r["home_id"]),
                      "away": names.get(r["away_id"], r["away_id"]), "forecast": key, "pick": PICK[i],
                      "p_pick": round(p[i], 4), "odds": odds, "result": results.get(int(fx))})
-    bets.sort(key=lambda b: (b["logged"], b["kickoff"], b["fixture"]))
+    data = {"first_gameweek": FIRST_GW, **settle(bets)}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, separators=(",", ":")) + "\n")
+    return data
+
+
+def settle(bets: list[dict], start: float = START, fraction: float = FRACTION) -> dict:
+    """The staking rule, shared by the live tracker and the backtest. Each bet needs logged (when it is
+    placed), kickoff, pick, odds (H, D, A decimal, or None for no bet) and result (or None). Sorts the
+    bets by placement and fills stake, pnl and status; returns the summary with the bets."""
+    bets.sort(key=lambda b: (b["logged"], b["kickoff"], b.get("fixture", 0)))
+    placed = [pd.Timestamp(b["logged"]) for b in bets]
+    due_at = [pd.Timestamp(b["kickoff"]) + SETTLE for b in bets]
     blocked = False       # an earlier bet that should have settled has no result yet
-    for b in bets:
-        t = pd.Timestamp(b["logged"])
+    for k, b in enumerate(bets):
         if b["odds"] is None:
             b.update(status="no price", stake=None, pnl=None)
             continue
-        due = [x for x in bets if x is not b and x.get("status") in ("won", "lost", "pending")
-               and pd.Timestamp(x["kickoff"]) + SETTLE <= t]
+        due = [x for j, x in enumerate(bets[:k]) if x["status"] in ("won", "lost", "pending") and due_at[j] <= placed[k]]
         if blocked or any(x["status"] == "pending" for x in due):
             b.update(status="pending", stake=None, pnl=None)
             blocked = True
             continue
-        base = START + sum(x["pnl"] for x in due)
-        stake = round(FRACTION * base, 2)
+        stake = round(fraction * (start + sum(x["pnl"] for x in due)), 2)
         b["stake"] = stake
         if b["result"] is None:
             b.update(status="pending", pnl=None)
@@ -117,10 +126,7 @@ def build(logged: dict, odds_log: pd.DataFrame, results: dict, names: dict, get=
                  pnl=round(stake * (b["odds"][PICK.index(b["pick"])] - 1), 2) if win else -stake)
     done = [b for b in bets if b["status"] in ("won", "lost")]
     staked = sum(b["stake"] for b in done)
-    data = {"start": START, "fraction": FRACTION, "first_gameweek": FIRST_GW,
-            "bankroll": round(START + sum(b["pnl"] for b in done), 2), "n_settled": len(done),
+    pnl = sum(b["pnl"] for b in done)
+    return {"start": start, "fraction": fraction, "bankroll": round(start + pnl, 2), "n_settled": len(done),
             "n_won": sum(b["status"] == "won" for b in done), "staked": round(staked, 2),
-            "roi": round(sum(b["pnl"] for b in done) / staked, 4) if staked else None, "bets": bets}
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(data, separators=(",", ":")) + "\n")
-    return data
+            "roi": round(pnl / staked, 4) if staked else None, "bets": bets}

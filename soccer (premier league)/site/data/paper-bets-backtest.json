@@ -1,0 +1,220 @@
+{
+ "rule": "10% of the bankroll on the most likely result, Pinnacle pre-closing price (else the bookmaker average), $100 at the start of each season",
+ "seasons": [
+  "2022-23",
+  "2023-24",
+  "2024-25",
+  "2025-26",
+  "2026-27"
+ ],
+ "models": {
+  "V0: results only": {
+   "2022-23": {
+    "bankroll": 10.98,
+    "n_settled": 380,
+    "n_won": 201,
+    "staked": 983.57,
+    "roi": -0.0905,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 4.32
+   },
+   "2023-24": {
+    "bankroll": 35.63,
+    "n_settled": 380,
+    "n_won": 220,
+    "staked": 3271.13,
+    "roi": -0.0197,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 27.48
+   },
+   "2024-25": {
+    "bankroll": 0.74,
+    "n_settled": 380,
+    "n_won": 196,
+    "staked": 1524.84,
+    "roi": -0.0651,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 0.67
+   },
+   "2025-26": {
+    "bankroll": 0.09,
+    "n_settled": 380,
+    "n_won": 178,
+    "staked": 1728.4,
+    "roi": -0.0578,
+    "n_pinnacle": 210,
+    "n_average": 170,
+    "lowest": 0.09
+   },
+   "2026-27": {
+    "bankroll": 12.94,
+    "n_settled": 90,
+    "n_won": 40,
+    "staked": 565.49,
+    "roi": -0.154,
+    "n_pinnacle": 0,
+    "n_average": 90,
+    "lowest": 12.69
+   }
+  },
+  "V1x: chances created": {
+   "2022-23": {
+    "bankroll": 8.9,
+    "n_settled": 380,
+    "n_won": 200,
+    "staked": 974.65,
+    "roi": -0.0935,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 4.32
+   },
+   "2023-24": {
+    "bankroll": 40.57,
+    "n_settled": 380,
+    "n_won": 221,
+    "staked": 3033.37,
+    "roi": -0.0196,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 18.01
+   },
+   "2024-25": {
+    "bankroll": 0.91,
+    "n_settled": 380,
+    "n_won": 197,
+    "staked": 1435.28,
+    "roi": -0.069,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 0.82
+   },
+   "2025-26": {
+    "bankroll": 0.26,
+    "n_settled": 380,
+    "n_won": 182,
+    "staked": 2696.04,
+    "roi": -0.037,
+    "n_pinnacle": 210,
+    "n_average": 170,
+    "lowest": 0.26
+   },
+   "2026-27": {
+    "bankroll": 12.94,
+    "n_settled": 90,
+    "n_won": 40,
+    "staked": 565.49,
+    "roi": -0.154,
+    "n_pinnacle": 0,
+    "n_average": 90,
+    "lowest": 12.69
+   }
+  },
+  "V2x: lineups": {
+   "2022-23": {
+    "bankroll": 10.98,
+    "n_settled": 380,
+    "n_won": 201,
+    "staked": 983.57,
+    "roi": -0.0905,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 4.32
+   },
+   "2023-24": {
+    "bankroll": 22.74,
+    "n_settled": 380,
+    "n_won": 220,
+    "staked": 2776.33,
+    "roi": -0.0278,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 10.11
+   },
+   "2024-25": {
+    "bankroll": 3.69,
+    "n_settled": 380,
+    "n_won": 202,
+    "staked": 1104.73,
+    "roi": -0.0872,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 2.8
+   },
+   "2025-26": {
+    "bankroll": 0.12,
+    "n_settled": 380,
+    "n_won": 181,
+    "staked": 2485.83,
+    "roi": -0.0402,
+    "n_pinnacle": 210,
+    "n_average": 170,
+    "lowest": 0.12
+   },
+   "2026-27": {
+    "bankroll": 7.63,
+    "n_settled": 90,
+    "n_won": 39,
+    "staked": 524.34,
+    "roi": -0.1762,
+    "n_pinnacle": 0,
+    "n_average": 90,
+    "lowest": 5.95
+   }
+  },
+  "Market favourite (baseline)": {
+   "2022-23": {
+    "bankroll": 48.43,
+    "n_settled": 380,
+    "n_won": 212,
+    "staked": 1398.14,
+    "roi": -0.0369,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 10.1
+   },
+   "2023-24": {
+    "bankroll": 29.1,
+    "n_settled": 380,
+    "n_won": 224,
+    "staked": 1793.85,
+    "roi": -0.0395,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 5.8
+   },
+   "2024-25": {
+    "bankroll": 3.4,
+    "n_settled": 380,
+    "n_won": 205,
+    "staked": 1201.84,
+    "roi": -0.0804,
+    "n_pinnacle": 380,
+    "n_average": 0,
+    "lowest": 1.1
+   },
+   "2025-26": {
+    "bankroll": 0.36,
+    "n_settled": 380,
+    "n_won": 188,
+    "staked": 1076.95,
+    "roi": -0.0925,
+    "n_pinnacle": 210,
+    "n_average": 170,
+    "lowest": 0.26
+   },
+   "2026-27": {
+    "bankroll": 15.32,
+    "n_settled": 90,
+    "n_won": 43,
+    "staked": 400.0,
+    "roi": -0.2117,
+    "n_pinnacle": 0,
+    "n_average": 90,
+    "lowest": 14.79
+   }
+  }
+ }
+}
