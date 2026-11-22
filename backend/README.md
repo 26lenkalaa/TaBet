@@ -64,7 +64,7 @@ npm run site        # the whole site + API on http://localhost:3000, like Vercel
 
 ## The website
 
-`soccer (premier league)/site/common.js` loads the seasons, matches and lineups from `/api`. If the API errors or takes longer than 4–6 s, the page quietly uses the static files in `site/data/` instead. The logger still builds those files, and they are also what the sync copies from.
+`site/common.js` loads the seasons, matches and lineups from `/api`. If the API errors or takes longer than 4–6 s, the page quietly uses the static files in `site/data/` instead. The logger still builds those files, and they are also what the sync copies from.
 
 ## Database changes (Supabase CLI)
 

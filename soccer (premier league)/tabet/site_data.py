@@ -1,4 +1,4 @@
-"""Data for the site (pitch, match explorer), written to site/data/:
+"""Data for the site (pitch, match explorer), written to site/data/ at the repository root:
   index.json                built time, log record count, seasons and the per-season file names
   matches-<season>.json     every match of that season with its forecasts and market odds
   lineups-<season>.json     starting XIs (actual and predicted), loaded only by the match page
@@ -36,7 +36,7 @@ from .ingest import implied_probabilities, load_all
 from .teams import TEAMS, try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE_DATA = ROOT / "site" / "data"
+SITE_DATA = ROOT.parent / "site" / "data"   # the shared site at the repository root
 INDEX = SITE_DATA / "index.json"   # seasons, build time and per-season file names; the other files sit beside it
 LIVE_SEASON = "2026-27"
 LEDGER = ROOT / "results" / "xg_strength" / "ledger.csv"

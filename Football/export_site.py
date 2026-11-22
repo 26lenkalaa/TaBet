@@ -11,7 +11,7 @@ from data import load_games, team_code
 from model import forecast
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE_DATA = ROOT / "soccer (premier league)" / "site" / "data" / "football.json"
+SITE_DATA = ROOT / "site" / "data" / "football.json"
 
 
 def build_payload(source: Path, seasons: list[int], as_of: date) -> dict[str, object]:

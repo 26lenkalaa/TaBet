@@ -7,7 +7,7 @@ import { createApp } from "../src/app.js";
 import { supabaseRepo } from "../src/repo/supabase.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const site = path.resolve(here, "..", "..", "soccer (premier league)", "site");
+const site = path.resolve(here, "..", "..", "site");
 const port = Number(process.env.PORT) || 3000;
 const app = express();
 if (process.env.API_DOWN) app.use("/api", (req, res) => res.status(503).end()); // test the fallback

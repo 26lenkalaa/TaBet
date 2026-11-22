@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT))
 from tabet.ingest import load_all  # noqa: E402
 from tabet.paper_bets import PICK, settle  # noqa: E402
 
-OUT = ROOT / "site" / "data" / "paper-bets-backtest.json"
+OUT = ROOT.parent / "site" / "data" / "paper-bets-backtest.json"
 MODELS = {"V0 Dixon-Coles": "V0: results only", "V1x adjusted xG strength (replaces raw)": "V1x: chances created",
           "V2x XI strength with adjusted xG": "V2x: lineups"}
 SEASONS = ["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"]

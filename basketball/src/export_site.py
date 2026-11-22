@@ -1,6 +1,6 @@
 """Export NBA forecasts for TaBet's static site.
 
-Writes one JSON snapshot, soccer (premier league)/site/data/basketball.json,
+Writes one JSON snapshot, site/data/basketball.json,
 which the NBA page (basketball.html) reads. It holds:
 
   * reports: for each exported season, every game with the model's pregame
@@ -33,7 +33,7 @@ from src import backtest, db, predict  # noqa: E402
 from src.ingest.fetch_schedule import SCHEDULE_FILE  # noqa: E402
 from src.models import situational  # noqa: E402
 
-SITE_DATA = BASKETBALL_DIR.parent / "soccer (premier league)" / "site" / "data" / "basketball.json"
+SITE_DATA = BASKETBALL_DIR.parent / "site" / "data" / "basketball.json"
 MODEL = "situational"
 SEASONS_EXPORTED = 2    # the newest seasons in the database
 UPCOMING_DAYS = 14
