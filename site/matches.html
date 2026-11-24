@@ -81,6 +81,14 @@ select option { background: #0b2c14; color: #fff; }
 .teams .side.away { text-align: right; }
 .teams .score { font-family: var(--px); font-size: 34px; text-align: center; min-width: 120px; color: var(--gold); text-shadow: 0 0 10px rgba(255,210,63,.6); }
 .teams .score.pending { font-size: 13px; color: var(--muted); text-shadow: none; }
+/* live scores (current gameweek, Fantasy Premier League) */
+.tag.t-live { color: var(--red); }
+.t-live::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: currentColor; animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.goals { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; margin: -4px 0 14px; font-size: 14px; }
+.goals ul { list-style: none; margin: 0; padding: 0; } .goals .away { text-align: right; }
+.goals li { padding: 2px 0; } .goals .src { grid-column: 1 / -1; font-size: 12px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .t-live::before { animation: none; } }
 @media (max-width: 600px) { .teams .side { font-size: 10px; } .teams .score { font-size: 22px; min-width: 70px; } .match { padding: 14px 12px; } }
 
 .sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -260,7 +268,8 @@ details.xi-more summary, details.acc summary { font-family: var(--sans); font-si
   <a href="./">Back to the pitch</a> · <a href="notebook">Model notebook</a>. Nothing here is betting advice.
 </footer>
 
-<script src="common.js?v=20261114"></script>
+<script src="common.js?v=20261125"></script>
+<script src="teams.js?v=20261116"></script>
 <script>
 var T = window.TaBet, esc = T.esc, pct = T.pct, when = T.when;
 var IX = null, SEASON = null, seasonEl = document.getElementById("season"), teamEl = document.getElementById("team"),
@@ -352,13 +361,34 @@ function takeaway(m) {
   return '<div class="take">' + out.map(function (r) { return '<div class="tk"><span>' + r[0] + "</span><p>" + r[1] + "</p></div>"; }).join("") + "</div>";
 }
 
+/* live scores: refreshed by T.watchLive; the card is redrawn only when this match's entry changes */
+var LIVE = null, liveKey = "";
+function goalsHTML(lx) {
+  if (!lx || lx.state === "pre") return "";
+  var ICON = { goal: "⚽", own_goal: "⚽", yellow: "🟨", red: "🟥", pen_missed: "✗", pen_saved: "🧤" };
+  var WORD = { own_goal: " (own goal)", pen_missed: " (penalty missed)", pen_saved: " (penalty saved)", yellow: "", red: "", goal: "" };
+  function side(sd) {
+    return lx.events.filter(function (e) { return e.side === sd && ICON[e.type]; }).map(function (e) {
+      return "<li>" + ICON[e.type] + " " + esc(e.player) + (e.n > 1 ? " ×" + e.n : "") + WORD[e.type] + "</li>";
+    }).join("");
+  }
+  var h = side("home"), a = side("away");
+  return '<div class="goals"><ul>' + h + '</ul><ul class="away">' + a + "</ul>" +
+    '<span class="src">' + (h || a ? "Goals and cards from Fantasy Premier League; it doesn’t give the minute. " : "") +
+    (lx.state === "live" ? "Updates every 30 seconds." : "") + "</span></div>";
+}
 function render() {
   var m = inSeason().find(function (x) { return x.id === matchEl.value; });
   if (!m) { card.innerHTML = '<p class="empty">No matches for this selection. Pick another team or season.</p>'; return; }
   try { history.replaceState(null, "", "#" + encodeURIComponent(m.id)); } catch (e) {}
   var played = m.status === "played", y = played ? OUT[m.result] : -1, cols = played ? 5 : 4;
-  var status = played ? '<span class="tag t-gray">Played</span>' : (m.status === "awaiting" ? '<span class="tag t-yellow">Awaiting result</span>' : '<span class="tag t-purple">Upcoming</span>');
-  var score = played ? '<div class="score">' + esc(m.score.replace("-", "–")) + "</div>" : '<div class="score pending">' + (m.status === "awaiting" ? "In play" : "vs") + "</div>";
+  var lx = LIVE ? LIVE.find(m) : null, on = !played && lx && lx.state !== "pre";
+  var status = played ? '<span class="tag t-gray">Played</span>' :
+    on ? (lx.state === "live" ? '<span class="tag t-live">Live ' + esc(T.liveClock(lx)) + "</span>" : '<span class="tag t-yellow">Full time, result being confirmed</span>') :
+    (m.status === "awaiting" ? '<span class="tag t-yellow">Awaiting result</span>' : '<span class="tag t-purple">Upcoming</span>');
+  var score = played ? '<div class="score">' + esc(m.score.replace("-", "–")) + "</div>" :
+    on ? '<div class="score">' + esc((lx.score || [0, 0]).join("–")) + "</div>" :
+    '<div class="score pending">' + (m.status === "awaiting" ? "In play" : "vs") + "</div>";
   var head = ["Home", "Draw", "Away"].map(function (h, i) { return '<th class="num' + (i === y ? " hit" : "") + '">' + h + "</th>"; }).join("");
   var body = "";
   if (m.forecasts.length) body += '<tr class="group"><td colspan="' + cols + '">TaBet</td></tr>' + m.forecasts.map(function (f) { return row(f, f.kind, m); }).join("");
@@ -374,7 +404,7 @@ function render() {
   if (!m.market.length) notes.push(played ? "No odds are available for this match yet." : "Betting odds appear once bookmakers list the match, usually one to two weeks before.");
   var callout = notes.length ? '<div class="callout"><p>' + notes.map(esc).join("</p><p>") + "</p></div>" : "";
   card.innerHTML = '<div class="meta">' + status + "<span>" + esc(when(m.kickoff, "long")) + (m.gameweek ? ", gameweek " + m.gameweek : "") + ". Season " + esc(m.season) + ".</span></div>" +
-    '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" +
+    '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" + goalsHTML(lx) +
     summary(m, y) + takeaway(m) + '<div id="lineups"></div>' + table + callout;
   showLineups(m);
 }
@@ -522,6 +552,12 @@ T.load(wantSeason).then(function (d) {
   });
   teamEl.addEventListener("change", function () { fillMatches(matchEl.value); });
   matchEl.addEventListener("change", render);
+  if (d.season === d.seasons[d.seasons.length - 1]) T.watchLive(function (L) {
+    LIVE = L;
+    var m = inSeason().find(function (x) { return x.id === matchEl.value; });
+    var k = m ? JSON.stringify(L.find(m)) : "";
+    if (k !== liveKey) { liveKey = k; render(); }
+  });
 }).catch(function () {
   card.innerHTML = '<p class="empty">The match data didn’t load. Refresh the page to try again.</p>';
 });

@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createApp } from "../src/app.js";
 import { supabaseRepo } from "../src/repo/supabase.js";
+import { createLive } from "../src/live.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = path.resolve(here, "..", "..", "site");
@@ -12,5 +13,5 @@ const port = Number(process.env.PORT) || 3000;
 const app = express();
 if (process.env.API_DOWN) app.use("/api", (req, res) => res.status(503).end()); // test the fallback
 app.use(express.static(site, { extensions: ["html"] }));     // like Vercel's cleanUrls
-app.use(createApp({ repo: supabaseRepo }));                  // /api/*, plus JSON 404s for anything else
+app.use(createApp({ repo: supabaseRepo, live: createLive() }));                  // /api/*, plus JSON 404s for anything else
 app.listen(port, () => console.log(`TaBet site + API on http://localhost:${port}`));

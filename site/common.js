@@ -126,6 +126,52 @@
     });
   }
 
+  /* ---- live scores (current gameweek, from Fantasy Premier League via /api/live; display only) ----
+     watchLive(cb) calls cb(L) now and after every refresh: every 30 s while a match is on or about to
+     start, every 5 minutes otherwise, and not at all while the tab is hidden. L.find(m) returns the live
+     entry for a site match ({state: pre|live|ft|final, minute, score: [h, a], events}), or null. */
+  function liveFind(L, m) {
+    var TM = window.TaBetTeams;
+    if (!L || !TM) return null;
+    return L.byPair[TM.team(m.home).code + "-" + TM.team(m.away).code] || null;
+  }
+  function liveBusy(d) {
+    var now = Date.now();
+    return d.matches.some(function (x) {
+      var t = Date.parse(x.kickoff);
+      return x.state === "live" || x.state === "ft" || (x.state === "pre" && t - now < 15 * 60000 && now - t < 3 * 3600000);
+    });
+  }
+  function watchLive(cb) {
+    var timer = null;
+    function again(ms) { clearTimeout(timer); timer = setTimeout(go, ms); }
+    function go() {
+      if (document.hidden) return;                      /* resumes on visibilitychange */
+      getJSON("/api/live/premier-league", 8000).then(function (d) {
+        var L = { gameweek: d.gameweek, updated_at: d.updated_at, byPair: {} };
+        d.matches.forEach(function (x) { if (x.home && x.away) L.byPair[x.home + "-" + x.away] = x; });
+        L.find = function (m) { return liveFind(L, m); };
+        try { cb(L); } catch (e) {}
+        again(liveBusy(d) ? 30000 : 300000);
+      }, function () { again(120000); });
+    }
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) go(); });
+    go();
+  }
+  /* "67′", "FT", or "" */
+  function liveClock(x) {
+    if (!x) return "";
+    if (x.state === "live") return x.minute != null ? x.minute + "′" : "LIVE";
+    if (x.state === "ft" || x.state === "final") return "FT";
+    return "";
+  }
+  /* scorers for one side: "Mbeumo 2, Wissa, Tarkowski (OG)" */
+  function liveScorers(x, side) {
+    return (x ? x.events : []).filter(function (e) { return e.side === side && (e.type === "goal" || e.type === "own_goal"); })
+      .map(function (e) { return e.player + (e.n > 1 ? " " + e.n : "") + (e.type === "own_goal" ? " (OG)" : ""); }).join(", ");
+  }
+
   window.TaBet = { KIND: KIND, esc: esc, pct: pct, when: when, primary: primary, market: market, bar: bar, load: load, index: index, lineups: lineups,
+                   watchLive: watchLive, liveClock: liveClock, liveScorers: liveScorers,
                    source: function () { return index().then(function (ix) { return ix.source; }); } };
 })();

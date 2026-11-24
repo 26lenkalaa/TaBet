@@ -1,6 +1,7 @@
 // TaBet API (Express). Read-only: every endpoint is a GET over the Supabase read copy.
 // The data layer is passed in as `repo`, so tests can use an in-memory fake.
 import express from "express";
+import { cacheSeconds, LiveError } from "./live.js";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SEASON = /^\d{4}-\d{2}$/;
@@ -47,7 +48,7 @@ export function toMatch(row, lineup) {
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 
-export function createApp({ repo, log = console }) {
+export function createApp({ repo, live = null, log = console }) {
   const app = express();
   app.disable("x-powered-by");
   app.set("etag", "strong");
@@ -77,6 +78,7 @@ export function createApp({ repo, log = console }) {
         "GET /api/competitions/:competition/seasons/:season/matches?gameweek=&status=",
         "GET /api/competitions/:competition/seasons/:season/lineups",
         "GET /api/matches/:id",
+        "GET /api/live/premier-league",
       ],
     });
   });
@@ -134,6 +136,25 @@ export function createApp({ repo, log = console }) {
     const rows = await repo.lineups(competition, season);
     cached(res, 300);
     res.json({ competition, season, count: rows.length, data: rows });
+  }));
+
+  // Live scores for the current gameweek (Fantasy Premier League; display only, never a model input).
+  api.get("/live/:competition", wrap(async (req, res) => {
+    const { competition } = req.params;
+    if (competition !== "premier-league") throw notFound("live scores are available for premier-league only");
+    if (!live) throw new HttpError(503, "unavailable", "live scores are not configured");
+    let data;
+    try {
+      data = await live();
+    } catch (e) {
+      if (!(e instanceof LiveError)) throw e;
+      const err = new HttpError(502, "upstream", `Live scores are unavailable right now: ${e.message}`);
+      err.expose = true;
+      throw err;
+    }
+    const s = cacheSeconds(data.matches);
+    res.set("Cache-Control", `public, max-age=0, s-maxage=${s}, stale-while-revalidate=${s}`);
+    res.json(data);
   }));
 
   api.get("/matches/:id", wrap(async (req, res) => {
