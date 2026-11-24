@@ -176,7 +176,7 @@ A GitHub Action (`.github/workflows/prospective.yml`) runs every 30 minutes. cro
      the same moment as TaBet's forecast, shown on the site as "Market at our forecast time".
    - Plus one call a day, for the site's "Latest market odds". Each call costs 2 credits; about 160
      of the free plan's 500 a month are used.
-4. **Rebuilds the website's data** (`site/data/`: `index.json` plus one file per season) at least daily. Vercel redeploys the
+4. **Rebuilds the website's data** (`../site/data/`: `index.json` plus one file per season) at least daily. Vercel redeploys the
    site from `main`.
 5. **Writes a heartbeat** to the run summary: the next fixture, when its logging window opens, the
    results file's freshness and odds coverage.
@@ -201,7 +201,7 @@ The bot commits to `main`, so **pull before you start work**.
 | **Closing odds** | The market at kickoff, with the margin removed |
 | **Log-loss** (played matches) | How each forecast scored on that match; lower is better |
 
-The site is plain HTML, CSS and JavaScript with no build step (`site/`). Only `site/data/` is
+The site is plain HTML, CSS and JavaScript with no build step, in `site/` at the repository root (shared with the NFL and basketball pages). Only `site/data/` is
 generated, by `python -m tabet site-data`: `index.json` plus `matches-<season>.json` and
 `lineups-<season>.json` for each season.
 
@@ -214,7 +214,7 @@ generated, by `python -m tabet site-data`: `index.json` plus `matches-<season>.j
 | `data/` | downloaded and processed data. `raw/` and `processed/` are not in git and are rebuilt on demand. `source_fixes.csv` blanks known bad source values |
 | `results/` | experiment outputs. `results/prospective/` holds the live log, raw lineup pages, the odds archive and refresh logs |
 | `prototypes/` | one script per experiment (`run_*.py`); each writes its numbers to `results/` |
-| `site/` | the static website |
+| `../site/` | the shared static website (at the repository root) |
 | `dashboard/` | an older standalone HTML forecast dashboard |
 | `tests/` | the test suite |
 | `docs/` | design notes, protocols and audits (below) |

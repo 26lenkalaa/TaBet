@@ -23,7 +23,7 @@ import pandas as pd
 
 START, FRACTION, FIRST_GW = 100.0, 0.10, 12
 SETTLE = pd.Timedelta(hours=2)
-OUT = Path(__file__).resolve().parent.parent / "site" / "data" / "paper-bets.json"
+OUT = Path(__file__).resolve().parent.parent.parent / "site" / "data" / "paper-bets.json"
 PICK = ("H", "D", "A")
 
 

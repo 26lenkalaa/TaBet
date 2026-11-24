@@ -8,7 +8,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { buildPayload } from "../src/soccer-payload.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const DATA = path.resolve(here, "..", "..", "soccer (premier league)", "site", "data");
+const DATA = path.resolve(here, "..", "..", "site", "data");
 const readJSON = async (f) => JSON.parse(await readFile(path.join(DATA, f), "utf8"));
 
 const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql", "0005_awaiting_status.sql"];
