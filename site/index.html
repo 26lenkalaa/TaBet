@@ -209,7 +209,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
 .lv-g { font-size: 13px; color: var(--muted); line-height: 1.4; }
 .lv-g b { color: var(--ink); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .livepill.on::before { animation: none; } }
-/* ---- arcade intro (first visit only) ---- */
+/* ---- arcade intro (every time the site is opened) ---- */
 .intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; cursor: pointer; overflow: hidden; }
 .intro[hidden] { display: none; }
 .intro canvas { width: min(100vw, 177.78vh); height: auto; aspect-ratio: 16 / 9; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
@@ -425,7 +425,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
     cancelAnimationFrame(raf);
     intro.hidden = true;
     document.removeEventListener("keydown", finish);
-    try { sessionStorage.setItem("tabet-intro", "1"); localStorage.setItem("tabet-intro-seen", "1"); } catch (e) {}
     /* the intro covered the page, so put keyboard focus somewhere sensible, as the old page did */
     document.querySelector(".logo").focus({ preventScroll: true });
   }
@@ -437,10 +436,11 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   }
   intro.addEventListener("click", finish);   /* tap anywhere, the SKIP button or any key */
   document.getElementById("replay").addEventListener("click", play);
-  var seen = false, internal = false;
-  try { seen = sessionStorage.getItem("tabet-intro") === "1" || localStorage.getItem("tabet-intro-seen") === "1"; } catch (e) {}
+  /* plays every time the site is opened (typed, bookmarked, linked, refreshed); not when moving between
+     our own pages, and not for visitors who ask their system for reduced motion */
+  var internal = false;
   try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
-  if (!seen && !reduce && !internal) {
+  if (!reduce && !internal) {
     if (document.fonts && document.fonts.load) document.fonts.load('16px "Press Start 2P"').then(play, play); else play();
   }
 
