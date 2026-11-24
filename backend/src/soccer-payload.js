@@ -7,6 +7,9 @@ export const COMPETITION = "premier-league";
 
 // Every forecast kind the site can show; logged ones are append-only in the database.
 const KINDS = new Set(["logged", "saved", "preview", "backtest"]);
+// A logged forecast is the primary record (24 h horizon) or the fallback logged earlier; the primary
+// supersedes the fallback (results/prospective protocol), so the database lets exactly that change through.
+const ROLES = new Set(["primary", "fallback"]);
 
 export function slug(name) {
   return String(name)
@@ -77,7 +80,9 @@ export function buildPayload({ matchesFile, lineupsFile = null, builtAt = null, 
     // `position` keeps the site's row order (e.g. logged before preview, pre-match before closing odds)
     (m.forecasts ?? []).forEach((f, position) => {
       if (!KINDS.has(f.kind)) throw new Error(`unknown forecast kind ${f.kind} at ${where}`);
-      forecasts.push({ match_id: id, key: f.key, kind: f.kind, label: f.label, note: f.note ?? null, ...probs(f.p, where), position });
+      if (f.role != null && !ROLES.has(f.role)) throw new Error(`unknown record role ${f.role} at ${where}`);
+      forecasts.push({ match_id: id, key: f.key, kind: f.kind, record_role: f.role ?? null, label: f.label,
+                       note: f.note ?? null, ...probs(f.p, where), position });
     });
     (m.market ?? []).forEach((o, position) => {
       market.push({ match_id: id, key: o.key, label: o.label, note: o.note ?? null, ...probs(o.p, where), position });
