@@ -2,7 +2,7 @@
 League"), whose "Managerial changes" table lists each team's outgoing manager, date of vacancy, incoming
 manager and date of appointment. Text from Wikipedia is CC BY-SA 4.0, credited in docs/DATA_SOURCES.md.
 
-    python -m tabet.managers                 # build and upsert into Supabase table manager_changes
+    python -m tabet.managers                 # build and upsert into Supabase table research.manager_changes
     python -m tabet.managers --csv out.csv   # also write a local copy (outside the repo)
 
 Not a model input yet: feature F5 (brief §7) would let a team's rating move faster after a new manager
@@ -27,7 +27,7 @@ import pandas as pd
 from .teams import try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
-TABLE = "manager_changes"      # backend/supabase/migrations/0006_manager_changes.sql
+TABLE = "manager_changes"      # backend/supabase/migrations/0006 and 0007 (schema research)
 API = "https://en.wikipedia.org/w/api.php"
 AGENT = "TaBet-research/0.1 (student project; managerial changes)"
 # league code -> Wikipedia article name after the season, e.g. "2023–24 Premier League"

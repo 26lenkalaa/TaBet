@@ -5,14 +5,21 @@ it. Odds are a benchmark only and never a model input. `tests/test_odds_archive.
 
 ## Supabase (project TaBet)
 
+Two schemas (migration 0007): **`public`** holds only what the site's API reads; **`research`** holds
+private research data, reachable only with the secret key. `research.leagues` links the three id
+systems in use (football-data codes such as `E0`, API-Football ids such as `39`, the site's
+`premier-league`), and API-Football's integer seasons carry a `season_label` such as `2024-25`.
+Every table has a description in the dashboard.
+
 | What | Where | Access | Written by | Used by |
 |---|---|---|---|---|
 | Matches, forecasts, market odds, lineups (read copy of the site data) | tables `sports`, `competitions`, `teams`, `matches`, `forecasts`, `market_odds`, `lineups`, `sync_runs` (migrations 0001, 0002, 0005) | public read, secret-key write | logger workflow, `backend/scripts/sync-soccer.mjs` | the site's API (`backend/`) |
-| API-Football raw responses (≈100,000 matches, 2015–26; cups, Europe, sealed holdout) | bucket `api-football` (private) + tables `apif_lists`, `apif_fixtures`, `apif_blocked`, `apif_requests` (0003) | secret key only | `tabet/api_football.py` (Actions) | `prototypes/run_*.py` experiments |
+| API-Football raw responses (≈100,000 matches, 2015–26; cups, Europe, sealed holdout) | bucket `api-football` (private) + tables `research.apif_lists`, `apif_fixtures`, `apif_blocked`, `apif_requests` (0003, moved in 0007) | secret key only | `tabet/api_football.py` (Actions) | `prototypes/run_*.py` experiments |
 | Experiment caches (parsed tables, Dixon-Coles rates, side-rows) | bucket `api-football`, paths `derived/*.parquet` | secret key only | the experiment scripts | the same scripts |
+| League lookup (football-data code, API-Football id, site id, country, tier) | table `research.leagues` (0007) | secret key only | the migration | joins across the tables above |
 | Raw Odds API responses and per-bookmaker prices | bucket `odds-archive` (private) (0004) | secret key only | the logger (`tabet/odds_archive.py`) | the paper-betting tracker (one Pinnacle price per bet) |
 | Injury lists (19 leagues, 2020–26; post-match, so unusable as an input) | bucket `api-football`, paths `injuries/*.json.gz` | secret key only | `tabet/api_football.py injuries` | the 2026-11-19 timing check only |
-| **Managerial changes** (10 leagues, 2015–27) | table `manager_changes` (0006) | secret key only | `python -m tabet.managers` | feature F5 (not yet pre-registered) |
+| **Managerial changes** (10 leagues, 2015–27) | table `research.manager_changes` (0006, moved in 0007) | secret key only | `python -m tabet.managers` | addendum MGR (withdrawn) |
 
 ## The repository (public)
 

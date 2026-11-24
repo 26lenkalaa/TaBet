@@ -968,3 +968,92 @@ league-season passes.
 
 - **Change:** T1 2022-23 is history only, never scored, as FAT treated it. Turkey remains one of
   the nine equally weighted test leagues. Nothing else changes.
+
+## Ledger note: second sealed holdout (2026-11-24, before any of it is collected)
+
+The first sealed holdout is used up (SEALED, FAT, XC, GK). football-data publishes results for leagues
+the project has never downloaded. Before anyone downloads them, these cells are registered in
+`docs/data_ledger.csv` as family **SEALED2**, role test, status reserved, quota 4:
+
+- Argentina (ARG), Brazil (BRA), China (CHN), Finland (FIN), Ireland (IRL), Japan (JPN), Mexico (MEX),
+  Norway (NOR), Poland (POL), Romania (ROU), Russia (RUS), Sweden (SWE), USA (USA): 2012-13 → 2025-26.
+- Calendar-year seasons are recorded under the label of the year they start (2015 → "2015-16").
+- The 2026 calendar-year seasons and every season still in progress are not part of it.
+- Austria, Switzerland and Denmark from the same football-data page are already in SEALED and are
+  not included.
+- Verified before registration: no file for these leagues exists in the repository, in `res/`, or
+  in the API-Football collection (`tabet/api_football.py` LEAGUES). The only request made was for
+  HTTP headers, to confirm that the files exist; no contents were read.
+
+What this means, enforced by `tabet.ledger.claim`:
+- No one downloads these files, uses them for training or development, or looks at them, even as
+  summary statistics, outside a pre-registered test. The download happens inside the test script,
+  after the test's `dev.json` is committed.
+- Up to three pre-registered families may score a test on them (SEALED2 takes the fourth place in
+  the quota). Each must register its own test rows first.
+- They are results-only (scores, dates, teams), so only results-only models can be tested on them.
+- They are not Premier League evidence (§6.1 of the brief). Several have playoffs, split seasons or
+  more parity, so transfer to the Premier League is uncertain.
+
+## Addendum TS (2026-11-24, committed before any code for it exists and before any SEALED2 data is downloaded): team-specific rating speed (F16)
+
+Every team-strength model so far moves all teams' ratings at one shared speed. TS asks whether
+letting each club's attack and defence respond at its own speed, shrunk toward the shared speed,
+improves results-only forecasts. Nothing about the live Premier League model changes.
+
+- **Prior expectation:** low. Addendum D found a shorter half-life clearly worse (+0.0056) and
+  near-1 persistence, so Premier League team strength is persistent. TS can only help if some clubs
+  genuinely change faster than others (for example squads with high turnover). Any gain is likely
+  under 0.001.
+- **Not repeated:** the hierarchical Bayesian Dixon-Coles was tested under addendum M (+0.0063 on
+  clean data, worse) and is not a comparison model here.
+- **Models** (same goal model throughout: Poisson with the Dixon-Coles ρ; each league fitted on its
+  own matches only):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, half-life 173 days, L2 = 10), refitted every matchday,
+    as in addendum D;
+  - **S2:** the score-driven model of addendum D (`tabet/dynamic.py`), one shared α_att and α_def;
+  - **TS:** S2 with per-team speeds α_att,i = α_att·exp(u_i) and α_def,i = α_def·exp(v_i). The
+    filtered one-step log-likelihood gets a penalty λ·Σ(u_i² + v_i²). u and v are bounded to
+    [−2, 2]. A team with no earlier matches in the league has u = v = 0.
+  - Static parameters of S2 and TS (and TS's u, v) are refitted at the start of every scored season
+    on all earlier matches of that league. Matches are processed by matchday, so no same-day
+    result informs another same-day forecast (the leakage test from addendum D is extended to TS).
+- **Development choice (the only one):** λ ∈ {1, 10, 100, 1000}, chosen by the equal-weight mean
+  log-loss of TS over the four development leagues.
+- **Periods:**
+  - **Development (scored):** La Liga, Serie A and Ligue 1, 2005-06 → 2013-14; Bundesliga
+    2006-07 → 2013-14 (football-data results). In each, the first two seasons are burn-in. These
+    cells were used only as training rows for addendum G and never scored for any decision.
+  - **Withdrawal rule:** if the chosen TS's development mean against D0 is not below 0, TS is
+    withdrawn before any SEALED2 file is downloaded. SEALED2 then stays untouched with its quota
+    intact.
+  - **Test (scored once): SEALED2**, all 13 leagues. In each league the first two seasons in the
+    file are history only. Scoring runs from the third season through the last season completed
+    before 2026-11-24.
+- **Matches:** every row in each league's file that has both scores, playoffs included if the file
+  includes them. Rows are never filtered by content.
+- **Eligibility:** both teams have at least 5 earlier matches in that league's data, and all three
+  models produce a forecast.
+- **Run condition** (mechanical, so no amendment is needed when it applies):
+  - a league-season is scored only if at least 98% of its rows have both scores and it has at least
+    50 eligible matches; otherwise it is history only;
+  - a league with fewer than two scored seasons is dropped from the equal-weight mean;
+  - every exclusion, and the SHA-256 of each downloaded file, is written to
+    `results/ts/test_check.json` before any model is fitted.
+- **MDE:** recorded in `dev.json` before the test (FAT's method; expected roughly 30,000 test
+  matches, estimated from fixture counts, not from data).
+- **Primary: TS − D0,** the equal-weight mean over the test leagues, with 14-day blocks, 2,000
+  resamples, seed 0, and a 95% interval.
+- **Decision** (FAT's and GK's thresholds, for a small expected effect):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - TS − S2 (the per-team speeds alone);
+  - S2 − D0 (addendum D replicated on new leagues);
+  - early-season matches (within 56 days of a season's first match);
+  - matches involving the 10% of teams with the largest |u| + |v|;
+  - each league; calendar-year against August–May leagues;
+  - the development result (development data).
+- **Ledger:** family TS (development rows on the big four, test rows on SEALED2) and SEALED2, rows
+  in this commit.
