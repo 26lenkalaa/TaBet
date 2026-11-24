@@ -245,7 +245,7 @@ def _saved_entries(saved: dict, fixture: int | None, kickoff: pd.Timestamp) -> l
 def _logged_forecasts(r: dict) -> list[dict]:
     role = "primary" if r["horizon_h"] == 24.0 else "fallback"
     note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
-    return [{"key": key, "label": label, "kind": "logged", "note": note, "p": _p(r["candidates"][key])}
+    return [{"key": key, "label": label, "kind": "logged", "role": role, "note": note, "p": _p(r["candidates"][key])}
             for key, label in (("p0", "TaBet, no lineups (p0)"), ("pE", "TaBet, predicted lineups (pE)"))
             if key in r["candidates"]]
 

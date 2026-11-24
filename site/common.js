@@ -77,11 +77,19 @@
   }
 
   var idx = null, bySeason = {}, luBySeason = {};
+  /* The API is used only when it is as fresh as the static files: if its last sync is older than the
+     files' build (a refused or failed sync), the page reads the files instead. */
   function index() {
-    if (!idx) idx = getJSON(API + "/seasons", 4000).then(function (d) {
+    if (!idx) idx = Promise.all([
+      getJSON(API + "/seasons", 4000),
+      fileIndex().catch(function () { return null; })
+    ]).then(function (r) {
+      var d = r[0], fx = r[1];
       var seasons = d.data.map(function (x) { return x.season; }).sort();
       if (!seasons.length) throw new Error("no seasons");
-      return { built_utc: d.meta && d.meta.built_at, seasons: seasons, source: "api" };
+      var apiBuilt = d.meta && d.meta.built_at;
+      if (fx && fx.built_utc && (!apiBuilt || Date.parse(apiBuilt) < Date.parse(fx.built_utc))) throw new Error("API is stale");
+      return { built_utc: apiBuilt, seasons: seasons, source: "api" };
     }).catch(function () {
       return fileIndex().then(function (ix) { ix.source = "files"; return ix; });
     });
