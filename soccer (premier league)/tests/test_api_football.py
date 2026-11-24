@@ -189,3 +189,28 @@ def test_injuries_one_call_each_resumes_and_hides_sealed_counts():
     assert "injuries/218-2023.json.gz" in store.objects
     again = af.injuries(client(store, api), leagues=[(39, "PL"), (218, "Austria")], seasons=[2024, 2023])
     assert again["requests_used"] == 1 and again["skipped_stored"] == 4
+
+
+def test_store_tables_use_the_research_schema():
+    """Tables moved to schema research (migration 0007): PostgREST needs the profile header; Storage does not."""
+    seen = []
+
+    class Resp(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def opener(req):
+        seen.append((req.get_method(), req.full_url, {k.lower(): v for k, v in req.header_items()}))
+        return Resp(b"[]" if req.get_method() == "GET" else b"")
+
+    s = af.SupabaseStore("https://x.supabase.co", KEY, opener=opener)
+    s._rows("apif_lists", "league")
+    s._insert("apif_requests", [{"endpoint": "status"}])
+    s._req("GET", "/storage/v1/object/api-football/a.json.gz")
+    (m1, _, h1), (m2, _, h2), (m3, _, h3) = seen
+    assert h1["accept-profile"] == "research" and "content-profile" not in h1
+    assert h2["content-profile"] == "research" and "accept-profile" not in h2
+    assert "accept-profile" not in h3 and "content-profile" not in h3

@@ -6,7 +6,7 @@ predictions endpoints (they are refused below). It runs on GitHub Actions
 repository secrets, and everything collected goes straight to the backend:
 
   * raw responses, gzipped  -> Supabase Storage, private bucket `api-football`
-  * what has been collected -> private tables apif_lists, apif_fixtures, apif_blocked, apif_requests
+  * what has been collected -> private tables research.apif_lists, apif_fixtures, apif_blocked, apif_requests
     (backend/supabase/migrations/0003_api_football.sql)
 
 Nothing is written to git or to anyone's laptop.
@@ -77,6 +77,9 @@ LEAGUES = [
 # only) the other seasons' lists are refused once each and remembered as blocked.
 SEASONS = list(range(2025, 2014, -1))
 
+# PostgREST schema holding the bookkeeping tables and manager_changes (backend migration 0007).
+SCHEMA = "research"
+
 
 class PlanLimit(Exception):
     """The plan does not cover this request (e.g. a season outside the free range)."""
@@ -142,12 +145,14 @@ class MemoryStore:
 class SupabaseStore:
     """Supabase Storage (raw gzipped responses) + PostgREST tables (bookkeeping), via the secret key."""
 
-    def __init__(self, url: str, key: str, opener=None):
-        self.url, self.key = url.rstrip("/"), key
+    def __init__(self, url: str, key: str, opener=None, schema: str = SCHEMA):
+        self.url, self.key, self.schema = url.rstrip("/"), key, schema
         self._open = opener or _default_opener()
 
     def _req(self, method, path, body=None, headers=None):
         h = {"apikey": self.key, "Authorization": f"Bearer {self.key}"}
+        if path.startswith("/rest/v1/"):      # tables live in the private research schema (migration 0007)
+            h["Accept-Profile" if method in ("GET", "HEAD") else "Content-Profile"] = self.schema
         h.update(headers or {})
         req = urllib.request.Request(self.url + path, data=body, method=method, headers=h)
         try:
