@@ -199,6 +199,16 @@ main[hidden] { display: none; }
 footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
 .replay { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--card); color: var(--ink); font-family: var(--px); font-size: 10px; cursor: pointer; }
 
+/* ---- live scores (current gameweek) ---- */
+.livepill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: var(--dark); color: #fff; font-family: var(--px); font-size: 10px; }
+.livepill.on { background: #D92D20; }
+.livepill.on::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.lv { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+.lv-s { display: flex; justify-content: center; align-items: center; gap: 12px; font-family: var(--px); font-size: 16px; }
+.lv-g { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.lv-g b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .livepill.on::before { animation: none; } }
 /* ---- arcade intro (first visit only) ---- */
 .intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; cursor: pointer; overflow: hidden; }
 .intro[hidden] { display: none; }
@@ -340,7 +350,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   </div>
 </main>
 
-<script src="common.js?v=20261114"></script>
+<script src="common.js?v=20261125"></script>
 <script src="teams.js?v=20261116"></script>
 <script>
 (function () {
@@ -616,19 +626,36 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
 
   /* ================= this week's matches ================= */
   var weekItems = [], weekLabel = "", filter = "all";
+  /* live scores from /api/live (Fantasy Premier League), refreshed by T.watchLive */
+  var LIVE = null;
+  function livePill(lx) {
+    var c = T.liveClock(lx);
+    return '<span class="livepill' + (lx.state === "live" ? " on" : "") + '">' + (lx.state === "live" ? "LIVE " : "") + esc(c) + "</span>";
+  }
+  function scorersLine(lx, h, a) {
+    var hs = T.liveScorers(lx, "home"), as = T.liveScorers(lx, "away");
+    if (!hs && !as) return "";
+    return '<span class="lv-g">' + (hs ? "<b>" + esc(h.code) + "</b> " + esc(hs) : "") + (hs && as ? " · " : "") +
+      (as ? "<b>" + esc(a.code) + "</b> " + esc(as) : "") + "</span>";
+  }
+  function liveBox(lx, h, a) {
+    var sc = lx.score ? lx.score[0] + "–" + lx.score[1] : "0–0";
+    return '<div class="lv"><span class="lv-s"><span>' + esc(h.code) + "</span><span>" + esc(sc) + "</span><span>" + esc(a.code) + "</span></span>" +
+      scorersLine(lx, h, a) + '<span class="sr">Live score ' + esc(h.short + " " + sc + " " + a.short) + "</span></div>";
+  }
   function matchCard(x) {
     var m = x.m, f = x.f, mk = x.mk, h = x.h, a = x.a, p = f ? f.p : null, favH = p ? p[0] >= p[2] : null;
-    var live = started(m);
+    var live = started(m), lx = LIVE ? LIVE.find(m) : null, on = lx && lx.state !== "pre";
     function name(t, fav) { return fav ? "<b>" + esc(t.short) + "</b>" : "<span>" + esc(t.short) + "</span>"; }
     function pct(i, fav) { return '<span class="pct' + (fav ? " fav" : "") + '">' + (p ? r100(p[i]) + "%" : "–") + "</span>"; }
     return '<div class="reveal"><a class="card" href="' + matchLink(m) + '">' +
       '<span class="strip" aria-hidden="true"><span style="background:' + h.bg + '"></span><span style="background:' + a.bg + '"></span></span>' +
-      '<div class="when"><span>' + (live ? "Kicked off, result to come" : esc(T.when(m.kickoff, "card"))) + "</span>" +
+      '<div class="when"><span>' + (on ? livePill(lx) : live ? "Kicked off, result to come" : esc(T.when(m.kickoff, "card"))) + "</span>" +
         (x.gap ? '<span class="gaptag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Big gap</span>' : "") + "</div>" +
       '<div class="pair">' +
         '<span class="t">' + badge(h) + name(h, favH === true) + "</span>" + pct(0, favH === true) +
         '<span class="t">' + badge(a) + name(a, favH === false) + "</span>" + pct(2, favH === false) +
-      "</div>" +
+      "</div>" + (on ? liveBox(lx, h, a) : "") +
       "<div>" + (p ? bar(p, x.cols) : "") +
         '<div class="sub"' + (p ? ' style="margin-top:8px"' : "") + "><span>" + (p ? "Draw " + r100(p[1]) + "%" : "Our forecast comes out closer to kick-off") + "</span><span>" +
         (mk ? "Market " + trio(mk.p) : "No market odds yet") + "</span></div></div>" +
@@ -663,7 +690,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
     return '<div class="reveal"><a class="card" href="' + matchLink(m) + '" style="gap:14px">' +
       '<span class="strip" aria-hidden="true"><span style="background:' + h.bg + '"></span><span style="background:' + a.bg + '"></span></span>' +
       '<div class="res"><span class="t">' + badge(h, "sm") + esc(h.code) + '</span><span class="score">' + esc(String(m.score).replace("-", "–")) + '</span><span class="t away">' + esc(a.code) + badge(a, "sm") + "</span></div>" +
-      '<span class="sr">' + esc(m.home + " " + m.score + " " + m.away) + "</span>" +
+      '<span class="sr">' + esc(m.home + " " + m.score + " " + m.away) + "</span>" + scorersLine(LIVE ? LIVE.find(m) : null, h, a) +
       '<div class="resfoot">' + (g
         ? "<span>Chance we gave this result: <strong>" + r100(g.ours) + "%</strong>, market " + r100(g.theirs) + "%</span>" +
           '<span class="tag' + (g.closer ? " won" : "") + '">' + (g.closer ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Closer than market' : "Market was closer") + "</span>"
@@ -734,13 +761,20 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
     renderWeek();
     var lastOne = played[played.length - 1] || null;
     var lastItems = sameWeek(played, lastOne, false);
-    renderLast(lastItems, label(lastItems, "LAST 7 DAYS"));
+    lastShown = [lastItems, label(lastItems, "LAST 7 DAYS")];
+    renderLast(lastShown[0], lastShown[1]);
     if (!upcoming.length && !played.length) document.getElementById("next").innerHTML = '<div class="empty">No matches in this season’s data yet.</div>';
   }
+  var lastShown = null;
   redraw = draw;
   T.load().then(function (d) {
     all = d.matches.slice().sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; }).map(enrich);
     draw();
+    if (d.season === d.seasons[d.seasons.length - 1]) T.watchLive(function (L) {
+      LIVE = L;
+      renderWeek();
+      if (lastShown) renderLast(lastShown[0], lastShown[1]);
+    });
   }).catch(function () {
     document.getElementById("next").innerHTML = '<div class="empty">The match data didn’t load. Refresh the page; if it keeps happening, check that the API and the files in site/data are reachable.</div>';
   });

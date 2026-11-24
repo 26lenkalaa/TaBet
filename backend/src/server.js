@@ -2,8 +2,9 @@
 // same app as a serverless function instead.
 import { createApp } from "./app.js";
 import { supabaseRepo } from "./repo/supabase.js";
+import { createLive } from "./live.js";
 
 const port = Number(process.env.PORT) || 3001;
-createApp({ repo: supabaseRepo }).listen(port, () => {
+createApp({ repo: supabaseRepo, live: createLive() }).listen(port, () => {
   console.log(`TaBet API on http://localhost:${port}/api`);
 });
