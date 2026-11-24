@@ -273,3 +273,33 @@ I2,2020-21,2025-26,GK,test,spent,4,PREREGISTRATION addendum GK,goalkeeper qualit
 D2,2020-21,2025-26,GK,test,spent,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once on 2026-11-22 (GK closed) (closed set with SEALED; last place; G1 2020-22 history only)
 F2,2020-21,2025-26,GK,test,spent,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once on 2026-11-22 (GK closed) (closed set with SEALED; last place; G1 2020-22 history only)
 SP2,2020-21,2025-26,GK,test,spent,4,PREREGISTRATION addendum GK,goalkeeper quality: scored once on 2026-11-22 (GK closed) (closed set with SEALED; last place; G1 2020-22 history only)
+ARG,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+BRA,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+CHN,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+FIN,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+IRL,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+JPN,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+MEX,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+NOR,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+POL,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+ROU,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+RUS,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+SWE,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+USA,2012-13,2025-26,SEALED2,test,reserved,4,PREREGISTRATION ledger note: second sealed holdout,sealed before collection (2026-11-24): test use only; calendar-year season Y recorded as Y-(Y+1); SEALED2 counts as one of the four
+SP1,2005-06,2013-14,TS,development,reserved,1,PREREGISTRATION addendum TS,team-specific rating speed: development (first two seasons burn-in)
+I1,2005-06,2013-14,TS,development,reserved,1,PREREGISTRATION addendum TS,team-specific rating speed: development (first two seasons burn-in)
+D1,2006-07,2013-14,TS,development,reserved,1,PREREGISTRATION addendum TS,team-specific rating speed: development (first two seasons burn-in)
+F1,2005-06,2013-14,TS,development,reserved,1,PREREGISTRATION addendum TS,team-specific rating speed: development (first two seasons burn-in)
+ARG,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+BRA,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+CHN,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+FIN,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+IRL,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+JPN,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+MEX,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+NOR,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+POL,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+ROU,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+RUS,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+SWE,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
+USA,2012-13,2025-26,TS,test,reserved,4,PREREGISTRATION addendum TS,team-specific rating speed: scored once from each league's third season; first two seasons history only (closed set with SEALED2)
