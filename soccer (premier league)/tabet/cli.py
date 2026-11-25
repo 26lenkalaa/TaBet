@@ -400,6 +400,10 @@ def main(argv: list[str] | None = None) -> int:
     sub.choices["check-log"].set_defaults(func=cmd_check_log)
     sd.set_defaults(func=cmd_site_data)
 
+    nl = sub.add_parser("newsletter-send", help="email the newest digest item to the newsletter list (once per issue)")
+    nl.add_argument("--dry-run", action="store_true", help="say what would be sent; sends nothing")
+    nl.set_defaults(func=lambda a: __import__("tabet.newsletter", fromlist=["send"]).send(dry_run=a.dry_run))
+
     sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
         func=cmd_check_sources)
 

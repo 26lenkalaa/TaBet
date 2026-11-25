@@ -20,6 +20,9 @@ const repo = {
   match: async (id) => (id === row.id ? row : null),
   lineup: async () => ({ actual: {} }),
   lineups: async () => [{ id: row.id, source_id: row.source_id, lineup: { actual: {} } }],
+  joined: [], left: [],
+  async newsletterJoin(e) { this.joined.push(e); },
+  async newsletterLeave(t) { this.left.push(t); return true; },
   lastSync: async () => ({ season: "2026-27", source_built_at: "2026-11-14T02:22:00+00:00", ran_at: "2026-11-14T02:22:26+00:00" }),
 };
 
@@ -113,4 +116,41 @@ test("a season's lineups come keyed by both ids", async () => {
   assert.equal(r.body.data[0].source_id, row.source_id);
   assert.match(r.headers.get("cache-control"), /s-maxage=300/);
   assert.equal((await get("/api/competitions/premier-league/seasons/26-27/lineups")).status, 400);
+});
+
+const post = async (p, body, type = "application/json") => {
+  const res = await fetch(base + p, { method: "POST", headers: { "Content-Type": type }, body });
+  return { status: res.status, headers: res.headers, text: await res.text() };
+};
+
+test("newsletter sign-up stores a cleaned address and says nothing more", async () => {
+  const r = await post("/api/newsletter", JSON.stringify({ email: "  Fan@Example.COM " }));
+  assert.equal(r.status, 200);
+  assert.deepEqual(JSON.parse(r.text), { ok: true });
+  assert.equal(repo.joined.at(-1), "fan@example.com");
+  assert.equal(r.headers.get("cache-control"), "no-store");
+});
+
+test("newsletter sign-up rejects bad addresses and ignores the bot trap", async () => {
+  const n = repo.joined.length;
+  assert.equal((await post("/api/newsletter", JSON.stringify({ email: "not-an-email" }))).status, 400);
+  assert.equal((await post("/api/newsletter", JSON.stringify({ email: "a@b.co", website: "spam" }))).status, 200);
+  assert.equal(repo.joined.length, n);
+});
+
+test("only the newsletter endpoints accept POST", async () => {
+  assert.equal((await post("/api/health", "{}")).status, 405);
+});
+
+test("a leave link shows a confirm page; only the button unsubscribes", async () => {
+  const t = "0b6c3f3e-6a55-4d0e-9a3e-2f1d5c8b7a90";
+  const n = repo.left.length;
+  const g = await fetch(`${base}/api/newsletter/leave?t=${t}`);
+  assert.equal(g.status, 200);
+  assert.match(await g.text(), /<form method="post"/);
+  assert.equal(repo.left.length, n, "opening the link must not unsubscribe");
+  const r = await post(`/api/newsletter/leave?t=${t}`, "List-Unsubscribe=One-Click", "application/x-www-form-urlencoded");
+  assert.equal(r.status, 200);
+  assert.equal(repo.left.at(-1), t);
+  assert.equal((await post("/api/newsletter/leave?t=nope", "")).status, 400);
 });

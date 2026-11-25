@@ -72,6 +72,16 @@ export const supabaseRepo = {
     );
     return rows.map((r) => ({ id: r.match_id, source_id: r.matches.source_id, lineup: r.data }));
   },
+  // Newsletter (migration 0009): the public key can only call these two functions.
+  async newsletterJoin(email) {
+    const { error } = await db().rpc("newsletter_join", { p_email: email });
+    if (error?.code === "22023") throw new HttpError(400, "bad_request", "That doesn't look like an email address.");
+    if (error?.code === "53400") throw new HttpError(429, "too_many", "Lots of sign-ups right now; please try again in an hour.");
+    check({ data: null, error });
+  },
+  async newsletterLeave(token) {
+    return check(await db().rpc("newsletter_leave", { p_token: token })) === true;
+  },
   async lastSync() {
     const rows = check(
       await db().from("sync_runs").select("competition_id, season, source_built_at, ran_at").order("ran_at", { ascending: false }).limit(1),

@@ -106,6 +106,14 @@ jobs:
         run: |
           npm ci --omit=dev --no-audit --no-fund --prefix ..   # npm workspace root
           node scripts/sync-soccer.mjs --latest
+      - name: Email a new weekly digest to the newsletter list (once per issue; never blocks the log)
+        if: env.MODE == 'log' || env.MODE == 'score' || env.MODE == 'odds-api'
+        continue-on-error: true
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python -m tabet newsletter-send
       - name: Heartbeat
         if: always()
         run: |

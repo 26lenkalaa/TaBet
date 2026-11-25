@@ -203,12 +203,22 @@ main[hidden] { display: none; }
 /* other sports, until they have data */
 .soonpanel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 48px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 .soonpanel .px { font-size: 12px; color: var(--accent); }
-/* weekly results by email (a Microsoft Form; a Power Automate flow sends each finished gameweek's digest) */
+/* weekly results by email: the box posts to /api/newsletter; the logger emails each finished gameweek's digest */
 .news { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .news[hidden] { display: none; }
 .news .px { font-size: 11px; color: var(--accent); }
 .news h2 { margin: 6px 0 4px; font-size: 22px; }
 .news p { margin: 0; font-size: 14px; color: var(--muted); max-width: 56ch; }
+.news form { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 320px; max-width: 460px; }
+.news input[type=email] { flex: 1 1 200px; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); font: inherit; font-size: 15px; }
+.news input[type=email]:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.news button.go { border: 0; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; }
+.news button.go[disabled] { opacity: .6; cursor: default; }
+.news .msg { flex-basis: 100%; margin: 2px 0 0; font-size: 14px; }
+.news .msg:empty { display: none; }
+.news .msg.ok { color: var(--accent); font-weight: 600; }
+.news .msg.err { color: #C0392B; }
+.news .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .soonpanel h2 { margin: 0; font-size: 28px; }
 .soonpanel p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--muted); max-width: 56ch; }
 .soonpanel i { width: 120px; height: 8px; border-radius: 4px; background: var(--accent); }
@@ -356,13 +366,18 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   <section id="season" aria-label="Season so far"></section>
   <section id="week" aria-labelledby="week-title"></section>
   <section id="last" aria-labelledby="last-title"></section>
-  <section class="news" id="news" aria-labelledby="news-title" hidden>
+  <section class="news" id="news" aria-labelledby="news-title">
     <div>
       <span class="px">WEEKLY RESULTS</span>
       <h2 id="news-title">Get our results by email</h2>
-      <p>One email after each gameweek: what we called, how we did against the market, and the season so far. No spam, leave any time with the same form.</p>
+      <p>One email after each gameweek: what we called, how we did against the market, and the season so far. Every email has a link to leave.</p>
     </div>
-    <a class="go" id="news-link" target="_blank" rel="noopener">Join the list <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <form id="news-form" novalidate>
+      <label class="trap" aria-hidden="true">Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      <input type="email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" aria-label="Your email address">
+      <button class="go" type="submit">Join</button>
+      <p class="msg" id="news-msg" role="status" aria-live="polite"></p>
+    </form>
   </section>
   <footer>
     <span>TaBet, SWEF Fall 2026, TAMID at Northeastern</span>
@@ -840,12 +855,26 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   }
   var lastShown = null;
   redraw = draw;
-  /* the sign-up form's link; the section stays hidden until it is set */
-  var NEWSLETTER_FORM = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=gcLuqKOqrk2sm5o5i5IV5w1-ysLc1dpDvnKv6K9wHXRURTI5SDFBMVJGSUdUNlpDWTFLVFpMSjNRQS4u";
-  if (NEWSLETTER_FORM) {
-    document.getElementById("news-link").href = NEWSLETTER_FORM;
-    document.getElementById("news").hidden = false;
-  }
+  /* newsletter sign-up: one box, posts to the API (which only ever answers "ok" or an error) */
+  (function () {
+    var form = document.getElementById("news-form"), msg = document.getElementById("news-msg");
+    var input = form.querySelector("input[type=email]"), btn = form.querySelector("button");
+    function say(text, kind) { msg.textContent = text; msg.className = "msg " + (kind || ""); }
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = input.value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { say("That doesn’t look like an email address.", "err"); input.focus(); return; }
+      btn.disabled = true; say("Signing you up…");
+      fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" },
+                                 body: JSON.stringify({ email: email, website: form.website.value }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (x) {
+          if (x.ok) { say("You’re in. The next email comes after this gameweek’s last match.", "ok"); form.reset(); }
+          else say((x.d.error && x.d.error.message) || "That didn’t work. Please try again.", "err");
+        }, function () { say("We couldn’t reach the server. Please try again in a minute.", "err"); })
+        .then(function () { btn.disabled = false; });
+    });
+  })();
   T.load().then(function (d) {
     all = d.matches.slice().sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; }).map(enrich);
     draw();

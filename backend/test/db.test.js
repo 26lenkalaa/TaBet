@@ -11,7 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.resolve(here, "..", "..", "site", "data");
 const readJSON = async (f) => JSON.parse(await readFile(path.join(DATA, f), "utf8"));
 
-const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql", "0005_awaiting_status.sql", "0008_logged_supersede.sql"];
+const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql", "0005_awaiting_status.sql", "0008_logged_supersede.sql", "0009_newsletter.sql"];
 let db;
 let payload;
 
@@ -163,4 +163,30 @@ test("a logged row stored without a role gets its role filled in, probabilities 
   assert.equal(row.record_role, "fallback");
   // a fallback's probabilities change only when the primary replaces it
   await assert.rejects(db.query("update forecasts set p_home = 0.5 where match_id = $1 and key = $2", [f.match_id, f.key]), /append-only/);
+});
+
+// Migration 0009: the public role can join and leave, never read the list.
+test("newsletter: anon can join and leave but never read addresses", async () => {
+  await db.exec("set role anon");
+  try {
+    await db.query("select public.newsletter_join($1)", ["  Fan@Example.com"]);
+    await db.query("select public.newsletter_join($1)", ["fan@example.com"]);          // again: no error, no duplicate
+    await assert.rejects(db.query("select public.newsletter_join($1)", ["nope"]), /invalid email/);
+    await assert.rejects(db.query("select * from newsletter_subscribers"), /permission denied/);
+    await assert.rejects(db.query("select * from newsletter_sends"), /permission denied/);
+  } finally {
+    await db.exec("reset role");
+  }
+  const row = await one("select email, status, token::text from newsletter_subscribers");
+  assert.equal(row.email, "fan@example.com");
+  assert.equal(row.status, "active");
+  await db.exec("set role anon");
+  try {
+    assert.equal((await one("select public.newsletter_leave($1::uuid) as ok", [row.token])).ok, true);
+    assert.equal((await one("select public.newsletter_leave($1::uuid) as ok", ["00000000-0000-0000-0000-000000000000"])).ok, false);
+    await db.query("select public.newsletter_join($1)", ["fan@example.com"]);          // rejoining reactivates
+  } finally {
+    await db.exec("reset role");
+  }
+  assert.equal((await one("select status from newsletter_subscribers")).status, "active");
 });

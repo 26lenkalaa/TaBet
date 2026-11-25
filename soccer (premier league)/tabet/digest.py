@@ -1,8 +1,7 @@
 """Weekly digest: one RSS item per finished gameweek, written to site/data/digest.xml (committed by the logger with the rest of site/data).
 
-A Power Automate flow ("When a feed item is published" on the RSS connector, then "Send an email") turns
-each item into an email for the group. Both connectors are standard, so no premium licence and no key:
-the feed is a public static file on the site.
+tabet/newsletter.py emails each new item to the newsletter list (sign-ups from the site's box). The feed
+is also a public RSS file, so a reader or a Power Automate RSS flow can follow it.
 
 Built from the site's own data files (matches-<season>.json and paper-bets.json), after site_data writes
 them. Descriptive only: nothing here feeds a forecast. A gameweek appears once every match in it is played
@@ -20,7 +19,6 @@ from pathlib import Path
 import pandas as pd
 
 SITE = "https://ta-bet-ml-model-edition.vercel.app"
-FORM = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=gcLuqKOqrk2sm5o5i5IV5w1-ysLc1dpDvnKv6K9wHXRURTI5SDFBMVJGSUdUNlpDWTFLVFpMSjNRQS4u"   # the newsletter sign-up form (join or leave)
 OUT_NAME = "digest.xml"
 RESULT = ("H", "D", "A")
 MAX_ITEMS = 20
@@ -107,9 +105,7 @@ def _item_html(gw: int, rows: list[dict], season_rows: list[dict], bets: dict | 
         + "".join(trs) + "</table>"
         + _bets_html(bets, gw)
         + f"<h3>Season so far</h3><p>{t['hits']} of {t['n']} called. {_verdict(t)}</p>"
-        f"<p><a href=\"{SITE}/matches.html\">All matches on the site</a></p>"
-        f"<p style=\"font-size:12px;color:#5B6168\">You get this because you joined TaBet's weekly results. "
-        f"<a href=\"{escape(FORM)}\">Leave the list</a> with the same form (choose Leave).</p>")
+        f"<p><a href=\"{SITE}/matches.html\">All matches on the site</a></p>")
 
 
 def build(site_data: Path) -> str | None:

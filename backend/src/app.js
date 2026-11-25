@@ -1,4 +1,5 @@
-// TaBet API (Express). Read-only: every endpoint is a GET over the Supabase read copy.
+// TaBet API (Express). Read-only over the Supabase read copy, except the newsletter sign-up and
+// leave endpoints, which can only call two narrow database functions (migration 0009).
 // The data layer is passed in as `repo`, so tests can use an in-memory fake.
 import express from "express";
 import { cacheSeconds, LiveError } from "./live.js";
@@ -7,6 +8,22 @@ const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SEASON = /^\d{4}-\d{2}$/;
 const MATCH_ID = /^[a-z0-9-]+:\d{4}-\d{2}:[a-z0-9-]+-v-[a-z0-9-]+$/;
 const STATUSES = new Set(["upcoming", "awaiting", "played"]);
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SITE = "https://ta-bet-ml-model-edition.vercel.app";
+const WRITES = new Set(["/api/newsletter", "/api/newsletter/leave"]);   // the only POST endpoints
+
+// a small standalone page for the leave link (opened from an email, so it can't rely on the site's CSS)
+function page(title, body) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>${title} | TaBet</title>
+<style>body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#F3F4F6;color:#15181C}
+main{max-width:480px;margin:12vh auto;padding:32px 24px;background:#fff;border:1px solid #E3E5E8;border-radius:16px}
+h1{font-size:22px;margin:0 0 8px}p{color:#5B6168;line-height:1.5}a{color:#1F7A4C}
+button{min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#1F7A4C;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+@media (prefers-color-scheme: dark){body{background:#111418;color:#F1F2F4}main{background:#1A1E23;border-color:#2A2F36}p{color:#A4AAB2}}</style>
+</head><body><main><h1>${title}</h1>${body}</main></body></html>`;
+}
 
 export class HttpError extends Error {
   constructor(status, code, message) {
@@ -56,7 +73,7 @@ export function createApp({ repo, live = null, log = console }) {
   app.use((req, res, next) => {
     res.set("Access-Control-Allow-Origin", "*"); // public, read-only data
     res.set("X-Content-Type-Options", "nosniff");
-    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS" && !(req.method === "POST" && WRITES.has(req.path))) {
       return next(new HttpError(405, "method_not_allowed", "The TaBet API is read-only."));
     }
     next();
@@ -79,6 +96,7 @@ export function createApp({ repo, live = null, log = console }) {
         "GET /api/competitions/:competition/seasons/:season/lineups",
         "GET /api/matches/:id",
         "GET /api/live/premier-league",
+        "POST /api/newsletter {email}",
       ],
     });
   });
@@ -155,6 +173,39 @@ export function createApp({ repo, live = null, log = console }) {
     const s = cacheSeconds(data.matches);
     res.set("Cache-Control", `public, max-age=0, s-maxage=${s}, stale-while-revalidate=${s}`);
     res.json(data);
+  }));
+
+  // Newsletter sign-up from the site's box. Same answer whether or not the address was already on the
+  // list. "website" is a hidden field people never fill in; bots that do are quietly ignored.
+  api.post("/newsletter", express.json({ limit: "2kb" }), wrap(async (req, res) => {
+    res.set("Cache-Control", "no-store");
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    if (req.body?.website) return res.json({ ok: true });
+    if (!email || email.length > 254 || !EMAIL.test(email)) throw bad("That doesn't look like an email address.");
+    if (!repo.newsletterJoin) throw new HttpError(503, "unavailable", "Sign-ups are not configured.");
+    await repo.newsletterJoin(email);
+    res.json({ ok: true });
+  }));
+
+  // The link in each email opens a confirm page (GET); only the button (POST) unsubscribes, so link
+  // scanners that open every URL in an email can't unsubscribe anyone. Mail apps' one-click
+  // unsubscribe (RFC 8058) POSTs here directly.
+  api.get("/newsletter/leave", (req, res) => {
+    res.set("Cache-Control", "no-store");
+    const t = String(req.query.t ?? "");
+    if (!UUID.test(t)) return res.status(400).type("html").send(page("Link not recognised", `<p>This leave link is incomplete. Use the link at the bottom of any TaBet email.</p>`));
+    res.type("html").send(page("Leave TaBet's weekly results?",
+      `<p>You'll stop getting the email after each gameweek. You can rejoin any time on <a href="${SITE}/">the site</a>.</p>
+<form method="post" action="/api/newsletter/leave?t=${t}"><button type="submit">Leave the list</button></form>`));
+  });
+  api.post("/newsletter/leave", express.urlencoded({ extended: false, limit: "1kb" }), wrap(async (req, res) => {
+    res.set("Cache-Control", "no-store");
+    const t = String(req.query.t ?? "");
+    if (!UUID.test(t)) throw bad("missing or malformed token");
+    if (!repo.newsletterLeave) throw new HttpError(503, "unavailable", "The newsletter is not configured.");
+    await repo.newsletterLeave(t);
+    res.type("html").send(page("You've left the list",
+      `<p>No more weekly results emails. Changed your mind? Rejoin on <a href="${SITE}/">the site</a>.</p>`));
   }));
 
   api.get("/matches/:id", wrap(async (req, res) => {
