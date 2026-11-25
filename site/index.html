@@ -88,6 +88,11 @@ main[hidden] { display: none; }
 .kicker { display: flex; align-items: center; gap: 10px; }
 .kicker .px { font-size: 11px; color: var(--accent); }
 .kicker .sub { font-size: 13px; color: var(--muted); }
+/* arrows to step through this gameweek's matches in the highlight card */
+.kicker .nav { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.kicker .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 3.5em; text-align: center; }
+.navbtn { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--line-2); background: var(--card); color: var(--ink); cursor: pointer; }
+.navbtn:hover { border-color: var(--accent); color: var(--accent); }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #2EA062; animation: pulse 1.6s ease-out infinite; }
 .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .head h2 { margin: 6px 0 0; font-size: 24px; font-weight: 700; }
@@ -192,6 +197,12 @@ main[hidden] { display: none; }
 /* other sports, until they have data */
 .soonpanel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 48px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 .soonpanel .px { font-size: 12px; color: var(--accent); }
+/* weekly results by email (a Microsoft Form; a Power Automate flow sends each finished gameweek's digest) */
+.news { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.news[hidden] { display: none; }
+.news .px { font-size: 11px; color: var(--accent); }
+.news h2 { margin: 6px 0 4px; font-size: 22px; }
+.news p { margin: 0; font-size: 14px; color: var(--muted); max-width: 56ch; }
 .soonpanel h2 { margin: 0; font-size: 28px; }
 .soonpanel p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--muted); max-width: 56ch; }
 .soonpanel i { width: 120px; height: 8px; border-radius: 4px; background: var(--accent); }
@@ -261,6 +272,8 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   .side .nm { flex-direction: row; align-items: baseline; justify-content: space-between; flex: 1; gap: 12px; }
   .draw { order: 3; flex-direction: row; justify-content: space-between; padding-left: 64px; }
   .timer .lbl { display: none; }
+  .kicker { flex-wrap: wrap; }
+  .kicker .nav { width: 100%; justify-content: space-between; }
 }
 </style>
 </head>
@@ -334,6 +347,14 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   <section id="season" aria-label="Season so far"></section>
   <section id="week" aria-labelledby="week-title"></section>
   <section id="last" aria-labelledby="last-title"></section>
+  <section class="news" id="news" aria-labelledby="news-title" hidden>
+    <div>
+      <span class="px">WEEKLY RESULTS</span>
+      <h2 id="news-title">Get our results by email</h2>
+      <p>One email after each gameweek: what we called, how we did against the market, and the season so far. No spam, leave any time with the same form.</p>
+    </div>
+    <a class="go" id="news-link" target="_blank" rel="noopener">Join the list <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </section>
   <footer>
     <span>TaBet, SWEF Fall 2026, TAMID at Northeastern</span>
     <span>Not a betting tool. Odds are a benchmark, never a model input.</span>
@@ -534,17 +555,56 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   function tick() {
     if (!timerEl) return;
     var left = kickoff - Date.now();
-    if (left <= 0) { timerEl = null; if (redraw) redraw(); return; }   /* kicked off: move on to the next match */
+    var first = nextItems.length ? new Date(nextItems[0].m.kickoff).getTime() : Infinity;
+    if (left <= 0 || first <= Date.now()) { timerEl = null; if (redraw) redraw(); return; }   /* kicked off: move on to the next match */
     var v = [Math.floor(left / 86400000), Math.floor(left / 3600000) % 24, Math.floor(left / 60000) % 60, Math.floor(left / 1000) % 60];
     var boxes = timerEl.querySelectorAll(".v");
     for (var i = 0; i < 4; i++) boxes[i].textContent = two(v[i]);
   }
   setInterval(tick, 1000);
 
-  function renderNext(x) {
+  /* the highlight card steps through this gameweek's matches that haven't kicked off (arrows, arrow keys,
+     or a swipe); it opens on the next one */
+  var nextItems = [], nextAt = 0, shownId = null;
+  function stepNext(d, focus) {
+    if (nextItems.length < 2) return;
+    nextAt = (nextAt + d + nextItems.length) % nextItems.length;
+    renderNext();
+    var b = focus && document.querySelector('#next .navbtn[data-d="' + d + '"]');
+    if (b) b.focus({ preventScroll: true });
+  }
+  (function () {
+    var el = document.getElementById("next"), x0 = null, y0 = null;
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest(".navbtn");
+      if (b) stepNext(+b.getAttribute("data-d"), true);
+    });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); stepNext(-1, true); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); stepNext(1, true); }
+    });
+    el.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener("touchend", function (e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > 2 * Math.abs(dy)) stepNext(dx < 0 ? 1 : -1, false);
+    }, { passive: true });
+  })();
+
+  function renderNext() {
     var el = document.getElementById("next");
+    var x = nextItems[nextAt] || null;
     timerEl = null;
+    shownId = x ? x.m.id : null;
     if (!x) { el.innerHTML = ""; return; }
+    var n = nextItems.length;
+    var arrow = function (d) {
+      return '<button class="navbtn" type="button" data-d="' + d + '" aria-label="' + (d < 0 ? "Previous" : "Next") + ' match">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' +
+        (d < 0 ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6") + '"/></svg></button>';
+    };
+    var nav = n > 1 ? '<div class="nav">' + arrow(-1) + '<span class="count" aria-live="polite">' + (nextAt + 1) + " / " + n + "</span>" + arrow(1) + "</div>" : "";
     var m = x.m, f = x.f, mk = x.mk, h = x.h, a = x.a;
     var p = f ? f.p : null;
     var dcols = TM.barColours(h, a, true);
@@ -562,7 +622,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
     var lines = '<svg class="lines" viewBox="0 0 1050 680" preserveAspectRatio="none" aria-hidden="true"><rect x="20" y="20" width="1010" height="640"/><line x1="525" y1="20" x2="525" y2="660"/><circle cx="525" cy="340" r="91.5"/><rect x="20" y="138.5" width="165" height="403"/><rect x="865" y="138.5" width="165" height="403"/><rect x="20" y="248.5" width="55" height="183"/><rect x="975" y="248.5" width="55" height="183"/><path d="M185 266.9 A91.5 91.5 0 0 1 185 413.1"/><path d="M865 266.9 A91.5 91.5 0 0 0 865 413.1"/><circle class="spot" cx="525" cy="340" r="5"/><circle class="spot" cx="130" cy="340" r="5"/><circle class="spot" cx="920" cy="340" r="5"/></svg>';
     var rolling = '<span class="roll" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 6 6" shape-rendering="crispEdges"><rect x="1" y="0" width="4" height="1" fill="#fff"/><rect x="0" y="1" width="6" height="4" fill="#fff"/><rect x="1" y="5" width="4" height="1" fill="#fff"/><rect x="2" y="2" width="2" height="2" fill="#111"/><rect x="0" y="1" width="1" height="1" fill="#111"/><rect x="5" y="4" width="1" height="1" fill="#111"/></svg></span>';
     el.innerHTML =
-      '<div class="kicker"><span class="dot" aria-hidden="true"></span><span class="px">NEXT UP</span><span class="sub">Premier League' + (m.gameweek != null ? ", gameweek " + esc(m.gameweek) : "") + "</span></div>" +
+      '<div class="kicker"><span class="dot" aria-hidden="true"></span><span class="px">' + (nextAt === 0 ? "NEXT UP" : "COMING UP") + '</span><span class="sub">Premier League' + (m.gameweek != null ? ", gameweek " + esc(m.gameweek) : "") + "</span>" + nav + "</div>" +
       '<div class="pitch" style="margin-top:14px">' + lines + rolling +
       '<div class="feat">' +
         '<div class="row1"><h2 id="next-title">' + esc(T.when(m.kickoff, "long")) + " UK time</h2>" +
@@ -752,8 +812,11 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
     var played = all.filter(function (x) { return x.m.status === "played"; });
     /* matches that have kicked off but have no result yet stay in "this week", never in NEXT UP */
     var future = upcoming.filter(function (x) { return !started(x.m); });
-    var next = future[0] || null;
-    renderNext(next);
+    nextItems = sameWeek(future, future[0] || null, true);
+    var keep = -1;
+    nextItems.forEach(function (x, i) { if (x.m.id === shownId) keep = i; });
+    nextAt = keep >= 0 ? keep : 0;   /* a refresh keeps the match on show, unless it has kicked off */
+    renderNext();
     renderSeason(played);
     var first = upcoming[0] || null;
     weekItems = sameWeek(upcoming, first, true);
@@ -767,6 +830,12 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-i
   }
   var lastShown = null;
   redraw = draw;
+  /* the sign-up form's link; the section stays hidden until it is set */
+  var NEWSLETTER_FORM = "";
+  if (NEWSLETTER_FORM) {
+    document.getElementById("news-link").href = NEWSLETTER_FORM;
+    document.getElementById("news").hidden = false;
+  }
   T.load().then(function (d) {
     all = d.matches.slice().sort(function (a, b) { return a.kickoff < b.kickoff ? -1 : 1; }).map(enrich);
     draw();
