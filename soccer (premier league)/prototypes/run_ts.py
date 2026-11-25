@@ -222,8 +222,31 @@ def check_league(code: str, m: pd.DataFrame) -> tuple[list[str], dict]:
     return scored, rec
 
 
+def d0_forecasts(m: pd.DataFrame, seasons: tuple[str, ...]) -> tuple[pd.DataFrame, list[str]]:
+    """tabet.backtest.walk_forward, except that a matchday whose Dixon-Coles fit does not converge gets no
+    D0 forecast (its matches are then ineligible: the addendum requires all three models to forecast).
+    Returns (forecasts, the failed matchdays)."""
+    from tabet.backtest import MatchStore, promoted_team_seasons, DixonColes, LOCAL_TZ
+    store, promoted = MatchStore(m), promoted_team_seasons(m)
+    target = m[m["season"].isin(seasons) & (m["status"] == "completed")]
+    out, failed = [], []
+    for day, group in target.groupby(target["kickoff_utc"].dt.tz_convert(LOCAL_TZ).dt.date, sort=True):
+        cutoff = group["kickoff_utc"].min()
+        try:
+            model = DixonColes(Hyperparams()).fit(store.completed_before(cutoff), cutoff, promoted)
+        except RuntimeError:
+            failed.append(str(day))
+            continue
+        pred = model.predict_frame(group)
+        out.append(pd.concat([group[["match_id", "season", "result"]], pred], axis=1))
+    return pd.concat(out).reset_index(drop=True), failed
+
+
 def test_league(args) -> pd.DataFrame:
     code, lam, scored = args
+    cache = OUT / "test_cache" / f"{code}.pkl"
+    if cache.exists():
+        return pd.read_pickle(cache)
     import torch
     torch.set_num_threads(1)
     fd_cache._load_env()
@@ -235,8 +258,9 @@ def test_league(args) -> pd.DataFrame:
         m[c] = m[c.replace("_raw", "")]
     m["kickoff_time_known"] = True
     scored = tuple(scored)
-    preds = {"D0": dc_walk_forward(m, scored, Hyperparams())}
-    print(f"{code}: D0 done", flush=True)
+    d0, failed = d0_forecasts(m, scored)
+    preds = {"D0": d0}
+    print(f"{code}: D0 done ({len(failed)} matchdays without a converged fit)", flush=True)
     preds["S2"] = D.walk_forward(m, scored, summer=True)
     preds["TS"] = D.walk_forward_ts(m, scored, lam, s2=preds["S2"])
     print(f"{code}: S2, TS done", flush=True)
@@ -252,7 +276,12 @@ def test_league(args) -> pd.DataFrame:
     first = m.groupby("season")["kickoff_utc"].min()
     base["early"] = (base["kickoff_utc"] - base["season"].map(first)).dt.days < 56
     w = base[base["eligible"] & base[list(preds)].notna().all(axis=1)].drop(columns="eligible")
-    return w.assign(div=code, date=pd.to_datetime(w["kickoff_utc"], utc=True))
+    w = w.assign(div=code, date=pd.to_datetime(w["kickoff_utc"], utc=True))
+    w.attrs["d0_failed_days"] = failed
+    w.attrs["no_d0_forecast"] = int((base["eligible"] & base["D0"].isna()).sum())
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    w.to_pickle(cache)
+    return w
 
 
 def test():
@@ -281,7 +310,11 @@ def test():
     (OUT / "test_check.json").write_text(json.dumps(check, indent=2))
     # 2. fit and score
     with ProcessPoolExecutor(min(10, len(plan))) as ex:
-        w = pd.concat(ex.map(test_league, [(c, lam, s) for c, s in plan.items()]), ignore_index=True)
+        parts = list(ex.map(test_league, [(c, lam, s) for c, s in plan.items()]))
+    check["d0_not_converged"] = {p["div"].iloc[0]: {"matchdays": p.attrs.get("d0_failed_days", []),
+                                                    "matches_dropped": p.attrs.get("no_d0_forecast", 0)} for p in parts}
+    (OUT / "test_check.json").write_text(json.dumps(check, indent=2))
+    w = pd.concat(parts, ignore_index=True)
     w.to_csv(OUT / "test_ledger.csv.gz", index=False)
     in_mean = [c for c, v in check["leagues"].items() if v["in_mean"]]
     wm = w[w["div"].isin(in_mean)].copy()
