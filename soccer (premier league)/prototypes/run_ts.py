@@ -268,8 +268,12 @@ def test_league(args) -> pd.DataFrame:
     base = m[m["season"].isin(scored)][["match_id", "season", "kickoff_utc", "result", "calendar", "home_id", "away_id"]].copy()
     base["eligible"] = base["match_id"].map((n["h"] >= MIN_EARLIER) & (n["a"] >= MIN_EARLIER)).fillna(False)
     for k, p in preds.items():
-        p = p.set_index("match_id")
-        base[k] = per_match_logloss(p.reindex(base["match_id"]).reset_index())
+        q = p.set_index("match_id").reindex(base["match_id"]).reset_index()
+        q["result"] = base["result"].to_numpy()
+        ok = q["p_home"].notna().to_numpy()
+        ll = np.full(len(q), np.nan)
+        ll[ok] = per_match_logloss(q[ok])          # a match without this model's forecast stays NaN
+        base[k] = ll
     ts = preds["TS"].set_index("match_id")
     base["uv_home"] = ts["uv_home"].reindex(base["match_id"]).to_numpy()
     base["uv_away"] = ts["uv_away"].reindex(base["match_id"]).to_numpy()
