@@ -1,8 +1,7 @@
 """Weekly digest: one RSS item per finished gameweek, written to site/data/digest.xml (committed by the logger with the rest of site/data).
 
-A Power Automate flow ("When a feed item is published" on the RSS connector, then "Send an email") turns
-each item into an email for the group. Both connectors are standard, so no premium licence and no key:
-the feed is a public static file on the site.
+tabet/newsletter.py emails each new item to the newsletter list (sign-ups from the site's box). The feed
+is also a public RSS file, so a reader or a Power Automate RSS flow can follow it.
 
 Built from the site's own data files (matches-<season>.json and paper-bets.json), after site_data writes
 them. Descriptive only: nothing here feeds a forecast. A gameweek appears once every match in it is played
