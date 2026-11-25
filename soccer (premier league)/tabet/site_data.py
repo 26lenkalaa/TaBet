@@ -414,6 +414,11 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
         lfiles[season] = name
     out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
+    try:   # weekly digest feed for the group's email (tabet/digest.py; descriptive only)
+        from .digest import build as build_digest
+        build_digest(out.parent)
+    except Exception as ex:  # the site data must still build
+        print(f"digest skipped ({ex})")
     return data
 
 
