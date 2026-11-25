@@ -14,6 +14,7 @@ class FakeStore:
         if issue in self.done: return False
         self.done.add(issue); self.claims.append(issue); return True
     def finish(self, issue, n): self.finished[issue] = n
+    def release(self, issue): self.done.discard(issue); self.released = issue
     def active(self): return self.people
 
 
@@ -53,3 +54,31 @@ def test_old_issues_and_missing_config_send_nothing(tmp_path, monkeypatch):
     for k in newsletter.ENV:
         monkeypatch.delenv(k, raising=False)
     assert newsletter.send(feed=feed) == 0
+
+
+def test_a_failed_login_claims_nothing(tmp_path, monkeypatch):
+    import smtplib
+    monkeypatch.setenv("GMAIL_ADDRESS", "tabet@example.com")
+    monkeypatch.setenv("GMAIL_APP_PASSWORD", "abcd efgh ijkl mnop")
+    seen = {}
+    def boom(sender, pw):
+        seen["pw"] = "".join(pw.split())
+        raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+    monkeypatch.setattr(newsletter, "connect", boom)
+    feed = _feed(tmp_path)
+    issue = newsletter.newest_issue(feed)
+    store = FakeStore([{"email": "a@x.com", "token": "t"}])
+    assert newsletter.send(now=issue["published"], store=store, feed=feed) == 1
+    assert store.claims == [] and not store.sent(issue["guid"])
+    assert seen["pw"] == "abcdefghijklmnop"
+
+
+def test_nothing_delivered_releases_the_claim(tmp_path, monkeypatch):
+    import smtplib
+    class Refuses(FakeSMTP):
+        def send_message(self, m): raise smtplib.SMTPRecipientsRefused({})
+    feed = _feed(tmp_path)
+    issue = newsletter.newest_issue(feed)
+    store = FakeStore([{"email": "a@x.com", "token": "t"}])
+    newsletter.send(now=issue["published"], store=store, smtp=Refuses(), feed=feed)
+    assert not store.sent(issue["guid"]) and store.finished == {}

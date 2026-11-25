@@ -75,12 +75,32 @@ class Store:
                 return False
             raise
 
+    def release(self, issue: str) -> None:
+        """Undo a claim when nothing was sent, so the next run tries again."""
+        self.s._req("DELETE", f"/rest/v1/newsletter_sends?issue=eq.{issue}", None, {"Prefer": "return=minimal"})
+
     def finish(self, issue: str, n: int) -> None:
         self.s._req("PATCH", f"/rest/v1/newsletter_sends?issue=eq.{issue}", f'{{"recipients": {n}}}'.encode(),
                     {"Content-Type": "application/json", "Prefer": "return=minimal"})
 
     def active(self) -> list[dict]:
         return self.s._rows("newsletter_subscribers", "email,token", status="eq.active", order="id")
+
+
+def connect(sender: str, password: str):
+    """Log in to Gmail: implicit TLS on 465, then STARTTLS on 587 if 465 drops the connection. App
+    passwords are shown with spaces ("abcd efgh ..."); those are removed."""
+    password = "".join(password.split())
+    ctx = ssl.create_default_context()
+    try:
+        s = smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=30)
+        s.login(sender, password)
+        return s
+    except smtplib.SMTPServerDisconnected:
+        s = smtplib.SMTP("smtp.gmail.com", 587, timeout=30)
+        s.starttls(context=ctx)
+        s.login(sender, password)
+        return s
 
 
 def send(dry_run: bool = False, now: pd.Timestamp | None = None, store=None, smtp=None, feed: Path | None = None) -> int:
@@ -107,15 +127,21 @@ def send(dry_run: bool = False, now: pd.Timestamp | None = None, store=None, smt
     if not people:
         print("newsletter: no subscribers yet")
         return 0
+    sender = os.environ.get("GMAIL_ADDRESS", "").strip()
+    server = smtp
+    if server is None:
+        try:     # log in before claiming the issue: a failed login must leave it to the next run
+            server = connect(sender, os.environ["GMAIL_APP_PASSWORD"])
+        except (smtplib.SMTPException, OSError) as e:
+            print(f"newsletter: Gmail login failed ({type(e).__name__}: {getattr(e, 'smtp_code', '')}); "
+                  "check GMAIL_ADDRESS and GMAIL_APP_PASSWORD. Nothing sent; the next run retries")
+            return 1
     if not store.claim(issue["guid"]):
         print(f"newsletter: {issue['guid']} claimed by another run")
+        server.quit()
         return 0
-    sender = os.environ.get("GMAIL_ADDRESS", "").strip()
     n = 0
-    server = smtp or smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context(), timeout=30)
     try:
-        if smtp is None:
-            server.login(sender, os.environ["GMAIL_APP_PASSWORD"].strip())
         for p in people:
             try:
                 server.send_message(message(issue, p["email"], p["token"], sender))
@@ -127,6 +153,9 @@ def send(dry_run: bool = False, now: pd.Timestamp | None = None, store=None, smt
             server.quit()
         except Exception:
             pass
-        store.finish(issue["guid"], n)
+        if n:
+            store.finish(issue["guid"], n)
+        else:
+            store.release(issue["guid"])
     print(f"newsletter: sent {issue['guid']} to {n} of {len(people)} subscriber(s)")
     return 0
