@@ -149,6 +149,8 @@ jobs:
             gh issue comment "$num" \
               --body "$(date -u +%Y-%m-%dT%H:%MZ): $reason Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            gh issue create --title "$title" \
+            # assigned to the repo owner so a Power Automate flow ("When a new issue is opened and assigned
+            # to me", GitHub connector) can forward it to email or Teams
+            gh issue create --title "$title" --assignee "${{ github.repository_owner }}" \
               --body "$(date -u +%Y-%m-%dT%H:%MZ): $reason Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
