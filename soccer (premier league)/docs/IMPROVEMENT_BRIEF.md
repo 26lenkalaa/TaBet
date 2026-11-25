@@ -1381,6 +1381,42 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
 - **The sealed holdout is now fully used** (SEALED, FAT, XC, GK). Future tests need the live log or
   new data.
 
+### 5.38 Team-specific rating speed (addendum TS): confirmed against D0, but the gain is the dynamic model's, not the per-team speeds'
+
+- **Design:** S2 (score-driven ratings, §5.18) with each club's attack and defence updating at its own
+  speed α·exp(u_i), shrunk toward the shared speed by λ·Σ(u² + v²). Compared with D0 (frozen
+  Dixon-Coles refitted every matchday) and S2 (one shared speed). `tabet/dynamic.py`, `prototypes/run_ts.py`.
+- **Development** (big four 2007-14, 9,611 matches; `results/ts/dev.json`): λ = 10 chosen;
+  TS − D0 −0.0016 [−0.0041, +0.0007], TS − S2 −0.00013. Not withdrawn.
+- **Test** (SEALED2: 13 leagues new to the project, 2014-15 → 2025-26 (China from 2016-17), 44,352 matches;
+  `results/ts/results.json`, file hashes and exclusions in `results/ts/test_check.json`):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **TS − D0 (primary)** | **-0.0023** | [-0.0036, -0.0009] |
+  | S2 − D0 (dynamic ratings, one speed) | -0.0024 | [-0.0037, -0.0010] |
+  | TS − S2 (the per-team speeds alone) | +0.00009 | [+0.00002, +0.00017] |
+
+  - **Decision: confirmed** (mean ≤ −0.0005 and the upper bound below 0).
+  - **But the per-team speeds made things slightly worse:** TS − S2 is above 0 with an interval that
+    excludes 0. The whole gain over D0 is the dynamic model's.
+  - **By league (TS − D0):** better in 11 of 13; worse in China (+0.0056) and Finland (+0.0039).
+    Largest gains: Poland −0.0099, Ireland −0.0067.
+  - **Early season** (first 56 days): −0.0045 (10,300 matches), about twice the overall gain.
+  - **Calendar-year leagues** −0.0016; **August-May leagues** −0.0032.
+  - **Run notes:** the first two test runs stopped on code errors before any result was computed
+    (a Dixon-Coles refit that did not converge, then scoring the matches it left without a D0
+    forecast). Under the eligibility rule those matches were dropped: 7 Norway matchdays in mid-2020,
+    28 matches.
+- **Reading:**
+  - Per-team speeds are rejected: clubs do not usefully differ in how fast their strength moves.
+  - Dynamic (score-driven) ratings beat the refitted Dixon-Coles on these 13 leagues, mostly early in
+    the season. On the Premier League they did not (§5.18: S2 − D0 +0.0009 on clean data, worse
+    recently). The PL's stable hierarchy may already suit the 173-day refit.
+  - **Nothing in the live model changes.** Using S2 for the Premier League would need its own
+    pre-registered test on PL data (for example, the prospective log).
+- **SEALED2 has 3 of its 4 uses left.**
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -1422,7 +1458,7 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
 
 ## 7. Candidate factors not yet tested
 
-F1, F2, F3, F4, F5, F6, F7, F14 and F15 have been run (none adopted); F16 is pre-registered as addendum TS; the others have not. Data status: **[have]** = already ingested and validated;
+F1, F2, F3, F4, F5, F6, F7, F14, F15 and F16 have been run (none adopted); the others have not. Data status: **[have]** = already ingested and validated;
 **[free]** = a free source exists but has not been retrieved or validated; **[none]** = no
 accessible source. Each must beat the listed simpler alternative on identical chronological
 fixtures, and every feature must be computable at the match cutoff.
@@ -1444,7 +1480,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F13 | **Kickoff slot and travel:** early / evening / midweek, distance between grounds, derbies | stage-2 features | stadium coordinates [free, static] | V1x |
 | F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
 | F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
-| F16 | **[pre-registered: addendum TS]** **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
+| F16 | **[done: addendum TS, §5.38; per-team speeds rejected]** **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything
