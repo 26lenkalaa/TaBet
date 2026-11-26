@@ -100,3 +100,50 @@ def test_ts_fit_keeps_unseen_teams_at_the_shared_speed_and_shrinks_with_lambda()
     _, u2, v2 = D.fit_ts(p, first, lam=1000.0)
     assert np.abs(np.r_[u2, v2]).sum() < np.abs(np.r_[u, v]).sum()
     assert np.all(np.abs(np.r_[u, v]) <= D.UV_BOUND + 1e-12)
+
+
+# ---- addendum NT: teams new to a league
+
+def test_nt_flags_teams_missing_from_the_previous_season():
+    m = _two_seasons()
+    m.loc[m.index >= 24, "away_id"] = m.loc[m.index >= 24, "away_id"].replace("t5", "newbie")
+    p, mm = D.prepare(m)
+    info = D.new_teams(mm)
+    newbie = ((mm["home_id"] == "newbie") | (mm["away_id"] == "newbie")).to_numpy()
+    assert (info.new_a[newbie & (mm["away_id"] == "newbie").to_numpy()]).all()
+    assert not info.new_h[(mm["season"] == "2020-21").to_numpy()].any()          # the first season flags nobody
+    first = mm[mm["away_id"] == "newbie"].index[0]
+    assert info.n_a[first] == 0
+
+
+def test_nt_with_no_new_teams_or_zero_settings_is_S2():
+    m = _two_seasons()
+    p, mm = D.prepare(m)
+    info = D.new_teams(mm)
+    th = D.START.copy()
+    lam_s2, _, ll_s2 = D.filter_run(th, p)
+    lam_nt, _, ll_nt = D.filter_run_nt(th, np.array([0.0, 0.0, 0.0]), 10, p, info, reset=False)
+    assert np.allclose(lam_s2, lam_nt) and np.isclose(ll_s2, ll_nt)
+
+
+def test_nt_torch_loss_matches_the_numpy_filter_and_has_no_same_day_leakage():
+    torch = pytest.importorskip("torch")
+    m = _two_seasons()
+    m.loc[m.index >= 24, "away_id"] = m.loc[m.index >= 24, "away_id"].replace("t5", "newbie")
+    p, mm = D.prepare(m)
+    info = D.new_teams(mm)
+    th, nt = D.START.copy(), np.array([-0.2, -0.15, 1.5])
+    th[3], th[4] = 0.08, 0.06
+    upto = int(p.day.max())
+    want = D.filter_run_nt(th, nt, 10, p, info, upto_day=upto)[2]
+    got = -float(D._nt_loss_torch(p, info, 10, upto, reset=True)(torch.tensor(np.r_[th, nt], dtype=torch.float64)))
+    assert np.isclose(got, want, rtol=1e-10)
+    lam, _, _ = D.filter_run_nt(th, nt, 10, p, info)
+    m2 = mm.copy()
+    k = int(mm.loc[mm["away_id"] == "newbie", "matchday"].iloc[0])
+    mid = mm.loc[mm["matchday"] == k, "match_id"].iloc[0]
+    m2.loc[m2["match_id"] == mid, ["home_goals", "away_goals"]] = [7, 0]
+    p2, mm2 = D.prepare(m2)
+    lam2, _, _ = D.filter_run_nt(th, nt, 10, p2, D.new_teams(mm2))
+    day = mm["matchday"].to_numpy()
+    assert np.allclose(lam[day <= k], lam2[day <= k]) and not np.allclose(lam[day > k], lam2[day > k])

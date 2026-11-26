@@ -1,0 +1,1201 @@
+{
+  "addendum": "NT",
+  "phase": "test (SEALED2, scored once)",
+  "N": 19,
+  "n_test_matches": 45258,
+  "log_loss_equal_weight": {
+    "S2": 1.0199873085507112,
+    "NT_both": 1.0199911529234027,
+    "NT_entry": 1.019922896016081,
+    "NT_speed": 1.0200783930992476
+  },
+  "primary": {
+    "NT - S2": {
+      "mean": 3.844372691610401e-06,
+      "ci_95": [
+        -0.0004512393695360078,
+        0.0004621825373944112
+      ]
+    },
+    "decision": "closed"
+  },
+  "secondary": {
+    "target group (new team, first 10 matches) (mean, n)": [
+      -0.0049487201260615555,
+      3132
+    ],
+    "entry level only - S2": {
+      "mean": -6.44125346301936e-05,
+      "ci_95": [
+        -0.000507660739423782,
+        0.0003860911091651004
+      ]
+    },
+    "early speed only - S2": {
+      "mean": 9.10845485365142e-05,
+      "ci_95": [
+        -8.918884412959367e-05,
+        0.000266424814662963
+      ]
+    },
+    "matches with a returning new team (mean, n)": [
+      0.003348333315157001,
+      5590
+    ],
+    "matches with a team new to the file (mean, n)": [
+      -0.005422974961080909,
+      4668
+    ],
+    "early season (mean, n)": [
+      -0.0015863204265373274,
+      11080
+    ],
+    "by league (mean, n)": {
+      "ARG": [
+        -0.00037891626100742333,
+        5214
+      ],
+      "BRA": [
+        -0.0003081179202833923,
+        4551
+      ],
+      "CHN": [
+        0.0010207705982976554,
+        2328
+      ],
+      "FIN": [
+        -0.0007686713497983971,
+        2148
+      ],
+      "IRL": [
+        0.00032130736265712574,
+        2178
+      ],
+      "JPN": [
+        0.0007460752162645038,
+        3911
+      ],
+      "MEX": [
+        -0.0001713257786259907,
+        3968
+      ],
+      "NOR": [
+        -0.00014079248168370607,
+        2898
+      ],
+      "POL": [
+        7.325144547084887e-05,
+        3546
+      ],
+      "ROU": [
+        0.002150915608993103,
+        3569
+      ],
+      "RUS": [
+        -0.0025044592253064156,
+        2912
+      ],
+      "SWE": [
+        -0.0002893967733894288,
+        2900
+      ],
+      "USA": [
+        0.0002993364034024521,
+        5135
+      ]
+    },
+    "fitted delta and kappa by league-season": [
+      {
+        "div": "ARG",
+        "season": "2014-15",
+        "delta_att": 0.0267,
+        "delta_def": -0.0681,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2015-16",
+        "delta_att": 0.0422,
+        "delta_def": -0.1717,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2016-17",
+        "delta_att": -0.1159,
+        "delta_def": -0.1818,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2017-18",
+        "delta_att": -0.0984,
+        "delta_def": -0.1362,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2018-19",
+        "delta_att": -0.1086,
+        "delta_def": -0.137,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2019-20",
+        "delta_att": -0.1077,
+        "delta_def": -0.1321,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2020-21",
+        "delta_att": -0.088,
+        "delta_def": -0.1332,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2021-22",
+        "delta_att": -0.1034,
+        "delta_def": -0.1246,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2022-23",
+        "delta_att": -0.113,
+        "delta_def": -0.1274,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2023-24",
+        "delta_att": -0.0942,
+        "delta_def": -0.1347,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2024-25",
+        "delta_att": -0.0927,
+        "delta_def": -0.1334,
+        "kappa": 0.0
+      },
+      {
+        "div": "ARG",
+        "season": "2025-26",
+        "delta_att": -0.0926,
+        "delta_def": -0.1315,
+        "kappa": 0.0
+      },
+      {
+        "div": "BRA",
+        "season": "2014-15",
+        "delta_att": 0.198,
+        "delta_def": -0.1277,
+        "kappa": 0.0
+      },
+      {
+        "div": "BRA",
+        "season": "2015-16",
+        "delta_att": -0.0136,
+        "delta_def": -0.1126,
+        "kappa": 0.0
+      },
+      {
+        "div": "BRA",
+        "season": "2016-17",
+        "delta_att": -0.1228,
+        "delta_def": -0.1414,
+        "kappa": 0.4555
+      },
+      {
+        "div": "BRA",
+        "season": "2017-18",
+        "delta_att": -0.1317,
+        "delta_def": -0.1835,
+        "kappa": 0.2606
+      },
+      {
+        "div": "BRA",
+        "season": "2018-19",
+        "delta_att": -0.1559,
+        "delta_def": -0.1786,
+        "kappa": 0.2146
+      },
+      {
+        "div": "BRA",
+        "season": "2019-20",
+        "delta_att": -0.1672,
+        "delta_def": -0.1494,
+        "kappa": 0.5289
+      },
+      {
+        "div": "BRA",
+        "season": "2020-21",
+        "delta_att": -0.1804,
+        "delta_def": -0.1572,
+        "kappa": 0.7488
+      },
+      {
+        "div": "BRA",
+        "season": "2021-22",
+        "delta_att": -0.1901,
+        "delta_def": -0.1348,
+        "kappa": 0.696
+      },
+      {
+        "div": "BRA",
+        "season": "2022-23",
+        "delta_att": -0.1885,
+        "delta_def": -0.1247,
+        "kappa": 0.6599
+      },
+      {
+        "div": "BRA",
+        "season": "2023-24",
+        "delta_att": -0.1903,
+        "delta_def": -0.1339,
+        "kappa": 0.6035
+      },
+      {
+        "div": "BRA",
+        "season": "2024-25",
+        "delta_att": -0.1714,
+        "delta_def": -0.1232,
+        "kappa": 0.4477
+      },
+      {
+        "div": "BRA",
+        "season": "2025-26",
+        "delta_att": -0.163,
+        "delta_def": -0.1341,
+        "kappa": 0.4317
+      },
+      {
+        "div": "CHN",
+        "season": "2016-17",
+        "delta_att": -0.1026,
+        "delta_def": -0.0092,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2017-18",
+        "delta_att": -0.0865,
+        "delta_def": -0.01,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2018-19",
+        "delta_att": -0.0629,
+        "delta_def": 0.0491,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2019-20",
+        "delta_att": -0.0988,
+        "delta_def": -0.0224,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2020-21",
+        "delta_att": -0.1127,
+        "delta_def": -0.0645,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2021-22",
+        "delta_att": -0.1202,
+        "delta_def": -0.0757,
+        "kappa": 0.0
+      },
+      {
+        "div": "CHN",
+        "season": "2022-23",
+        "delta_att": -0.0063,
+        "delta_def": 0.0151,
+        "kappa": 0.7562
+      },
+      {
+        "div": "CHN",
+        "season": "2023-24",
+        "delta_att": 0.0346,
+        "delta_def": 0.08,
+        "kappa": 0.6041
+      },
+      {
+        "div": "CHN",
+        "season": "2024-25",
+        "delta_att": 0.0191,
+        "delta_def": 0.07,
+        "kappa": 0.5978
+      },
+      {
+        "div": "CHN",
+        "season": "2025-26",
+        "delta_att": 0.0002,
+        "delta_def": 0.0454,
+        "kappa": 0.384
+      },
+      {
+        "div": "FIN",
+        "season": "2014-15",
+        "delta_att": -0.5085,
+        "delta_def": 0.2489,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2015-16",
+        "delta_att": -0.2872,
+        "delta_def": 0.3548,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2016-17",
+        "delta_att": -0.1707,
+        "delta_def": 0.0505,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2017-18",
+        "delta_att": -0.212,
+        "delta_def": -0.0295,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2018-19",
+        "delta_att": -0.2528,
+        "delta_def": -0.0749,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2019-20",
+        "delta_att": -0.2173,
+        "delta_def": -0.0932,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2020-21",
+        "delta_att": -0.1838,
+        "delta_def": -0.1007,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2021-22",
+        "delta_att": -0.1943,
+        "delta_def": -0.1103,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2022-23",
+        "delta_att": -0.238,
+        "delta_def": -0.1535,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2023-24",
+        "delta_att": -0.1734,
+        "delta_def": -0.1484,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2024-25",
+        "delta_att": -0.1791,
+        "delta_def": -0.1576,
+        "kappa": 0.0
+      },
+      {
+        "div": "FIN",
+        "season": "2025-26",
+        "delta_att": -0.1857,
+        "delta_def": -0.171,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2014-15",
+        "delta_att": -0.1246,
+        "delta_def": 0.0298,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2015-16",
+        "delta_att": -0.0891,
+        "delta_def": -0.1161,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2016-17",
+        "delta_att": -0.1276,
+        "delta_def": -0.1,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2017-18",
+        "delta_att": -0.2217,
+        "delta_def": -0.1957,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2018-19",
+        "delta_att": -0.1778,
+        "delta_def": -0.1849,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2019-20",
+        "delta_att": -0.1501,
+        "delta_def": -0.1284,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2020-21",
+        "delta_att": -0.1846,
+        "delta_def": -0.1798,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2021-22",
+        "delta_att": -0.2006,
+        "delta_def": -0.1545,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2022-23",
+        "delta_att": -0.2131,
+        "delta_def": -0.1459,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2023-24",
+        "delta_att": -0.2092,
+        "delta_def": -0.1373,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2024-25",
+        "delta_att": -0.2079,
+        "delta_def": -0.1419,
+        "kappa": 0.0
+      },
+      {
+        "div": "IRL",
+        "season": "2025-26",
+        "delta_att": -0.2136,
+        "delta_def": -0.1135,
+        "kappa": 0.0037
+      },
+      {
+        "div": "JPN",
+        "season": "2014-15",
+        "delta_att": -0.5444,
+        "delta_def": -0.2266,
+        "kappa": 0.0
+      },
+      {
+        "div": "JPN",
+        "season": "2015-16",
+        "delta_att": -0.3385,
+        "delta_def": -0.2119,
+        "kappa": 2.6971
+      },
+      {
+        "div": "JPN",
+        "season": "2016-17",
+        "delta_att": -0.322,
+        "delta_def": -0.1088,
+        "kappa": 2.0914
+      },
+      {
+        "div": "JPN",
+        "season": "2017-18",
+        "delta_att": -0.314,
+        "delta_def": -0.1143,
+        "kappa": 2.0769
+      },
+      {
+        "div": "JPN",
+        "season": "2018-19",
+        "delta_att": -0.2484,
+        "delta_def": -0.1021,
+        "kappa": 2.0372
+      },
+      {
+        "div": "JPN",
+        "season": "2019-20",
+        "delta_att": -0.2279,
+        "delta_def": -0.1113,
+        "kappa": 0.9584
+      },
+      {
+        "div": "JPN",
+        "season": "2020-21",
+        "delta_att": -0.2369,
+        "delta_def": -0.064,
+        "kappa": 1.2422
+      },
+      {
+        "div": "JPN",
+        "season": "2021-22",
+        "delta_att": -0.2036,
+        "delta_def": -0.0605,
+        "kappa": 1.2504
+      },
+      {
+        "div": "JPN",
+        "season": "2022-23",
+        "delta_att": -0.2155,
+        "delta_def": -0.0648,
+        "kappa": 1.2378
+      },
+      {
+        "div": "JPN",
+        "season": "2023-24",
+        "delta_att": -0.2261,
+        "delta_def": -0.0678,
+        "kappa": 1.2397
+      },
+      {
+        "div": "JPN",
+        "season": "2024-25",
+        "delta_att": -0.231,
+        "delta_def": -0.0748,
+        "kappa": 1.2276
+      },
+      {
+        "div": "JPN",
+        "season": "2025-26",
+        "delta_att": -0.2079,
+        "delta_def": -0.0611,
+        "kappa": 1.2308
+      },
+      {
+        "div": "MEX",
+        "season": "2014-15",
+        "delta_att": -0.158,
+        "delta_def": -0.1479,
+        "kappa": 0.0
+      },
+      {
+        "div": "MEX",
+        "season": "2015-16",
+        "delta_att": -0.4706,
+        "delta_def": 0.0604,
+        "kappa": 0.0002
+      },
+      {
+        "div": "MEX",
+        "season": "2016-17",
+        "delta_att": -0.5003,
+        "delta_def": -0.0715,
+        "kappa": 0.0081
+      },
+      {
+        "div": "MEX",
+        "season": "2017-18",
+        "delta_att": -0.3924,
+        "delta_def": -0.0059,
+        "kappa": 0.0297
+      },
+      {
+        "div": "MEX",
+        "season": "2018-19",
+        "delta_att": -0.2774,
+        "delta_def": -0.0728,
+        "kappa": 3.4386
+      },
+      {
+        "div": "MEX",
+        "season": "2019-20",
+        "delta_att": -0.2417,
+        "delta_def": -0.1058,
+        "kappa": 3.4364
+      },
+      {
+        "div": "MEX",
+        "season": "2020-21",
+        "delta_att": -0.1887,
+        "delta_def": -0.1182,
+        "kappa": 3.4238
+      },
+      {
+        "div": "MEX",
+        "season": "2021-22",
+        "delta_att": -0.1967,
+        "delta_def": -0.1722,
+        "kappa": 3.4094
+      },
+      {
+        "div": "MEX",
+        "season": "2022-23",
+        "delta_att": -0.2077,
+        "delta_def": -0.1653,
+        "kappa": 3.4002
+      },
+      {
+        "div": "MEX",
+        "season": "2023-24",
+        "delta_att": -0.2208,
+        "delta_def": -0.1517,
+        "kappa": 3.39
+      },
+      {
+        "div": "MEX",
+        "season": "2024-25",
+        "delta_att": -0.2099,
+        "delta_def": -0.1544,
+        "kappa": 3.3839
+      },
+      {
+        "div": "MEX",
+        "season": "2025-26",
+        "delta_att": -0.2227,
+        "delta_def": -0.1521,
+        "kappa": 3.3662
+      },
+      {
+        "div": "NOR",
+        "season": "2014-15",
+        "delta_att": -0.0799,
+        "delta_def": -0.1589,
+        "kappa": 0.0
+      },
+      {
+        "div": "NOR",
+        "season": "2015-16",
+        "delta_att": -0.0242,
+        "delta_def": -0.1839,
+        "kappa": 0.0
+      },
+      {
+        "div": "NOR",
+        "season": "2016-17",
+        "delta_att": -0.0842,
+        "delta_def": -0.226,
+        "kappa": 0.0
+      },
+      {
+        "div": "NOR",
+        "season": "2017-18",
+        "delta_att": -0.1142,
+        "delta_def": -0.1467,
+        "kappa": 0.424
+      },
+      {
+        "div": "NOR",
+        "season": "2018-19",
+        "delta_att": -0.0832,
+        "delta_def": -0.1416,
+        "kappa": 0.3504
+      },
+      {
+        "div": "NOR",
+        "season": "2019-20",
+        "delta_att": -0.0957,
+        "delta_def": -0.1297,
+        "kappa": 0.3367
+      },
+      {
+        "div": "NOR",
+        "season": "2020-21",
+        "delta_att": -0.0628,
+        "delta_def": -0.1265,
+        "kappa": 0.0
+      },
+      {
+        "div": "NOR",
+        "season": "2021-22",
+        "delta_att": -0.0999,
+        "delta_def": -0.1512,
+        "kappa": 0.2753
+      },
+      {
+        "div": "NOR",
+        "season": "2022-23",
+        "delta_att": -0.0979,
+        "delta_def": -0.1284,
+        "kappa": 0.2769
+      },
+      {
+        "div": "NOR",
+        "season": "2023-24",
+        "delta_att": -0.1252,
+        "delta_def": -0.1171,
+        "kappa": 0.2809
+      },
+      {
+        "div": "NOR",
+        "season": "2024-25",
+        "delta_att": -0.1194,
+        "delta_def": -0.1126,
+        "kappa": 0.2862
+      },
+      {
+        "div": "NOR",
+        "season": "2025-26",
+        "delta_att": -0.0959,
+        "delta_def": -0.0808,
+        "kappa": 0.3007
+      },
+      {
+        "div": "POL",
+        "season": "2014-15",
+        "delta_att": -0.0486,
+        "delta_def": -0.0826,
+        "kappa": 0.0
+      },
+      {
+        "div": "POL",
+        "season": "2015-16",
+        "delta_att": -0.1378,
+        "delta_def": -0.1072,
+        "kappa": 0.0
+      },
+      {
+        "div": "POL",
+        "season": "2016-17",
+        "delta_att": -0.0867,
+        "delta_def": -0.0673,
+        "kappa": 0.0
+      },
+      {
+        "div": "POL",
+        "season": "2017-18",
+        "delta_att": -0.0831,
+        "delta_def": -0.1041,
+        "kappa": 0.0
+      },
+      {
+        "div": "POL",
+        "season": "2018-19",
+        "delta_att": -0.0527,
+        "delta_def": -0.0885,
+        "kappa": 0.0
+      },
+      {
+        "div": "POL",
+        "season": "2019-20",
+        "delta_att": -0.0709,
+        "delta_def": -0.1413,
+        "kappa": 0.0023
+      },
+      {
+        "div": "POL",
+        "season": "2020-21",
+        "delta_att": -0.0693,
+        "delta_def": -0.155,
+        "kappa": 0.0082
+      },
+      {
+        "div": "POL",
+        "season": "2021-22",
+        "delta_att": -0.0805,
+        "delta_def": -0.1574,
+        "kappa": 0.02
+      },
+      {
+        "div": "POL",
+        "season": "2022-23",
+        "delta_att": -0.1058,
+        "delta_def": -0.1582,
+        "kappa": 0.7228
+      },
+      {
+        "div": "POL",
+        "season": "2023-24",
+        "delta_att": -0.1057,
+        "delta_def": -0.1403,
+        "kappa": 0.7153
+      },
+      {
+        "div": "POL",
+        "season": "2024-25",
+        "delta_att": -0.1199,
+        "delta_def": -0.1599,
+        "kappa": 0.7153
+      },
+      {
+        "div": "POL",
+        "season": "2025-26",
+        "delta_att": -0.1034,
+        "delta_def": -0.1589,
+        "kappa": 0.7161
+      },
+      {
+        "div": "ROU",
+        "season": "2014-15",
+        "delta_att": -0.4275,
+        "delta_def": -0.2564,
+        "kappa": 0.0
+      },
+      {
+        "div": "ROU",
+        "season": "2015-16",
+        "delta_att": -0.2827,
+        "delta_def": -0.0711,
+        "kappa": 0.5128
+      },
+      {
+        "div": "ROU",
+        "season": "2016-17",
+        "delta_att": -0.2832,
+        "delta_def": -0.1294,
+        "kappa": 0.0
+      },
+      {
+        "div": "ROU",
+        "season": "2017-18",
+        "delta_att": -0.2359,
+        "delta_def": -0.1372,
+        "kappa": 0.0008
+      },
+      {
+        "div": "ROU",
+        "season": "2018-19",
+        "delta_att": -0.2969,
+        "delta_def": -0.1743,
+        "kappa": 0.1389
+      },
+      {
+        "div": "ROU",
+        "season": "2019-20",
+        "delta_att": -0.3149,
+        "delta_def": -0.1326,
+        "kappa": 0.1267
+      },
+      {
+        "div": "ROU",
+        "season": "2020-21",
+        "delta_att": -0.3034,
+        "delta_def": -0.1532,
+        "kappa": 0.1213
+      },
+      {
+        "div": "ROU",
+        "season": "2021-22",
+        "delta_att": -0.2925,
+        "delta_def": -0.1196,
+        "kappa": 0.1137
+      },
+      {
+        "div": "ROU",
+        "season": "2022-23",
+        "delta_att": -0.2292,
+        "delta_def": -0.0471,
+        "kappa": 0.0124
+      },
+      {
+        "div": "ROU",
+        "season": "2023-24",
+        "delta_att": -0.2318,
+        "delta_def": -0.0365,
+        "kappa": 0.184
+      },
+      {
+        "div": "ROU",
+        "season": "2024-25",
+        "delta_att": -0.2249,
+        "delta_def": -0.0241,
+        "kappa": 0.1838
+      },
+      {
+        "div": "ROU",
+        "season": "2025-26",
+        "delta_att": -0.228,
+        "delta_def": -0.0473,
+        "kappa": 0.1877
+      },
+      {
+        "div": "RUS",
+        "season": "2014-15",
+        "delta_att": -0.2813,
+        "delta_def": -0.1223,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2015-16",
+        "delta_att": -0.442,
+        "delta_def": -0.1687,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2016-17",
+        "delta_att": -0.4897,
+        "delta_def": -0.1847,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2017-18",
+        "delta_att": -0.4604,
+        "delta_def": -0.1353,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2018-19",
+        "delta_att": -0.4384,
+        "delta_def": -0.1747,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2019-20",
+        "delta_att": -0.3863,
+        "delta_def": -0.1646,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2020-21",
+        "delta_att": -0.348,
+        "delta_def": -0.1543,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2021-22",
+        "delta_att": -0.3811,
+        "delta_def": -0.1569,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2022-23",
+        "delta_att": -0.3708,
+        "delta_def": -0.1379,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2023-24",
+        "delta_att": -0.3535,
+        "delta_def": -0.1612,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2024-25",
+        "delta_att": -0.349,
+        "delta_def": -0.1472,
+        "kappa": 0.0
+      },
+      {
+        "div": "RUS",
+        "season": "2025-26",
+        "delta_att": -0.3219,
+        "delta_def": -0.1535,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2014-15",
+        "delta_att": -0.3532,
+        "delta_def": -0.1875,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2015-16",
+        "delta_att": -0.1623,
+        "delta_def": -0.1525,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2016-17",
+        "delta_att": -0.1562,
+        "delta_def": -0.1423,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2017-18",
+        "delta_att": -0.1294,
+        "delta_def": -0.1072,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2018-19",
+        "delta_att": -0.1083,
+        "delta_def": -0.1059,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2019-20",
+        "delta_att": -0.1523,
+        "delta_def": -0.1799,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2020-21",
+        "delta_att": -0.1687,
+        "delta_def": -0.1742,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2021-22",
+        "delta_att": -0.1459,
+        "delta_def": -0.1926,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2022-23",
+        "delta_att": -0.1716,
+        "delta_def": -0.1622,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2023-24",
+        "delta_att": -0.1823,
+        "delta_def": -0.1937,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2024-25",
+        "delta_att": -0.172,
+        "delta_def": -0.1822,
+        "kappa": 0.0
+      },
+      {
+        "div": "SWE",
+        "season": "2025-26",
+        "delta_att": -0.1759,
+        "delta_def": -0.1563,
+        "kappa": 0.0
+      },
+      {
+        "div": "USA",
+        "season": "2014-15",
+        "delta_att": -0.1,
+        "delta_def": -0.1,
+        "kappa": 0.5
+      },
+      {
+        "div": "USA",
+        "season": "2015-16",
+        "delta_att": -0.1,
+        "delta_def": -0.1,
+        "kappa": 0.5
+      },
+      {
+        "div": "USA",
+        "season": "2016-17",
+        "delta_att": 0.0054,
+        "delta_def": -0.2006,
+        "kappa": 0.0
+      },
+      {
+        "div": "USA",
+        "season": "2017-18",
+        "delta_att": 0.0669,
+        "delta_def": -0.2324,
+        "kappa": 0.0
+      },
+      {
+        "div": "USA",
+        "season": "2018-19",
+        "delta_att": 0.1229,
+        "delta_def": -0.1841,
+        "kappa": 0.0
+      },
+      {
+        "div": "USA",
+        "season": "2019-20",
+        "delta_att": 0.1558,
+        "delta_def": -0.1482,
+        "kappa": 0.0089
+      },
+      {
+        "div": "USA",
+        "season": "2020-21",
+        "delta_att": 0.0951,
+        "delta_def": -0.1813,
+        "kappa": 1.2778
+      },
+      {
+        "div": "USA",
+        "season": "2021-22",
+        "delta_att": 0.0106,
+        "delta_def": -0.11,
+        "kappa": 2.5609
+      },
+      {
+        "div": "USA",
+        "season": "2022-23",
+        "delta_att": -0.0157,
+        "delta_def": -0.1216,
+        "kappa": 2.5565
+      },
+      {
+        "div": "USA",
+        "season": "2023-24",
+        "delta_att": 0.0,
+        "delta_def": -0.117,
+        "kappa": 2.5485
+      },
+      {
+        "div": "USA",
+        "season": "2024-25",
+        "delta_att": 0.0177,
+        "delta_def": -0.1155,
+        "kappa": 1.1707
+      },
+      {
+        "div": "USA",
+        "season": "2025-26",
+        "delta_att": -0.0002,
+        "delta_def": -0.1062,
+        "kappa": 1.1679
+      }
+    ],
+    "development result": {
+      "mean": -0.0004937644400476198,
+      "ci_95": [
+        -0.001925755845369306,
+        0.0008457046593818596
+      ],
+      "by_league": {
+        "D1": -0.0012638039229188743,
+        "F1": 0.0006239497763205092,
+        "I1": 0.001656419460754107,
+        "SP1": -0.0029916230743462207
+      }
+    }
+  }
+}
