@@ -58,6 +58,18 @@ class Hyperparams:
         return float(np.log(2) / self.xi) if self.xi > 0 else float("inf")
 
 
+def dc_correct(m: np.ndarray, lh: float, la: float, rho: float) -> np.ndarray:
+    """Apply the Dixon-Coles low-score factors to a score grid in place and renormalise. Each factor is
+    floored at 0: a score's probability can never be negative. With |rho| <= RHO_BOUND a factor goes
+    negative only for extreme rates (a rate above 1/|rho|, or a product above 1/rho), which no
+    forecast has reached; the floor keeps the grid valid if one ever does."""
+    m[0, 0] *= max(1 - lh * la * rho, 0.0)
+    m[0, 1] *= max(1 + lh * rho, 0.0)
+    m[1, 0] *= max(1 + la * rho, 0.0)
+    m[1, 1] *= max(1 - rho, 0.0)
+    return m / m.sum()
+
+
 def promoted_team_seasons(matches: pd.DataFrame) -> set[tuple[str, str]]:
     """(team_id, season) pairs where the team was not in the previous season.
     The earliest season in the data has nothing to compare against, so none of
@@ -241,12 +253,7 @@ class DixonColes:
         lh, la = self.expected_goals(home, away, season)
         g = np.arange(MAX_GOALS + 1)
         m = np.outer(poisson.pmf(g, lh), poisson.pmf(g, la))
-        r = self.rho
-        m[0, 0] *= 1 - lh * la * r
-        m[0, 1] *= 1 + lh * r
-        m[1, 0] *= 1 + la * r
-        m[1, 1] *= 1 - r
-        return m / m.sum()
+        return dc_correct(m, lh, la, self.rho)
 
     def predict_proba(self, home: str, away: str, season: str | None = None) -> tuple[float, float, float]:
         """(p_home, p_draw, p_away), summing to 1."""

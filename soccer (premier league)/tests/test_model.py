@@ -94,3 +94,12 @@ def test_fixed_promoted_offsets_act_as_given_prior_means(real):
     base = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo)
     again = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, fixed_promo=True)
     assert base.promo_att == pytest.approx(again.promo_att)
+
+
+def test_low_score_factors_never_make_a_probability_negative():
+    from scipy.stats import poisson
+    from tabet.model import MAX_GOALS, RHO_BOUND, dc_correct
+    g = np.arange(MAX_GOALS + 1)
+    for lh, la, rho in ((6.0, 1.0, -RHO_BOUND), (3.0, 2.5, RHO_BOUND), (1.4, 1.1, -0.05)):
+        m = dc_correct(np.outer(poisson.pmf(g, lh), poisson.pmf(g, la)), lh, la, rho)
+        assert (m >= 0).all() and np.isclose(m.sum(), 1.0)
