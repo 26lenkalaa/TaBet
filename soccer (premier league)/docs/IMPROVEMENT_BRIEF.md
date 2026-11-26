@@ -1537,6 +1537,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
 | F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 | F16 | **[done: addendum TS, §5.38; per-team speeds rejected]** **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
+| F18 | **[pre-registered: addendum NT]** **Faster learning for teams new to a league:** a fitted entry level and a faster early update speed for promoted and expansion teams, in S2 | S2 static parameters | [have] (results only) | S2 |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything

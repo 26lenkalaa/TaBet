@@ -1121,3 +1121,59 @@ step before S2 could replace D0 as the base of the live model; it does not chang
 The prospective test of the full model built on S2 is amendment **A10** of
 `docs/PROSPECTIVE_PROTOCOL.md` (shadow records beside the live log; primary pES2 − pE; decision at
 the end of 2027-28, with one pre-set extension). Ledger family S2SH.
+
+## Addendum NT (2026-11-26, committed before any code for it exists and before any of its data is loaded): faster learning for teams new to a league
+
+We lose most to the market on newly promoted teams early in the season (§5.21: +0.030 behind the
+closing market in their first 10 matches, against +0.019 otherwise). Priors tried in Dixon-Coles were
+null (P and R6, §5.15 and §5.28). Rating systems such as Elo often update new teams faster instead.
+NT asks whether S2, the dynamic model that beat Dixon-Coles in TS and S2PL, improves when a team new to
+the league starts from a learned "new team" level and learns faster over its first matches.
+
+- **Prior expectation:** a small overall gain, concentrated in new teams' first matches. TS's per-team
+  speeds were rejected, but NT is narrower: one extra speed, for every team, that depends only on how
+  many matches the team has played since it entered the league.
+- **New team:** a team in a season of a league file that did not play in the previous season of that
+  file (promoted, or an expansion club; the first season of a file flags nobody). This uses only each
+  season's team list, known before its first kickoff. Its **entry count** n is the number of league
+  matches it has played since that season began.
+- **Models** (results only; Poisson with the Dixon-Coles ρ; each league fitted on its own matches):
+  - **S2:** `tabet/dynamic.py` with the summer factor, unchanged (the comparison).
+  - **NT:** S2 plus two changes for new teams:
+    1. **Entry level:** when a new team enters, its attack and defence are set to δ_att and δ_def
+       (fitted), replacing any rating carried from an earlier spell;
+    2. **Early speed:** its update speeds are α·(1 + κ·max(0, 1 − n/N)), so they start (1 + κ) times
+       faster and return to S2's speed linearly over its first N matches. κ is fitted, bounded to
+       [0, 5].
+  - δ_att, δ_def and κ are static parameters, fitted with S2's others (bounds as S2's, δ in
+    [−1, 1]) by maximising the filtered one-step log-likelihood, refitted at the start of every scored
+    season on all earlier matches of that league. Matches are processed by matchday (the leakage test
+    from addendum D extends to NT).
+- **Development choice (the only one):** N ∈ {10, 19, 38}, by the equal-weight mean log-loss of NT over
+  the development leagues. Ties go to the larger N.
+- **Periods:**
+  - **Development:** La Liga, Serie A and Ligue 1 2005-06 → 2013-14; Bundesliga 2006-07 → 2013-14,
+    first two seasons burn-in (TS's development cells, reused for development).
+  - **Withdrawal rule:** if NT − S2 on development (chosen N) is not below 0, NT is withdrawn before
+    SEALED2 is used again; SEALED2 keeps its remaining uses.
+  - **Test (scored once): SEALED2**, all 13 leagues, with TS's run condition, season rules and scored
+    seasons (`results/ts/test_check.json`), the files' recorded SHA-256 checked before fitting.
+    SEALED2's second use of four.
+- **Eligibility:** every match in a scored season with both scores for which both models give a
+  forecast. No minimum number of earlier matches: new teams' first matches are the point.
+- **Primary: NT − S2**, the equal-weight mean over the test leagues of log-loss, 14-day blocks,
+  2,000 resamples, seed 0, 95% interval.
+- **Decision** (NT changes about one match in five, so the thresholds are scaled down from FAT's):
+  - **confirmed** if the mean is ≤ −0.0002 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0005;
+  - **inconclusive** otherwise.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, 44,000 expected test matches).
+- **Secondary, never decisive:**
+  - matches involving a new team within its first 10 matches (the target group);
+  - entry level only (κ = 0) and early speed only (no reset) against S2;
+  - promoted clubs against expansion clubs; teams returning to a league against teams new to the file;
+  - each league; the fitted δ and κ by season;
+  - NT − S2 on development.
+- **What a confirmation means:** NT becomes the S2 used by any later S2-based work, including a new
+  A10-style shadow amendment. It never changes the live model or the A10 shadow records directly.
+- **Ledger:** family NT, rows in this commit (development rows on the big four, test rows on SEALED2).
