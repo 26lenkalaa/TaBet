@@ -87,6 +87,17 @@ which we will not do.
 - **Key handling:** the key is a GitHub repository secret (`ODDS_API_KEY`), passed only to the logging
   step; it is never written to the repository, the logs or the raw files (a test checks this).
 
+### 2.0c API-Football (api-sports.io; research experiments only)
+
+- **Plan and cost:** the free plan (100 requests a day) before and after one month of the paid **Pro
+  plan, $16, bought 2026-11-17**. The paid month collected about 100,000 matches: ten leagues
+  2015-16 → 2025-26, European competitions, domestic cups and the first sealed holdout, with lineups
+  and per-player match statistics.
+- **Use:** inputs and test data for the pre-registered experiments (DXI, NLX/XIA, FAT, XC, GK, MGR).
+  **Never an input to the live model or the site's forecasts.**
+- **Storage:** raw responses in a private Supabase bucket and private research tables
+  (`docs/DATA_SOURCES.md`); nothing from it is published in the repository or on the site.
+
 ### 2.1 WhoScored (via `soccerdata` 2026.43.0)
 - **[documented]** `soccerdata.WhoScored` exposes `read_leagues`, `read_seasons`,
   `read_season_stages`, `read_schedule`, `read_missing_players` and `read_events`.
