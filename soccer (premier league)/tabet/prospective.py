@@ -312,6 +312,13 @@ def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float]
     with LOG.open("a") as fh:
         for r in records:
             fh.write(json.dumps(r, default=str) + "\n")
+    try:  # S2 shadow records (amendment A10): after the live records are safely written; never fatal
+        from .shadow import write_shadow
+        n = write_shadow(records)
+        if n:
+            print(f"shadow: {n} record(s)")
+    except Exception as e:
+        print(f"shadow skipped ({e})")
     return records
 
 
