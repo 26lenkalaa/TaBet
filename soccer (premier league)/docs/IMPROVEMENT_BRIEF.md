@@ -1473,6 +1473,40 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     With S2 fitted from 2015 it no longer loses under the stage as it did in §5.18 (+0.003 to +0.005).
     Nothing in A10 changes.
 
+### 5.40 Teams new to a league (addendum NT): closed; the gain for new teams is cancelled by resetting returning clubs
+
+- **Design:** S2 plus, for a team not in the previous season of its league's file, an **entry level**
+  (its ratings set to fitted δ_att, δ_def) and an **early speed** (updates 1 + κ times faster,
+  easing back over its first N matches). `tabet/dynamic.py`, `prototypes/run_nt.py`.
+- **Development** (big four 2007-14, 9,816 matches; `results/nt/dev.json`): N = 19 chosen; NT − S2
+  −0.0005 [−0.0019, +0.0008]; new teams' first 10 matches −0.0008 (735). Not withdrawn.
+- **Test** (SEALED2, second use, 45,258 matches; `results/nt/results.json`):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **NT − S2 (primary)** | **+0.00000** | [−0.00045, +0.00046] |
+  | Entry level only − S2 | −0.00006 | [−0.00051, +0.00039] |
+  | Early speed only − S2 | +0.00009 | [−0.00009, +0.00027] |
+
+  - **Decision: closed** (the lower bound is above −0.0005).
+  - **Where it helps and where it hurts:**
+    - new teams' first 10 matches: **−0.0049** (3,132 matches), the target group;
+    - matches with a team **new to the file**: −0.0054 (4,668);
+    - matches with a team **returning** from an earlier spell: **+0.0033** (5,590): resetting a
+      returning club throws away what its earlier seasons said.
+  - **The early speed was not wanted:** κ was fitted at 0 in most league-seasons (median 0). The
+    entry level did the work (median δ_att −0.17, δ_def −0.13: new teams start below average).
+  - By league: better in 7 of 13 (Russia −0.0025); worse in Romania (+0.0022) and China (+0.0010).
+- **Reading:**
+  - Starting a genuinely new team below average helps its first matches; wiping a returning club's
+    history hurts as much. Overall it nets to zero, so NT is closed.
+  - A natural follow-up is an entry level **only for teams with no history**, keeping returning
+    clubs' decayed ratings. That idea came from this test's secondaries, so it cannot be tested on
+    SEALED2 again; it would need fresh data.
+  - Faster learning for new teams, the Elo-style fix, did not help: S2's ordinary speed already
+    adapts quickly enough once the starting level is right.
+- **SEALED2 has 2 of its 4 uses left.**
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -1537,7 +1571,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F14 | **[done, §5.20: null]** **Rating ensemble:** an Elo built only from our results, blended with DC | average of probabilities, weight fitted on dev | [have] | DC alone |
 | F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 | F16 | **[done: addendum TS, §5.38; per-team speeds rejected]** **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
-| F18 | **[pre-registered: addendum NT]** **Faster learning for teams new to a league:** a fitted entry level and a faster early update speed for promoted and expansion teams, in S2 | S2 static parameters | [have] (results only) | S2 |
+| F18 | **[done, §5.40: closed]** **Faster learning for teams new to a league:** a fitted entry level and a faster early update speed for promoted and expansion teams, in S2 | S2 static parameters | [have] (results only) | S2 |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything

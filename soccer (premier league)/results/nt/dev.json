@@ -1,0 +1,230 @@
+{
+  "addendum": "NT",
+  "phase": "development",
+  "N": 19,
+  "n_dev": 9816,
+  "log_loss_equal_weight": {
+    "S2": 0.9996307544196155,
+    "NT_10": 0.9992224415327466,
+    "NT_19": 0.9991369899795678,
+    "NT_38": 0.9991695737152255
+  },
+  "NT - S2": {
+    "mean": -0.0004937644400476198,
+    "ci_95": [
+      -0.001925755845369306,
+      0.0008457046593818596
+    ],
+    "by_league": {
+      "D1": -0.0012638039229188743,
+      "F1": 0.0006239497763205092,
+      "I1": 0.001656419460754107,
+      "SP1": -0.0029916230743462207
+    }
+  },
+  "target group (new team, first 10 matches): NT - S2 (mean, n)": [
+    -0.0008307761851049391,
+    735
+  ],
+  "fitted delta and kappa by league-season": [
+    {
+      "div": "D1",
+      "season": "2008-09",
+      "delta_att": -0.3068,
+      "delta_def": -0.1105,
+      "kappa": 0.0
+    },
+    {
+      "div": "D1",
+      "season": "2009-10",
+      "delta_att": -0.1799,
+      "delta_def": -0.0965,
+      "kappa": 0.8494
+    },
+    {
+      "div": "D1",
+      "season": "2010-11",
+      "delta_att": -0.2264,
+      "delta_def": -0.0765,
+      "kappa": 0.1734
+    },
+    {
+      "div": "D1",
+      "season": "2011-12",
+      "delta_att": -0.1884,
+      "delta_def": -0.1033,
+      "kappa": 0.0
+    },
+    {
+      "div": "D1",
+      "season": "2012-13",
+      "delta_att": -0.2132,
+      "delta_def": -0.1175,
+      "kappa": 0.0
+    },
+    {
+      "div": "D1",
+      "season": "2013-14",
+      "delta_att": -0.2136,
+      "delta_def": -0.1042,
+      "kappa": 0.0
+    },
+    {
+      "div": "F1",
+      "season": "2007-08",
+      "delta_att": -0.0558,
+      "delta_def": -0.245,
+      "kappa": 0.0
+    },
+    {
+      "div": "F1",
+      "season": "2008-09",
+      "delta_att": -0.0978,
+      "delta_def": -0.2175,
+      "kappa": 0.0
+    },
+    {
+      "div": "F1",
+      "season": "2009-10",
+      "delta_att": -0.1864,
+      "delta_def": -0.2231,
+      "kappa": 0.0
+    },
+    {
+      "div": "F1",
+      "season": "2010-11",
+      "delta_att": -0.1641,
+      "delta_def": -0.2105,
+      "kappa": 0.0
+    },
+    {
+      "div": "F1",
+      "season": "2011-12",
+      "delta_att": -0.1844,
+      "delta_def": -0.2148,
+      "kappa": 0.8191
+    },
+    {
+      "div": "F1",
+      "season": "2012-13",
+      "delta_att": -0.1578,
+      "delta_def": -0.2169,
+      "kappa": 0.8274
+    },
+    {
+      "div": "F1",
+      "season": "2013-14",
+      "delta_att": -0.1565,
+      "delta_def": -0.2222,
+      "kappa": 0.835
+    },
+    {
+      "div": "I1",
+      "season": "2007-08",
+      "delta_att": -0.1216,
+      "delta_def": -0.1547,
+      "kappa": 0.0
+    },
+    {
+      "div": "I1",
+      "season": "2008-09",
+      "delta_att": 0.0119,
+      "delta_def": -0.0392,
+      "kappa": 0.6117
+    },
+    {
+      "div": "I1",
+      "season": "2009-10",
+      "delta_att": -0.0504,
+      "delta_def": -0.048,
+      "kappa": 0.6205
+    },
+    {
+      "div": "I1",
+      "season": "2010-11",
+      "delta_att": -0.0746,
+      "delta_def": -0.0505,
+      "kappa": 0.6426
+    },
+    {
+      "div": "I1",
+      "season": "2011-12",
+      "delta_att": -0.1075,
+      "delta_def": -0.0582,
+      "kappa": 0.6519
+    },
+    {
+      "div": "I1",
+      "season": "2012-13",
+      "delta_att": -0.123,
+      "delta_def": -0.0624,
+      "kappa": 0.6554
+    },
+    {
+      "div": "I1",
+      "season": "2013-14",
+      "delta_att": -0.1415,
+      "delta_def": -0.0959,
+      "kappa": 0.6712
+    },
+    {
+      "div": "SP1",
+      "season": "2007-08",
+      "delta_att": -0.1394,
+      "delta_def": -0.257,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2008-09",
+      "delta_att": -0.1875,
+      "delta_def": -0.2109,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2009-10",
+      "delta_att": -0.1467,
+      "delta_def": -0.2261,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2010-11",
+      "delta_att": -0.1708,
+      "delta_def": -0.2294,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2011-12",
+      "delta_att": -0.1735,
+      "delta_def": -0.2219,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2012-13",
+      "delta_att": -0.1539,
+      "delta_def": -0.2126,
+      "kappa": 0.0
+    },
+    {
+      "div": "SP1",
+      "season": "2013-14",
+      "delta_att": -0.1397,
+      "delta_def": -0.195,
+      "kappa": 0.0
+    }
+  ],
+  "mde": {
+    "dev_block_se": 0.000709537451003059,
+    "n_dev": 9816,
+    "expected_test": 44000,
+    "mde": 0.000938370381615251
+  },
+  "withdrawal_rule": {
+    "dev_mean_NT_minus_S2": -0.0004937644400476198,
+    "withdrawn": false
+  }
+}
