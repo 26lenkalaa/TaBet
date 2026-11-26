@@ -129,18 +129,20 @@ def _hda(lh: float, la: float, rho: float) -> dict:
     return {"p_home": ph, "p_draw": pd_, "p_away": pa}
 
 
-def candidates(rec: dict, base: tuple[float, float], rho: float, s1: dict, sx: dict) -> dict:
+def candidates(rec: dict, base: tuple[float, float], rho: float, s1: dict, sx: dict, extra: dict | None = None) -> dict:
     """p0, pE and the sources rebuilt on `base` rates, from the live record's stored features.
-    s1 / sx are the stage-2 fits (adjusted xG; adjusted xG + XI)."""
+    s1 / sx are the stage-2 fits (adjusted xG; adjusted xG + XI). `extra` = {"home": [...], "away": [...]}
+    appends features after the usual ones (A12's dcost), matching extra columns in s1 and sx."""
     c = rec["components"]
-    lam0 = [base[i] * _mult(s1, c[f"xgadj_{side}"]) for i, side in enumerate(("home", "away"))]
+    ex = extra or {"home": [], "away": []}
+    lam0 = [base[i] * _mult(s1, c[f"xgadj_{side}"] + ex[side]) for i, side in enumerate(("home", "away"))]
     out = {"p0": _hda(lam0[0], lam0[1], rho)}
     for src, feats in (rec.get("xi_features") or {}).items():
         lam = []
         for i, (k, side) in enumerate(SIDES):
             xf = feats[k]
             bl = xf["f_backline_opp"] if xf["f_backline_opp"] is not None else sx["mean"][3]
-            lam.append(base[i] * _mult(sx, c[f"xgadj_{side}"] + [xf["f_xi_position"], bl]))
+            lam.append(base[i] * _mult(sx, c[f"xgadj_{side}"] + [xf["f_xi_position"], bl] + ex[side]))
         out[src] = _hda(lam[0], lam[1], rho)
     used = [s for s in rec.get("pE_sources", []) if s in out]
     out["pE"] = ({k: float(np.mean([out[s][k] for s in used])) for k in ("p_home", "p_draw", "p_away")}
@@ -195,6 +197,77 @@ def build(records: list[dict], ctx: dict) -> list[dict]:
                     "pE_sources": r.get("pE_sources", []),
                     "s2": {"season": s, "theta": dict(zip(D.NAMES, map(float, th))), "rate_home": base[0], "rate_away": base[1]},
                     "stage2": {"p0S2": s1, "pES2": {**sx, "cols": ADJ + XI}}, "n_train_rows": int(len(tr))})
+    add_cost(out, records, ctx)
+    return out
+
+
+def add_cost(out: list[dict], records: list[dict], ctx: dict) -> None:
+    """A12: squad-cost candidates on the live D0 base, added to the shadow records in place. Its own
+    handler, so a failure is stored as cost_error and A10's candidates always stand."""
+    from .forecast import ADJ, STAGE2_L2, STAGE2_L2_XI, XI
+    try:
+        cost = cost_candidates(records, ctx, ADJ, XI, STAGE2_L2, STAGE2_L2_XI)
+        for o, r in zip(out, records):
+            got = cost.get(r["fpl_fixture"])
+            if got:
+                o["candidates"].update(got["candidates_cost"])
+                o["cost"] = got["cost"]
+    except Exception as e:  # noqa: BLE001
+        for o in out:
+            o["cost_error"] = f"{type(e).__name__}: {e}"[:300]
+
+
+# ---------------------------------------------------------------- A12: squad cost
+
+COST_CACHE = LOG_DIR / "shadow_cost_cache.json"
+
+
+def cost_z(moves: pd.DataFrame, clubs: list[str], season: str, day: pd.Timestamp, cache: dict) -> dict:
+    """z of log(1 + squad cost) across a season's clubs at a day (moves before that day; point-in-time fee
+    index). Cached by season and day: a day's values are those first computed for it."""
+    from . import transfers as T
+    key = f"{season}|{pd.Timestamp(day):%Y-%m-%d}"
+    if key not in cache:
+        idx = T.fee_index(moves, before=day)
+        v = pd.Series({c: np.log1p(T.squad_cost(moves, c, day, idx)["squad_cost"]) for c in clubs})
+        cache[key] = {c: float(x) for c, x in ((v - v.mean()) / (v.std() or 1.0)).items()}
+    return cache[key]
+
+
+def add_dcost(rows: pd.DataFrame, matches: pd.DataFrame, moves: pd.DataFrame, cache: dict) -> pd.DataFrame:
+    """Training rows with dcost = z(team) - z(opponent) at each row's cutoff."""
+    clubs = {s: sorted(set(g["home_id"]) | set(g["away_id"])) for s, g in matches.groupby("season")}
+    day = pd.to_datetime(rows["cutoff_utc"], utc=True).dt.normalize()
+    out = np.empty(len(rows))
+    for (season, d), idx in rows.groupby([rows["season"], day]).groups.items():
+        z = cost_z(moves, clubs[season], season, d, cache)
+        sub = rows.loc[idx]
+        out[rows.index.get_indexer(idx)] = [z.get(t, 0.0) - z.get(o, 0.0) for t, o in zip(sub["team_id"], sub["opponent_id"])]
+    return rows.assign(dcost=out)
+
+
+def cost_candidates(records: list[dict], ctx: dict, ADJ, XI, L2, L2_XI) -> dict:
+    """{fixture: {"candidates": {...p0C, pEC, sourcesC}, "cost": {...}}} on the live D0 base."""
+    from . import transfers as T
+    matches, rows, cutoff = ctx["matches"], ctx["rows"], ctx["cutoff"]
+    cache = json.loads(COST_CACHE.read_text()) if COST_CACHE.exists() else {}
+    moves = T.load()
+    tr = add_dcost(rows.reset_index(drop=True), matches, moves, cache)
+    s1 = stage2(tr, tr["log_dc"].to_numpy(), ADJ + ["dcost"], L2, fill=False)
+    sx = stage2(tr, tr["log_dc"].to_numpy(), ADJ + XI + ["dcost"], L2_XI, fill=True)
+    clubs = {s: sorted(set(g["home_id"]) | set(g["away_id"])) for s, g in matches.groupby("season")}
+    out = {}
+    for r in records:
+        season = _season_of(matches, r)
+        z = cost_z(moves, clubs[season], season, pd.Timestamp(r["logged_utc"]).normalize(), cache)
+        dh = z.get(r["home_id"], 0.0) - z.get(r["away_id"], 0.0)
+        c = r["components"]
+        cand = candidates(r, (c["dc_rate_home"], c["dc_rate_away"]), c["rho"], s1, sx, {"home": [dh], "away": [-dh]})
+        out[r["fpl_fixture"]] = {"cost": {"dcost_home": dh, "stage2": {"p0C": s1, "pEC": {**sx, "cols": ADJ + XI + ["dcost"]}}},
+                                 "candidates_cost": {"p0C": cand["p0"], "pEC": cand["pE"],
+                                                     **{f"{k}C": v for k, v in cand.items() if k not in ("p0", "pE")}}}
+    COST_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    COST_CACHE.write_text(json.dumps(cache, separators=(",", ":")) + "\n")
     return out
 
 
