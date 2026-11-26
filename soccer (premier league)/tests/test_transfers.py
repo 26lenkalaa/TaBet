@@ -69,3 +69,15 @@ def test_columns_are_found_by_header_and_style_text_is_ignored():
     assert list(df["player"]) == ["G R", "L O"]
     assert df.loc[0, "date"] == pd.Timestamp("2006-05-02", tz="UTC") and df.loc[0, "fee_gbp_m"] == 2.0
     assert df.loc[1, "kind"] == "loan" and df.loc[1, "to_id"] == "hull"
+
+
+def test_club_features_use_only_earlier_moves():
+    moves = pd.DataFrame({
+        "date": pd.to_datetime(["2025-04-20", "2025-07-01", "2025-08-15", "2025-08-16", "2025-07-02"], utc=True),
+        "to_id": ["sunderland", "sunderland", "sunderland", "sunderland", "leeds"],
+        "from_id": [None, None, None, None, "sunderland"],
+        "kind": ["fee", "fee", "undisclosed", "fee", "fee"], "fee_gbp_m": [99.0, 30.0, None, 10.0, 5.0]})
+    f = T.club_features(moves, "sunderland", 2025, pd.Timestamp("2025-08-16 15:00", tz="UTC"))
+    # April is before the window; the 16 August move is on the cutoff's own day, so not yet known
+    assert f["fees_in"] == 30.0 and f["signings"] == 2 and f["undisclosed_in"] == 1
+    assert f["fees_out"] == 5.0 and f["net_spend"] == 25.0 and f["departures"] == 1

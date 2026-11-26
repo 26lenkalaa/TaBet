@@ -333,3 +333,24 @@ def auto_refresh(now: pd.Timestamp, fpl_codes: set[int], state_path: Path = STAT
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(json.dumps(out) + "\n")
     return out
+
+
+# ---------------------------------------------------------------- point-in-time club features
+
+SIGNING_KINDS = ("fee", "undisclosed", "free")
+
+
+def club_features(moves: pd.DataFrame, team: str, season_start_year: int, cutoff: pd.Timestamp) -> dict:
+    """A club's transfer activity for a season, using only moves dated before the cutoff's day: from 1 May
+    of the season's start year (the summer window) up to the cutoff, so a mid-season cutoff also counts
+    the winter window so far. Fees are reported fees in £m; undisclosed fees count as signings only."""
+    start = pd.Timestamp(f"{season_start_year}-05-01", tz="UTC")
+    day = pd.Timestamp(cutoff).tz_convert("UTC").normalize()
+    m = moves[(moves["date"] >= start) & (moves["date"] < day)]
+    inn, out = m[m["to_id"] == team], m[m["from_id"] == team]
+    return {"fees_in": float(inn["fee_gbp_m"].sum()), "fees_out": float(out["fee_gbp_m"].sum()),
+            "net_spend": float(inn["fee_gbp_m"].sum() - out["fee_gbp_m"].sum()),
+            "signings": int(inn["kind"].isin(SIGNING_KINDS).sum()),
+            "undisclosed_in": int((inn["kind"] == "undisclosed").sum()),
+            "loans_in": int((inn["kind"] == "loan").sum()),
+            "departures": int(out["kind"].isin(SIGNING_KINDS).sum())}
