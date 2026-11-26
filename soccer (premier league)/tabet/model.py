@@ -166,6 +166,7 @@ class DixonColes:
             tau[c01] = 1 + lh[c01] * rho
             tau[c10] = 1 + la[c10] * rho
             tau[c11] = 1 - rho
+            live = tau > 1e-10                 # where tau is clipped, log(tau) is flat: no tau gradient
             tau = np.maximum(tau, 1e-10)
 
             ll = x * ll_h - lh + y * ll_a - la + np.log(tau)
@@ -183,6 +184,12 @@ class DixonColes:
             g_rho[c10] = la[c10] / tau[c10]
             ga[c10] += la[c10] * rho / tau[c10]
             g_rho[c11] = -1 / tau[c11]
+            # undo the tau part where tau was clipped (the clipped objective does not depend on it)
+            dead = ~live
+            if dead.any():
+                gh[dead] = (x - lh)[dead]
+                ga[dead] = (y - la)[dead]
+                g_rho[dead] = 0.0
             gh, ga, g_rho = w * gh, w * ga, w * g_rho
 
             g = np.empty_like(p)
