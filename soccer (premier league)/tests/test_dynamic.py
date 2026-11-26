@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import pandas as pd
 
 from tabet import dynamic as D
@@ -60,7 +61,7 @@ def _two_seasons():
 
 
 def test_ts_torch_loss_matches_the_numpy_filter():
-    import torch
+    torch = pytest.importorskip("torch")      # research-only dependency, not installed in CI
     p, _ = D.prepare(_two_seasons())
     rng = np.random.default_rng(3)
     u, v = rng.normal(0, 0.5, p.n_teams), rng.normal(0, 0.5, p.n_teams)
@@ -88,6 +89,7 @@ def test_ts_predictions_use_only_earlier_matchdays():
 
 
 def test_ts_fit_keeps_unseen_teams_at_the_shared_speed_and_shrinks_with_lambda():
+    pytest.importorskip("torch")
     m = _two_seasons()
     m.loc[m.index >= 24, "away_id"] = m.loc[m.index >= 24, "away_id"].replace("t5", "newbie")
     p, mm = D.prepare(m)
