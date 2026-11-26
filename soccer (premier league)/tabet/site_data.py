@@ -419,6 +419,11 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         build_digest(out.parent)
     except Exception as ex:  # the site data must still build
         print(f"digest skipped ({ex})")
+    try:   # the research page's data (tabet/research_page.py; descriptive only)
+        from .research_page import build as build_research
+        build_research(out.parent)
+    except Exception as ex:
+        print(f"research page data skipped ({ex})")
     return data
 
 
