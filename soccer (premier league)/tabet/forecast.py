@@ -83,12 +83,9 @@ def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None =
 def _score_matrix(lh: float, la: float, rho: float) -> np.ndarray:
     from scipy.stats import poisson
     g = np.arange(MAX_GOALS + 1)
+    from .model import dc_correct
     m = np.outer(poisson.pmf(g, lh), poisson.pmf(g, la))
-    m[0, 0] *= 1 - lh * la * rho
-    m[0, 1] *= 1 + lh * rho
-    m[1, 0] *= 1 + la * rho
-    m[1, 1] *= 1 - rho
-    return m / m.sum()
+    return dc_correct(m, lh, la, rho)
 
 
 def _hda(m: np.ndarray) -> tuple[float, float, float]:

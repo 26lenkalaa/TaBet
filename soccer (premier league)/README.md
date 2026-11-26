@@ -6,11 +6,16 @@ draw / away win**, records them before kickoff, and scores them against what hap
 betting market.
 
 **Live site:** https://ta-bet-ml-model-edition.vercel.app
-- **Home page, the pitch:** after a short arcade-style intro (skip it with any key), the gameweek's
-  matches sit on a football pitch, with the next match and a kick-off countdown in the centre circle.
-  - ◀ ▶ (or the arrow keys) change gameweek.
-  - Kick the ball on the centre spot to land on a random match.
-  - Click the ball in the top left for the model notebook.
+- **Home page:** a short arcade-style intro plays each time the site is opened (skip it with any key;
+  it is skipped for visitors who ask for reduced motion). Then:
+  - **Next up:** the gameweek's matches on a pitch card, one at a time. The big ‹ › arrows on either
+    side (or the arrow keys, or a swipe) step through them. Each shows a kick-off countdown, TaBet's
+    forecast against the market, and a "your call" pick.
+  - **This week and last week:** match cards with forecasts, results, and **live scores and scorers**
+    during matches (from Fantasy Premier League, display only).
+  - **Season so far:** how often TaBet was closer than the market, and both average scores.
+  - **Weekly results by email:** type an address to join; the digest goes out after each gameweek.
+  - **Search** finds any team or match since 2022-23.
 - **Model notebook** (`/notebook`): explains every model and result in plain language.
 - **Match explorer** (`/matches`): pick any match since 2022-23 to see every TaBet forecast for it,
   the market's odds and the result.
@@ -34,6 +39,7 @@ betting market.
 10. [Limitations](#10-limitations)
 11. [FAQ](#11-faq)
 12. [Glossary](#12-glossary)
+13. [Who built what](#13-who-built-what)
 
 ---
 
@@ -128,9 +134,23 @@ All numbers are out-of-sample: each forecast was made with only earlier data.
 **Ideas tested and dropped.** None beat the simpler model it extends on the same matches: a
 calibration layer, similar-player ratings, team playing style, lineup changes by role, faster
 league trends, predicting outcomes directly, lineups guessed from history, pooling four more
-leagues, match statistics, promoted-team priors, new-signing ratings, weekly score-driven ratings,
+leagues, match statistics, promoted-team priors, new-signing ratings, team-specific rating speeds,
 shorter memory, an Elo blend, a Bayesian Dixon-Coles, bivariate Poisson and table stakes. The full
 list, with every number, is in `docs/IMPROVEMENT_BRIEF.md`.
+
+**Under trial: dynamic (score-driven) ratings, "S2".** Instead of refitting Dixon-Coles from scratch,
+S2 nudges each team's ratings after every result. It first looked no better on the Premier League
+(2018-21), but two later pre-registered tests found it better than Dixon-Coles as a results-only
+model: on 13 leagues new to the project (−0.0024 log-loss, 44,352 matches) and on untouched Premier
+League seasons (−0.0051, 4,492 matches). **The live model still uses Dixon-Coles.** S2 is being
+tested as the base of the full model in a **shadow log** beside the live record (section 4); it
+replaces Dixon-Coles only if that test passes at the end of 2027-28.
+
+| | Status |
+|---|---|
+| Dixon-Coles + adjusted xG (p0), + predicted lineups (pE) | **Deployed:** the logged forecasts and the site |
+| The same on S2 (p0S2, pES2) | **Experimental:** shadow records only, never shown as TaBet's forecast |
+| Everything in "Ideas tested and dropped" | Not used |
 
 ## 4. The live experiment (2026-27 season)
 
@@ -158,6 +178,9 @@ happened yet:
   | 20–29 | First, descriptive read |
   | 20–38 | Confirmatory read at the end of the season: does the blend beat p0? |
 
+- **S2 shadow log (amendment A10, from gameweek 12):** after each logged record, the same forecasts
+  rebuilt on S2 go to a separate file, `results/prospective/shadow.jsonl`, using the same inputs. The
+  live record is never changed. Decision at the end of 2027-28: does the S2-based pE match or beat pE?
 - **Rules:** `docs/PROSPECTIVE_PROTOCOL.md` holds the rules, a dated amendment for every change
   (all made before the records they affect), and an operations log of anything that went wrong.
 
@@ -343,3 +366,25 @@ All sources are free. Their terms and what each one allows are in `docs/SOURCE_A
   with weight α.
 - **Pre-registration:** committing a test's design to the repo before running it.
 - **Backtest:** forecasting past matches with only the data available at the time.
+
+---
+
+## 13. Who built what
+
+From the git history (`git log --format='%an' -- <path>`). Commits by "github-actions[bot]" are the
+automated logger.
+
+- **Abhinav Lenkala:** the Premier League forecasting project end to end:
+  - the model (`tabet/`: Dixon-Coles, opponent-adjusted xG, the lineup layer, the score-driven S2
+    and its shadow log), the data pipeline and its point-in-time cutoffs;
+  - every experiment, pre-registration and data ledger in `docs/`;
+  - the prospective logger and its GitHub Action, the odds archive and the weekly digest;
+  - the backend (`backend/`, `api/`: Express API, Supabase schema and migrations, live scores,
+    newsletter);
+  - the soccer pages of the shared site (`site/index.html` after the 16 Nov redesign, `matches.html`,
+    `notebook.html`, `common.js`, `teams.js`).
+- **Sebastian:** the home-page redesign of 16 Nov 2026 (sport tabs, search, team colours) that the
+  current home page builds on.
+- **Adarsh:** the NFL module (`Football/`) and its site page, and the shared site header and theme.
+- **Breno:** the basketball module (`basketball/`) and its site page.
+

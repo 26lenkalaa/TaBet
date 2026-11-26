@@ -626,3 +626,8 @@ sources), the windows, α's fitting rule and every A2–A9 decision stay exactly
   each season.
 - **Ledger:** the 2026-27 shadow records are part of the live test (family `live`); 2027-28 and the
   possible 2028-29 extension are reserved as family S2SH.
+
+**Operations note (2026-11-26):** the Dixon-Coles low-score factors are now floored at 0 when a score
+grid is built (`tabet.model.dc_correct`, used by the live forecast, backtests and the shadow log). This
+changes no forecast: the smallest factor in every logged record so far is 0.902, and in the 2022-27
+backtest rows 0.620. It only keeps a grid valid at rates no forecast has reached.
