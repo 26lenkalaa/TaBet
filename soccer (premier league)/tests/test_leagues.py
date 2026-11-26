@@ -28,3 +28,11 @@ def test_validation_catches_repeated_fixture(other):
     s = other[(other["league"] == "SP1") & (other["season"] == "2022-23")]
     dup = pd.concat([other, s.iloc[[0]].assign(match_id="dup")])
     assert any("repeated fixture" in p for p in validate_leagues(dup))
+
+
+def test_season_label_handles_the_1990s():
+    from tabet.leagues import season_label
+    assert season_label("2526") == "2025-26"
+    assert season_label("0001") == "2000-01"
+    assert season_label("9394") == "1993-94"
+    assert season_label("9900") == "1999-00"
