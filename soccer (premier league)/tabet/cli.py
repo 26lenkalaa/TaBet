@@ -404,6 +404,11 @@ def main(argv: list[str] | None = None) -> int:
     nl.add_argument("--dry-run", action="store_true", help="say what would be sent; sends nothing")
     nl.set_defaults(func=lambda a: __import__("tabet.newsletter", fromlist=["send"]).send(dry_run=a.dry_run))
 
+    tr = sub.add_parser("transfers", help="fetch Wikipedia's English transfer lists (2005 on), parse and store them")
+    tr.add_argument("--no-refresh", action="store_true", help="use stored pages only; fetch none")
+    tr.set_defaults(func=lambda a: print(__import__("tabet.transfers", fromlist=["x"]).summary(
+        __import__("tabet.transfers", fromlist=["x"]).build(refresh=not a.no_refresh))) or 0)
+
     sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
         func=cmd_check_sources)
 
