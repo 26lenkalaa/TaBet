@@ -354,3 +354,34 @@ def club_features(moves: pd.DataFrame, team: str, season_start_year: int, cutoff
             "undisclosed_in": int((inn["kind"] == "undisclosed").sum()),
             "loans_in": int((inn["kind"] == "loan").sum()),
             "departures": int(out["kind"].isin(SIGNING_KINDS).sum())}
+
+
+# ---------------------------------------------------------------- squad cost (Tomkins-style)
+
+PERMANENT = ("fee", "undisclosed", "free")
+
+
+def fee_index(moves: pd.DataFrame) -> pd.Series:
+    """Fee inflation by window year: the mean disclosed fee paid by clubs we know (Premier League ids), relative
+    to the latest year. A fee from year y counts as fee * index[latest] / index[y] in today's money."""
+    paid = moves[(moves["kind"] == "fee") & moves["to_id"].notna() & moves["date"].notna()]
+    by = paid.groupby(paid["date"].dt.year)["fee_gbp_m"].mean()
+    return by.rolling(3, min_periods=1, center=True).mean()          # smooth thin years
+
+
+def squad_cost(moves: pd.DataFrame, team: str, cutoff: pd.Timestamp, index: pd.Series | None = None) -> dict:
+    """Inflation-adjusted fees (£m, latest-year money) of the players at `team` on the cutoff's day: each
+    player whose last move before that day was a permanent move to `team`. Players who joined before 2005
+    or came through the academy have no recorded fee and count 0; a player out on loan counts as gone
+    (loan returns are not listed). Only moves dated before the cutoff's day are used."""
+    day = pd.Timestamp(cutoff).tz_convert("UTC").normalize()
+    m = moves[(moves["date"] < day) & ((moves["to_id"] == team) | (moves["from_id"] == team))]
+    players = moves[(moves["date"] < day) & moves["player"].isin(m["player"])].sort_values("date")
+    last = players.groupby("player").tail(1)
+    here = last[(last["to_id"] == team) & last["kind"].isin(PERMANENT)]
+    idx = index if index is not None else fee_index(moves)
+    ref = float(idx.iloc[-1])
+    yr = here["date"].dt.year.map(lambda y: float(idx.get(y, idx.iloc[0] if y < idx.index[0] else ref)))
+    cost = (here["fee_gbp_m"].fillna(0.0) * ref / yr).sum()
+    return {"squad_cost": float(cost), "squad_players_with_fee": int(here["fee_gbp_m"].notna().sum()),
+            "squad_players_recorded": int(len(here))}

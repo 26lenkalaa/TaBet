@@ -81,3 +81,15 @@ def test_club_features_use_only_earlier_moves():
     # April is before the window; the 16 August move is on the cutoff's own day, so not yet known
     assert f["fees_in"] == 30.0 and f["signings"] == 2 and f["undisclosed_in"] == 1
     assert f["fees_out"] == 5.0 and f["net_spend"] == 25.0 and f["departures"] == 1
+
+
+def test_squad_cost_keeps_current_players_and_adjusts_for_inflation():
+    moves = pd.DataFrame({
+        "date": pd.to_datetime(["2015-07-01", "2020-07-01", "2021-07-01", "2022-07-01", "2022-07-02"], utc=True),
+        "player": ["Old", "Mid", "Mid", "New", "Gone"],
+        "to_id": ["leeds", "leeds", "chelsea", "leeds", "leeds"], "from_id": [None, None, "leeds", None, None],
+        "kind": ["fee", "fee", "fee", "fee", "fee"], "fee_gbp_m": [10.0, 20.0, 30.0, 40.0, 5.0]})
+    idx = pd.Series({2015: 1.0, 2020: 2.0, 2021: 2.0, 2022: 2.0})
+    f = T.squad_cost(moves, "leeds", pd.Timestamp("2022-07-02 15:00", tz="UTC"), idx)
+    # Old (10 in 2015 money = 20 today) + New (40); Mid was sold; Gone joined on the cutoff's own day
+    assert f["squad_cost"] == 60.0 and f["squad_players_recorded"] == 2
