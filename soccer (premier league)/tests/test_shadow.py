@@ -59,3 +59,23 @@ def test_next_rates_carry_the_filter_state_forward():
     assert np.isclose(lh, np.exp(th[0] + th[1] + a[0] - d[1])) and np.isclose(la, np.exp(th[0] + a[1] - d[0]))
     lh2, la2 = S.next_rates(done, th, "newbie", "t1", t0 + pd.Timedelta(days=80), "2020-21")
     assert np.isclose(lh2, np.exp(th[0] + th[1] - d[1]))   # an unseen team starts at league average
+
+
+def test_extra_feature_with_zero_value_leaves_candidates_unchanged():
+    s1x = {"coef": ST1["coef"] + [0.3], "mean": ST1["mean"] + [0.0], "sd": ST1["sd"] + [1.0]}
+    sxx = {"coef": STX["coef"] + [0.3], "mean": STX["mean"] + [0.0], "sd": STX["sd"] + [1.0]}
+    base = S.candidates(_rec(), (1.6, 1.1), -0.05, ST1, STX)
+    zero = S.candidates(_rec(), (1.6, 1.1), -0.05, s1x, sxx, {"home": [0.0], "away": [0.0]})
+    assert all(np.isclose(base[k]["p_home"], zero[k]["p_home"]) for k in base)
+    up = S.candidates(_rec(), (1.6, 1.1), -0.05, s1x, sxx, {"home": [1.0], "away": [-1.0]})
+    assert up["pE"]["p_home"] > base["pE"]["p_home"]            # a costlier home squad raises the home chance
+
+
+def test_a_squad_cost_failure_keeps_the_s2_candidates(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("no transfer table")
+    monkeypatch.setattr(S, "cost_candidates", boom)
+    out = [{"candidates": {"pES2": {"p_home": 0.5}}}]
+    S.add_cost(out, [_rec()], {})
+    assert out[0]["candidates"] == {"pES2": {"p_home": 0.5}}
+    assert out[0]["cost_error"].startswith("RuntimeError")

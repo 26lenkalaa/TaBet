@@ -668,3 +668,37 @@ names, so that player's attacking contribution was missing from the XI. Found by
 - **Handling:** the log is append-only and these records stay as logged and are scored as logged; this
   note is reported beside the gameweek 20-29 and 20-38 results. From this commit an unresolved name keeps
   its place with the position prior (a placeholder code with no rating), as the protocol specifies.
+
+## Amendment A12 (2026-11-27, written before any code for it exists): squad cost in the shadow records
+
+Addendum TV (`docs/IMPROVEMENT_BRIEF.md` §5.41) was inconclusive on PL 2008-15, with its gain coming from
+squad cost (−0.0016 alone, better in 6 of 7 seasons) and none from early-season fees. The PL holdouts are
+used up, so the only fair test left is prospective. A12 adds squad cost to the shadow records.
+
+**Nothing about the live record or A10 changes.** The live log, its candidates, α, the A10 candidates
+and the A10 decision stay as they are.
+
+- **Where:** the same shadow record as A10 (`results/prospective/shadow.jsonl`), as extra candidates.
+  Computed after the A10 candidates inside its own error handler; a failure is stored as `cost_error`
+  and leaves the A10 candidates intact.
+- **Feature (`dcost`):** for the scoring team T against opponent O, z(log(1 + squad cost of T)) −
+  z(log(1 + squad cost of O)), with z taken across that season's clubs at the cutoff;
+  squad cost is `tabet.transfers.squad_cost` with the point-in-time fee index (addendum TV's amendment),
+  from moves dated before the cutoff's day. Each (season, day) is computed once and cached
+  (`results/prospective/shadow_cost_cache.json`), so a day's values are those first computed for it.
+- **Candidates** (both on the live D0 base, refitted at every run like the live stage 2):
+  - **p0C:** p0's stage 2 with `dcost` added (adjusted xG + dcost, L2 = 1);
+  - **pEC:** pE's stage 2 with `dcost` added (adjusted xG + XI + dcost, L2 = 100), same sources and averaging.
+- **Primary: pEC − pE**, log-loss, one record per fixture (A4's rule), 14-day blocks, 2,000 resamples,
+  seed 0, from the first shadow record with these candidates through the end of 2027-28. The end of
+  2026-27 is reported descriptively only.
+- **Rule** (FAT's thresholds, stricter than A10's because the prior evidence is only inconclusive):
+  - **adopt** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **reject** if not adopted and the lower bound is above −0.0015;
+  - **otherwise extend once** through 2028-29 and apply the same two rules; if still neither, squad
+    cost is not adopted.
+- **Adopt** means `dcost` joins the live stage 2 from the next season, through an amendment written before
+  that season. **Secondary, never decisive:** p0C − p0; matches with a promoted side in its first 10;
+  the first 56 days of each season.
+- **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
+  extension are reserved as family SC.
