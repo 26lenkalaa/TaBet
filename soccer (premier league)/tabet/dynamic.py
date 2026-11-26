@@ -75,10 +75,14 @@ def _tau(x, y, lh, la, rho):
     return 1.0
 
 
-def filter_run(theta: np.ndarray, p: Prepared, upto_day: int | None = None) -> tuple[np.ndarray, np.ndarray, float]:
+def filter_run(theta: np.ndarray, p: Prepared, upto_day: int | None = None,
+               u: np.ndarray | None = None, v: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, float]:
     """Run the filter. Returns per-match pre-match (lam_home, lam_away) and the summed one-step
-    log-likelihood over matches on days < upto_day (all days if None)."""
+    log-likelihood over matches on days < upto_day (all days if None). u, v (addendum TS) give each
+    team its own speeds alpha_att * exp(u_i), alpha_def * exp(v_i); omitted, every team shares them."""
     mu, h, rho, aa, ad, beta, bs = theta
+    ga = aa * np.exp(u) if u is not None else np.full(p.n_teams, aa)
+    gd = ad * np.exp(v) if v is not None else np.full(p.n_teams, ad)
     a = np.zeros(p.n_teams)
     d = np.zeros(p.n_teams)
     lam = np.empty((len(p.x), 2))
@@ -105,10 +109,10 @@ def filter_run(theta: np.ndarray, p: Prepared, upto_day: int | None = None) -> t
             tau = np.array([_tau(u, v, s, t, rho) for u, v, s, t in zip(xs, ys, lh, la)])
             ll += float((xs * np.log(lh) - lh + ys * np.log(la) - la + np.log(np.maximum(tau, 1e-10))).sum())
         # update with the day's results (np.add.at handles a team twice in one day)
-        np.add.at(a, i, aa * (xs - lh))
-        np.add.at(d, j, -ad * (xs - lh))
-        np.add.at(a, j, aa * (ys - la))
-        np.add.at(d, i, -ad * (ys - la))
+        np.add.at(a, i, ga[i] * (xs - lh))
+        np.add.at(d, j, -gd[j] * (xs - lh))
+        np.add.at(a, j, ga[j] * (ys - la))
+        np.add.at(d, i, -gd[i] * (ys - la))
         start = stop
     return lam, (a, d), ll
 
@@ -160,3 +164,110 @@ def _fit_no_summer(p: Prepared, upto_day: int, theta0: np.ndarray) -> np.ndarray
                    options={"maxiter": 300})
     return res.x
 
+
+
+# ---------------------------------------------------------------- addendum TS: team-specific speeds
+
+UV_BOUND = 2.0
+
+
+def _ts_loss_torch(p: Prepared, upto_day: int):
+    """A torch closure z -> (penalty-free negative filtered log-likelihood on days < upto_day), where
+    z = [theta (7), u (n_teams), v (n_teams)]. Same arithmetic as filter_run, differentiable."""
+    import torch
+    T = torch.float64
+    stop = int(np.searchsorted(p.day, upto_day, "left"))
+    hi, ai = torch.as_tensor(p.hi[:stop].copy()), torch.as_tensor(p.ai[:stop].copy())
+    x, y = torch.as_tensor(p.x[:stop], dtype=T), torch.as_tensor(p.y[:stop], dtype=T)
+    gap = torch.as_tensor(np.diff(p.days[:upto_day], prepend=p.days[0]) / 7.0, dtype=T)
+    newseason = torch.as_tensor(np.r_[False, p.season[1:upto_day] != p.season[:upto_day - 1]])
+    bounds = np.searchsorted(p.day[:stop], np.arange(upto_day + 1), "left")
+    m00, m01 = (x == 0) & (y == 0), (x == 0) & (y == 1)
+    m10, m11 = (x == 1) & (y == 0), (x == 1) & (y == 1)
+    n = p.n_teams
+
+    def loss(z):
+        mu, h, rho, aa, ad, beta, bs = z[:7]
+        ga, gd = aa * torch.exp(z[7:7 + n]), ad * torch.exp(z[7 + n:])
+        lf = torch.log(beta) * gap
+        f = torch.exp(lf) * torch.where(newseason, bs, torch.ones((), dtype=T))
+        a = torch.zeros(n, dtype=T)
+        d = torch.zeros(n, dtype=T)
+        lhs, las = [], []
+        for k in range(upto_day):
+            s0, s1 = bounds[k], bounds[k + 1]
+            if k > 0:
+                a, d = a * f[k], d * f[k]
+            if s0 == s1:
+                continue
+            i, j = hi[s0:s1], ai[s0:s1]
+            lh = torch.exp(mu + h + a[i] - d[j])
+            la = torch.exp(mu + a[j] - d[i])
+            lhs.append(lh)
+            las.append(la)
+            xs, ys = x[s0:s1], y[s0:s1]
+            a = a.index_add(0, i, ga[i] * (xs - lh)).index_add(0, j, ga[j] * (ys - la))
+            d = d.index_add(0, j, -gd[j] * (xs - lh)).index_add(0, i, -gd[i] * (ys - la))
+        lh, la = torch.cat(lhs), torch.cat(las)
+        tau = torch.ones_like(lh)
+        tau = torch.where(m00, 1 - lh * la * rho, tau)
+        tau = torch.where(m01, 1 + lh * rho, tau)
+        tau = torch.where(m10, 1 + la * rho, tau)
+        tau = torch.where(m11, 1 - rho, tau)
+        ll = (x * torch.log(lh) - lh + y * torch.log(la) - la + torch.log(torch.clamp(tau, min=1e-10))).sum()
+        return -ll
+    return loss
+
+
+def fit_ts(p: Prepared, upto_day: int, lam: float, theta0: np.ndarray = START,
+           u0: np.ndarray | None = None, v0: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """TS static parameters: maximise the filtered log-likelihood on days < upto_day minus
+    lam * sum(u^2 + v^2). Teams with no match before upto_day keep u = v = 0."""
+    import torch
+    n = p.n_teams
+    stop = int(np.searchsorted(p.day, upto_day, "left"))
+    seen = np.zeros(n, bool)
+    seen[p.hi[:stop]] = True
+    seen[p.ai[:stop]] = True
+    loss = _ts_loss_torch(p, upto_day)
+    z0 = np.r_[theta0, np.zeros(n) if u0 is None else u0, np.zeros(n) if v0 is None else v0]
+    z0[7:7 + n][~seen] = 0.0
+    z0[7 + n:][~seen] = 0.0
+    uvb = [(-UV_BOUND, UV_BOUND) if s else (0.0, 0.0) for s in seen]
+
+    def f(z):
+        zt = torch.tensor(z, dtype=torch.float64, requires_grad=True)
+        val = loss(zt) + lam * (zt[7:] ** 2).sum()
+        val.backward()
+        return float(val.detach()), zt.grad.numpy().copy()
+    res = minimize(f, np.clip(z0, [b[0] for b in BOUNDS + uvb * 2], [b[1] for b in BOUNDS + uvb * 2]),
+                   jac=True, method="L-BFGS-B", bounds=BOUNDS + uvb + uvb, options={"maxiter": 500})
+    return res.x[:7], res.x[7:7 + n], res.x[7 + n:]
+
+
+def walk_forward_ts(matches: pd.DataFrame, eval_seasons: tuple[str, ...], lam: float,
+                    s2: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Addendum TS: like walk_forward (summer=True), with per-team speeds refitted at the start of every
+    evaluated season on all earlier matches. s2 (S2's walk-forward output) seeds theta each season."""
+    p, m = prepare(matches)
+    out = []
+    theta, u, v = START.copy(), None, None
+    for s in eval_seasons:
+        days = m.loc[m["season"] == s, "matchday"]
+        if days.empty:
+            continue
+        first_day = int(days.min())
+        if s2 is not None and (s2["season"] == s).any():
+            theta = s2.loc[s2["season"] == s, [f"theta_{k}" for k in NAMES]].iloc[0].to_numpy(float)
+        theta, u, v = fit_ts(p, first_day, lam, theta, u, v)
+        lamr, _, _ = filter_run(theta, p, u=u, v=v)
+        sel = (m["season"] == s).to_numpy()
+        P = probs(lamr[sel, 0], lamr[sel, 1], theta[2])
+        hi, ai = p.hi[sel], p.ai[sel]
+        out.append(pd.DataFrame({"match_id": m.loc[sel, "match_id"].to_numpy(), "season": s,
+                                 "kickoff_utc": m.loc[sel, "kickoff_utc"].to_numpy(),
+                                 "result": m.loc[sel, "result"].to_numpy(),
+                                 "p_home": P[:, 0], "p_draw": P[:, 1], "p_away": P[:, 2],
+                                 "uv_home": np.abs(u[hi]) + np.abs(v[hi]), "uv_away": np.abs(u[ai]) + np.abs(v[ai]),
+                                 **{f"theta_{k}": val for k, val in zip(NAMES, theta)}}))
+    return pd.concat(out, ignore_index=True)

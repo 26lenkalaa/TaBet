@@ -1,0 +1,1703 @@
+{
+  "addendum": "TS",
+  "lambda": 10.0,
+  "leagues": {
+    "ARG": {
+      "sha256": "c48e79acf38fa3ec1d8d7db918cbae752cb4db2dd33a8e34b7800693fb46e017",
+      "rows": 6482,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 381,
+          "scored_share": 1.0,
+          "eligible": 331,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 383,
+          "scored_share": 1.0,
+          "eligible": 369,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 190,
+          "scored_share": 1.0,
+          "eligible": 181,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 468,
+          "scored_share": 1.0,
+          "eligible": 439,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 692,
+          "scored_share": 1.0,
+          "eligible": 677,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 378,
+          "scored_share": 1.0,
+          "eligible": 373,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 324,
+          "scored_share": 1.0,
+          "eligible": 319,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 276,
+          "scored_share": 1.0,
+          "eligible": 271,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 134,
+          "scored_share": 1.0,
+          "eligible": 134,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 501,
+          "scored_share": 1.0,
+          "eligible": 496,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 581,
+          "scored_share": 1.0,
+          "eligible": 576,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 581,
+          "scored_share": 1.0,
+          "eligible": 576,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 579,
+          "scored_share": 1.0,
+          "eligible": 569,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 510,
+          "scored_share": 1.0,
+          "eligible": 510,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "BRA": {
+      "sha256": "e3d47bdc6d741104387adddbb52c4c6d00064816b4647ae5958f1bfaa94ccb7b",
+      "rows": 5679,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 330,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 361,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 375,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 370,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 380,
+          "scored_share": 0.9974,
+          "eligible": 369,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 380,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 378,
+          "scored_share": 1.0,
+          "eligible": 368,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 369,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 374,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 370,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 380,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 379,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 379,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 379,
+          "scored_share": 1.0,
+          "eligible": 374,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "CHN": {
+      "sha256": "cb3cdac480ea3e29a7fd0940fb33c73882034076fac01d7eea2880f8e6c68953",
+      "rows": 3048,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2014-15": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "history only (first two seasons)"
+        },
+        "2015-16": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "history only (first two seasons)"
+        },
+        "2016-17": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 226,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 162,
+          "scored_share": 1.0,
+          "eligible": 150,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 180,
+          "scored_share": 1.0,
+          "eligible": 155,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 290,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "FIN": {
+      "sha256": "ba7c6e03e4233f448c301afbc08edf384e052608c0c3d100a38f26e045d902c2",
+      "rows": 2723,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 198,
+          "scored_share": 1.0,
+          "eligible": 167,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 198,
+          "scored_share": 1.0,
+          "eligible": 193,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 198,
+          "scored_share": 1.0,
+          "eligible": 193,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 200,
+          "scored_share": 1.0,
+          "eligible": 184,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 200,
+          "scored_share": 1.0,
+          "eligible": 192,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 200,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 200,
+          "scored_share": 1.0,
+          "eligible": 198,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 169,
+          "scored_share": 1.0,
+          "eligible": 166,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 134,
+          "scored_share": 1.0,
+          "eligible": 134,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 164,
+          "scored_share": 1.0,
+          "eligible": 159,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 170,
+          "scored_share": 1.0,
+          "eligible": 170,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 167,
+          "scored_share": 1.0,
+          "eligible": 167,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 169,
+          "scored_share": 1.0,
+          "eligible": 159,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 177,
+          "scored_share": 1.0,
+          "eligible": 177,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "IRL": {
+      "sha256": "2948cb0a4972603d5b9d7434f2ce4eb77aad327641d2989c19e4176e920a3f55",
+      "rows": 2744,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 183,
+          "scored_share": 1.0,
+          "eligible": 149,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 202,
+          "scored_share": 1.0,
+          "eligible": 194,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 202,
+          "scored_share": 1.0,
+          "eligible": 193,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 202,
+          "scored_share": 1.0,
+          "eligible": 197,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 202,
+          "scored_share": 1.0,
+          "eligible": 194,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 198,
+          "scored_share": 1.0,
+          "eligible": 198,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 185,
+          "scored_share": 1.0,
+          "eligible": 184,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 186,
+          "scored_share": 1.0,
+          "eligible": 182,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 94,
+          "scored_share": 1.0,
+          "eligible": 94,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 186,
+          "scored_share": 1.0,
+          "eligible": 184,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 181,
+          "scored_share": 1.0,
+          "eligible": 181,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 181,
+          "scored_share": 1.0,
+          "eligible": 181,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 181,
+          "scored_share": 1.0,
+          "eligible": 181,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 180,
+          "scored_share": 1.0,
+          "eligible": 180,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "JPN": {
+      "sha256": "73fce3482d4ca5b8b2298984da379230cbd5248408bedb9c2be58c943d73ba96",
+      "rows": 4673,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 261,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 292,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 301,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 309,
+          "scored_share": 1.0,
+          "eligible": 299,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 309,
+          "scored_share": 1.0,
+          "eligible": 304,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 306,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 309,
+          "scored_share": 1.0,
+          "eligible": 301,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 310,
+          "scored_share": 1.0,
+          "eligible": 310,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 302,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 380,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 310,
+          "scored_share": 1.0,
+          "eligible": 301,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 306,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 373,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 380,
+          "scored_share": 1.0,
+          "eligible": 376,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "MEX": {
+      "sha256": "d838d48ee6ce070901fae423d73c78b520ad7cd6f5be7f918510a6e2584b56ea",
+      "rows": 4808,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 331,
+          "scored_share": 1.0,
+          "eligible": 286,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 330,
+          "scored_share": 1.0,
+          "eligible": 325,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 333,
+          "scored_share": 1.0,
+          "eligible": 328,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 332,
+          "scored_share": 1.0,
+          "eligible": 327,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 331,
+          "scored_share": 1.0,
+          "eligible": 326,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 332,
+          "scored_share": 1.0,
+          "eligible": 327,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 332,
+          "scored_share": 1.0,
+          "eligible": 332,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 273,
+          "scored_share": 1.0,
+          "eligible": 268,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 341,
+          "scored_share": 1.0,
+          "eligible": 336,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 341,
+          "scored_share": 1.0,
+          "eligible": 341,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 342,
+          "scored_share": 1.0,
+          "eligible": 342,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 338,
+          "scored_share": 1.0,
+          "eligible": 338,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 339,
+          "scored_share": 1.0,
+          "eligible": 339,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 334,
+          "scored_share": 1.0,
+          "eligible": 334,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "NOR": {
+      "sha256": "643eacb3da88b752a297267a09230adbe9b72d17249b5141e01a783426f17e9d",
+      "rows": 3598,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 241,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 242,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 241,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 237,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "POL": {
+      "sha256": "b44dd15fe31290f0de52c30ac430727307ba75a27dc4d8b77e3513dbee632648",
+      "rows": 4215,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 286,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 291,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 291,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 286,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 291,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 286,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 296,
+          "scored_share": 1.0,
+          "eligible": 286,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 301,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 301,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 296,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 297,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 306,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "ROU": {
+      "sha256": "dcd31bcd1c6238e699332b646c368ef4e78e41c492e532a7cbc9686257f211ab",
+      "rows": 4310,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 307,
+          "scored_share": 1.0,
+          "eligible": 261,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 289,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 306,
+          "scored_share": 1.0,
+          "eligible": 296,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 272,
+          "scored_share": 1.0,
+          "eligible": 263,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 270,
+          "scored_share": 1.0,
+          "eligible": 269,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 270,
+          "scored_share": 1.0,
+          "eligible": 259,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 270,
+          "scored_share": 1.0,
+          "eligible": 263,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 262,
+          "scored_share": 1.0,
+          "eligible": 252,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 321,
+          "scored_share": 1.0,
+          "eligible": 309,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 320,
+          "scored_share": 1.0,
+          "eligible": 309,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 321,
+          "scored_share": 1.0,
+          "eligible": 319,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 321,
+          "scored_share": 1.0,
+          "eligible": 319,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 315,
+          "scored_share": 1.0,
+          "eligible": 307,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 321,
+          "scored_share": 1.0,
+          "eligible": 308,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "RUS": {
+      "sha256": "433389a0e6cab9d84c519fdf5195994b86cc92687acefe10920b1d06eaacaf7b",
+      "rows": 3416,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 231,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 231,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 242,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 236,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 241,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 241,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 244,
+          "scored_share": 1.0,
+          "eligible": 237,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "SWE": {
+      "sha256": "5132aa747b051ddd0ef79bda9860193d20c207edf1eb6b8540f44d72001eff68",
+      "rows": 3616,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 200,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 230,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 232,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 234,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 237,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 237,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 240,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 242,
+          "scored_share": 1.0,
+          "eligible": 235,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 240,
+          "scored_share": 1.0,
+          "eligible": 237,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    },
+    "USA": {
+      "sha256": "768baec4d44a6ea037b031e498cb4a41e50bf53470cbe8db268f1ec3c5ac61b3",
+      "rows": 6335,
+      "unparsed_dates": 0,
+      "seasons_in_file": [
+        "2012-13",
+        "2013-14",
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26",
+        "2026-27"
+      ],
+      "dropped_outside_ledger": [
+        "2026-27"
+      ],
+      "dropped_not_completed": [],
+      "seasons": {
+        "2012-13": {
+          "rows": 336,
+          "scored_share": 1.0,
+          "eligible": 285,
+          "status": "history only (first two seasons)"
+        },
+        "2013-14": {
+          "rows": 338,
+          "scored_share": 1.0,
+          "eligible": 338,
+          "status": "history only (first two seasons)"
+        },
+        "2014-15": {
+          "rows": 338,
+          "scored_share": 1.0,
+          "eligible": 338,
+          "status": "scored"
+        },
+        "2015-16": {
+          "rows": 357,
+          "scored_share": 1.0,
+          "eligible": 348,
+          "status": "scored"
+        },
+        "2016-17": {
+          "rows": 357,
+          "scored_share": 1.0,
+          "eligible": 357,
+          "status": "scored"
+        },
+        "2017-18": {
+          "rows": 391,
+          "scored_share": 1.0,
+          "eligible": 382,
+          "status": "scored"
+        },
+        "2018-19": {
+          "rows": 408,
+          "scored_share": 1.0,
+          "eligible": 403,
+          "status": "scored"
+        },
+        "2019-20": {
+          "rows": 421,
+          "scored_share": 1.0,
+          "eligible": 416,
+          "status": "scored"
+        },
+        "2020-21": {
+          "rows": 321,
+          "scored_share": 1.0,
+          "eligible": 311,
+          "status": "scored"
+        },
+        "2021-22": {
+          "rows": 471,
+          "scored_share": 1.0,
+          "eligible": 466,
+          "status": "scored"
+        },
+        "2022-23": {
+          "rows": 489,
+          "scored_share": 1.0,
+          "eligible": 484,
+          "status": "scored"
+        },
+        "2023-24": {
+          "rows": 520,
+          "scored_share": 1.0,
+          "eligible": 515,
+          "status": "scored"
+        },
+        "2024-25": {
+          "rows": 522,
+          "scored_share": 1.0,
+          "eligible": 522,
+          "status": "scored"
+        },
+        "2025-26": {
+          "rows": 540,
+          "scored_share": 1.0,
+          "eligible": 535,
+          "status": "scored"
+        }
+      },
+      "scored_seasons": [
+        "2014-15",
+        "2015-16",
+        "2016-17",
+        "2017-18",
+        "2018-19",
+        "2019-20",
+        "2020-21",
+        "2021-22",
+        "2022-23",
+        "2023-24",
+        "2024-25",
+        "2025-26"
+      ],
+      "in_mean": true
+    }
+  },
+  "d0_not_converged": {
+    "ARG": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "BRA": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "CHN": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "FIN": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "IRL": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "JPN": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "MEX": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "NOR": {
+      "matchdays": [
+        "2020-06-28",
+        "2020-07-11",
+        "2020-07-12",
+        "2020-08-02",
+        "2020-08-05",
+        "2020-08-08",
+        "2020-08-09"
+      ],
+      "matches_dropped": 28
+    },
+    "POL": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "ROU": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "RUS": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "SWE": {
+      "matchdays": [],
+      "matches_dropped": 0
+    },
+    "USA": {
+      "matchdays": [],
+      "matches_dropped": 0
+    }
+  }
+}
