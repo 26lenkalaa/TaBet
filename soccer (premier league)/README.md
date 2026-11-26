@@ -344,8 +344,13 @@ In gameweek 10, GitHub ran the scheduled logger only every 4–8 hours, so 9 of 
 record. Those gaps are never backfilled. The external 30-minute trigger (amendment A4) fixed it
 from gameweek 11.
 
-**Is the data free to use?**
-All sources are free. Their terms and what each one allows are in `docs/SOURCE_AUDIT.md`.
+**Is the data free?**
+Mostly. **The live model uses only free sources:** football-data.co.uk, the Fantasy Premier League API,
+Fantasy Football Scout, RotoWire, and The Odds API's free plan (a benchmark, never an input). The
+research experiments also used **API-Football**: its free plan, plus **one month of its paid Pro plan
+($16, bought 2026-11-17)**, which collected about 100,000 matches of lineups and player statistics for
+other leagues. That data is stored privately and never published. Each source's terms are in
+`docs/SOURCE_AUDIT.md`.
 
 ## 12. Glossary
 
