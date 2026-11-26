@@ -152,7 +152,8 @@ def walk(per: pd.DataFrame, rows_from: int, scored_from: int, l2: float, feats=F
         p.loc[sel, "adj_a"] = b[0] + xa @ b[1:]
     y = p["result"].map({"H": 0, "D": 1, "A": 2}).to_numpy()
     p0 = _probs(p["lam_h"].to_numpy(), p["lam_a"].to_numpy(), p["rho"].to_numpy())
-    p1 = _probs(p["lam_h"].to_numpy() * np.exp(p["adj_h"]), p["lam_a"].to_numpy() * np.exp(p["adj_a"]), p["rho"].to_numpy())
+    p1 = _probs(p["lam_h"].to_numpy() * np.exp(p["adj_h"].to_numpy()), p["lam_a"].to_numpy() * np.exp(p["adj_a"].to_numpy()),
+                p["rho"].to_numpy())
     p["D0"] = -np.log(np.clip(p0[np.arange(len(p)), y], 1e-15, 1))
     p["TV"] = -np.log(np.clip(p1[np.arange(len(p)), y], 1e-15, 1))
     p["d"] = p["TV"] - p["D0"]

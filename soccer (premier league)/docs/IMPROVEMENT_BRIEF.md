@@ -1507,6 +1507,38 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     adapts quickly enough once the starting level is right.
 - **SEALED2 has 2 of its 4 uses left.**
 
+### 5.41 Transfer value (addendum TV): inconclusive; squad cost helps a little all season, summer fees do not
+
+- **Design:** D0's expected goals times exp(b0 + b1·Δsquad cost + b2·Δsummer fees·w), where w fades over
+  each club's first 10 matches. Features come from Wikipedia's English transfer lists (§3, CC BY-SA),
+  point in time, z-scored within the league-season. `prototypes/run_tv.py`; amendment of 2026-11-26
+  (separate development and test series, point-in-time fee index, ten 2005-15 clubs added).
+- **Development** (PL 2016-26, 3,800 matches; `results/tv/dev.json`): L2 = 100; TV − D0 −0.0020
+  [−0.0047, +0.0008]; first 10 matches −0.0054. Not withdrawn.
+- **Test** (PL 2008-15, 2,660 matches, the last use of P's closed set; `results/tv/results.json`):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **TV − D0 (primary)** | **−0.0014** | [−0.0034, +0.0007] |
+  | Squad cost only | −0.0016 | [−0.0036, +0.0005] |
+  | Summer fees (early season) only | +0.0001 | [−0.0005, +0.0007] |
+  | First 10 matches of either club | −0.0008 | [−0.0047, +0.0029] |
+  | A promoted club in its first 10 | +0.0026 | [−0.0071, +0.0125] |
+
+  - **Decision: inconclusive** (not confirmed: the interval includes 0; not closed: a gain up to
+    0.0034 is not ruled out).
+  - **By season:** better in 6 of 7 (2013-14 −0.0039, 2008-09 and 2012-13 −0.0027); worse in 2010-11
+    (+0.0020).
+- **Reading:**
+  - **The signal is squad cost, all season long, not early-season spending.** That fits the literature
+    (wage bills and squad quality predict standings; one window's fees much less) and the descriptive
+    finding that squad cost kept a small effect after the first 10 matches.
+  - **The early-season idea did not hold up:** summer fees added nothing, and promoted clubs' first
+    matches were not better forecast. The development result (−0.0054 early) did not carry over.
+  - About the size of S2's PL gain, and probably a different signal (money, not results), so the two
+    might add up. The PL holdouts are now used up; the live log is the only place left to test either.
+- **PL holdouts:** P's 2008-15 closed set is now fully used (P, S2PL, TV).
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
@@ -1572,7 +1604,7 @@ fixtures, and every feature must be computable at the match cutoff.
 | F15 | **[done, §5.22 and §5.23: inconsistent; pBP logged prospectively]** **Score distribution:** bivariate Poisson or negative binomial for over-dispersion and draws | stage-1 likelihood | [have] | DC with ρ |
 | F16 | **[done: addendum TS, §5.38; per-team speeds rejected]** **Team-specific rating drift:** clubs whose attack and defence change at different speeds (your suggestion). §5.18 tested one shared speed only | per-team responsiveness in the dynamic model, shrunk to a shared value | [have] | shared-speed dynamic model, and DC |
 | F18 | **[done, §5.40: closed]** **Faster learning for teams new to a league:** a fitted entry level and a faster early update speed for promoted and expansion teams, in S2 | S2 static parameters | [have] (results only) | S2 |
-| F19 | **[pre-registered: addendum TV]** **Transfer value:** inflation-adjusted squad cost and early-season summer fees from Wikipedia's transfer lists | stage feature on D0 | Wikipedia [have, 2005 on] | D0 |
+| F19 | **[done, §5.41: inconclusive]** **Transfer value:** inflation-adjusted squad cost and early-season summer fees from Wikipedia's transfer lists | stage feature on D0 | Wikipedia [have, 2005 on] | D0 |
 | F17 | **Historical suspensions from cards:** rebuild known bans from yellow-card thresholds and red cards (your suggestion), so the history-only projected XI can drop suspended players | lineup projection | football-data and FPL cards [have] | §5.8 projection |
 
 Out of scope by the rules in §2: bookmaker odds, FPL ownership/transfers/prices, and anything
