@@ -1115,3 +1115,9 @@ step before S2 could replace D0 as the base of the live model; it does not chang
 - **Ledger:** family S2PL, rows in this commit: E0 1993-94 → 1994-95 and 2000-01 → 2007-08 as
   training (history only); E0 1995-96 → 1999-00 as test (quota 1); E0 2008-09 → 2014-15 as test
   (quota 3, with P).
+
+## Pointer: S2 shadow records (2026-11-26)
+
+The prospective test of the full model built on S2 is amendment **A10** of
+`docs/PROSPECTIVE_PROTOCOL.md` (shadow records beside the live log; primary pES2 − pE; decision at
+the end of 2027-28, with one pre-set extension). Ledger family S2SH.
