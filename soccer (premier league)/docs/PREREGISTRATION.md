@@ -1177,3 +1177,24 @@ the league starts from a learned "new team" level and learns faster over its fir
 - **What a confirmation means:** NT becomes the S2 used by any later S2-based work, including a new
   A10-style shadow amendment. It never changes the live model or the A10 shadow records directly.
 - **Ledger:** family NT, rows in this commit (development rows on the big four, test rows on SEALED2).
+
+### Amendment to TV (2026-11-26, before any code for TV exists and before any model is fitted)
+
+Two data-separation fixes, found while planning the code:
+
+1. **The test seasons stay untouched during development.** "Training rows from 2005-06" would have put
+   the 2008-15 test seasons into development's training. Instead there are two separate series:
+   - **development:** PL matches from 2015-16 only. D0 is fitted on them (2015-16 burn-in, as in the
+     clean replication studies); stage training rows are the 2016-17 onward team-matches before each
+     monthly refit;
+   - **test:** PL matches 2005-06 → 2014-15 only. D0 is fitted on them (2005-06 burn-in); stage
+     training rows are the 2006-07 onward team-matches before each monthly refit; 2008-09 → 2014-15 are
+     scored.
+   The stage is inactive (TV = D0) until it has `tabet.experiments.MIN_TRAIN_MATCHES` training matches.
+2. **The fee-inflation index is point in time.** `tabet.transfers.fee_index` is computed only from moves
+   dated before each cutoff, with a trailing (not centred) three-year window, so no later year's fees
+   enter a feature.
+
+Also fixed before any fitting: ten 2005-15 clubs were missing from `tabet/teams.py` (Birmingham,
+Blackburn, Blackpool, Bolton, Charlton, Derby, Portsmouth, QPR, Reading, Wigan); without them their
+spending would have read as zero. They are added, and every 2005-15 club now has transfer rows.
