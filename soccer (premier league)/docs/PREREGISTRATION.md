@@ -1057,3 +1057,61 @@ improves results-only forecasts. Nothing about the live Premier League model cha
   - the development result (development data).
 - **Ledger:** family TS (development rows on the big four, test rows on SEALED2) and SEALED2, rows
   in this commit.
+
+## Addendum S2PL (2026-11-25, committed before any code for it exists and before any of its test data is loaded): dynamic ratings on the Premier League
+
+Addendum TS found that the score-driven model S2 beats the refitted Dixon-Coles D0 on 13 new leagues
+(S2 − D0 −0.0024 [−0.0037, −0.0010], 44,352 matches, §5.38). On the Premier League, addendum D found
+no gain (S2 − D0 +0.0009, SE 0.0034, 2018-21, 1,140 matches). S2PL asks whether S2 is at least as
+good as D0 on Premier League seasons that no team-strength comparison has scored. It is the first
+step before S2 could replace D0 as the base of the live model; it does not change the live model.
+
+- **Prior expectation:** mixed. The 13 leagues favour S2, mostly early in the season. The PL's stable
+  hierarchy suits a slowly decaying refit (addendum D: β ≈ 1, a shorter half-life clearly worse), and
+  S2 as the base of the xG stage 2 was worse on 2022-26 (§5.18). A small PL effect either way is the
+  most likely outcome.
+- **Models** (results only; Poisson with the Dixon-Coles ρ; Premier League matches only):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, half-life 173 days, L2 = 10), refitted every matchday
+    (`tabet.backtest.walk_forward`). A matchday whose fit does not converge gives no D0 forecast.
+  - **S2:** `tabet/dynamic.py` with the summer factor, unchanged since addendum D. Static parameters
+    are refitted at the start of every scored season on all earlier matches in the run.
+  - **Nothing is tuned.** Neither model has a free setting, so there is no development phase and no
+    withdrawal rule.
+- **Data:** football-data's E0 files, 1993-94 → 2014-15, run as one continuous series (the filter and
+  the refits see every earlier season). A match is a row with both scores; rows are never filtered by
+  content.
+  - **History only, never scored:** 1993-94 and 1994-95 (burn-in; 22-team seasons included as they
+    are); 2000-01 → 2007-08 (addendum P's development seasons).
+  - **Scored:** **1995-96 → 1999-00** (never used by any family) and **2008-09 → 2014-15**
+    (addendum P's closed test set; S2PL is the second of its three primary families).
+  - Expected scored matches: about 4,560.
+- **Eligibility:** both teams have at least 5 earlier PL matches in the run, and both models give a
+  forecast. Matches are processed by matchday, so no same-day result informs another same-day
+  forecast (the leakage test from addendum D).
+- **Power, stated in advance:** addendum D's per-match SD of S2 − D0 (0.115) gives an SE of about
+  0.0017 at 4,560 matches, so a 95% interval about ±0.0033 wide. The test cannot confirm an effect the
+  size of SEALED2's (−0.0024) as *better*; it can show *not worse*. The decision rule below is built
+  for that.
+- **Primary: S2 − D0** log-loss, mean over all eligible scored matches, 14-day blocks, 2,000
+  resamples, seed 0, 95% interval.
+- **Decision** (non-inferiority margin 0.0020, about the size of the SEALED2 gain):
+  - **better** if the upper bound is below 0;
+  - **not worse** if not better and the upper bound is below +0.0020;
+  - **worse** if the lower bound is above 0;
+  - **inconclusive** otherwise.
+- **What each outcome means:**
+  - **better or not worse:** S2 may go forward as the base of the live stack. That needs its own
+    addendum: the full model (S2 + xG + lineups) logged in shadow beside the live record, never
+    replacing it during the prospective test.
+  - **worse or inconclusive:** S2 stays a finding about other leagues. Nothing more on the PL.
+- **Secondary, never decisive:**
+  - each block (1995-2000, 2008-15) and each season;
+  - early-season matches (within 56 days of the season's first match);
+  - S2's fitted static parameters by season (β, β_summer, α_att, α_def);
+  - the pooled PL evidence: this test with addendum D's 2018-21 result, inverse-variance weighted.
+- **Implementation note (fixed now):** football-data season codes 9394 → 9900 must be labelled
+  1993-94 → 1999-00. The current season-label helper assumes 20xx and is fixed and tested before the
+  run.
+- **Ledger:** family S2PL, rows in this commit: E0 1993-94 → 1994-95 and 2000-01 → 2007-08 as
+  training (history only); E0 1995-96 → 1999-00 as test (quota 1); E0 2008-09 → 2014-15 as test
+  (quota 3, with P).
