@@ -2,25 +2,29 @@
 
 > Paste this whole file into a chat with another AI assistant (e.g. ChatGPT) and ask for the review
 > described in the last section. It is self-contained: the reviewer does not have the code.
-> Last updated 2026-11-17, international break before gameweek 11. **New in this version
-> (2026-11-17):**
+> Last updated 2026-11-26, gameweek 12 (the live test is in its fitting period). **Current state:**
+> - **Live model (unchanged since 2026-11-05):** Dixon-Coles + opponent-adjusted xG (p0), plus
+>   predicted lineups (pE), logged 24-26 h before kickoff and compared with Pinnacle at the same
+>   moment. Gameweeks 11-19 are the fitting period; the confirmatory read is gameweeks 20-38.
+> - **Dynamic (score-driven) ratings, S2: the one positive finding of this cycle.** Results only, S2
+>   beats the refitted Dixon-Coles on 13 new leagues (−0.0024, §5.38) and on untouched PL seasons
+>   (−0.0051 [−0.0093, −0.0011], §5.39). Under the xG and lineup stage the gain mostly disappears on
+>   2022-27 (−0.0011 [−0.0061, +0.0038], descriptive). It is now in a **shadow log** beside the live
+>   record (amendment A10), decided at the end of 2027-28.
+> - **Closed or withdrawn since 2026-11-17:** NLX (nonlinear stage 2, §5.33), fatigue (FAT, §5.34),
+>   all-competition ratings (XC) and the blowout cap (§5.35), new-manager shifts (MGR, §5.36),
+>   goalkeeper quality (GK, §5.37), team-specific rating speeds (TS's per-team part, §5.38).
+> - **Data:** the first sealed holdout is used up; a second (SEALED2, 13 leagues) has 3 of 4 uses left.
+> - **Questions for you are in §8.** Everything below this line is the earlier history of the brief,
+>   kept for context; its requests have been answered.
+>
+> **Previous version (2026-11-17):**
 > - **API-Football upgraded to a paid month** and collected about 37,500 matches in a day: ten
 >   leagues, 2015-16 → 2025-26, with lineups and per-player match stats. Team xG only exists from
 >   2022-23; samples of 2015-2021 had none (§3).
-> - **Experiment DXI** (your seventh review's experiment 2, pre-registered): a defensive-XI block is
->   **not confirmed** (DEF − BASE −0.0003, 95% CI [−0.0014, +0.0007]) on four untouched leagues
->   (§5.31). The attacking-XI block beat Dixon-Coles by about 0.001 on both development and test
->   (secondary only).
-> - **NLX and XIA, scored once (§5.33):** the nonlinear stage 2 is **closed** (NN − LIN +0.0002,
->   95% CI [−0.0025, +0.0029]); the attacking-XI block is **not confirmed** (−0.0007 [−0.0024,
->   +0.0010]), though its gain sits in high-deviation matches as in the Premier League.
-> - **Pre-registered as below (§5.32), now run:** NLX and XIA. A retry of boosting and the neural network
->   with player-level XI inputs, and the attacking-XI block as its own primary, on the last
->   untouched cells in the ledger. Revised after the eighth review (one primary, no fallbacks, league
->   indicators, LIN-X, a closed/inconclusive stop rule). **Please review the revised design (§8,
->   item 1)** before any code for it exists.
-> - **A sealed holdout** (nine more leagues) and European and cup fixtures (for rest and fatigue)
->   are being collected during the paid month (§5.32).
+> - **Experiment DXI:** a defensive-XI block is **not confirmed** (§5.31).
+> - **NLX and XIA, scored once (§5.33):** the nonlinear stage 2 is **closed**; the attacking-XI
+>   block is **not confirmed**.
 >
 > Earlier in this cycle:
 > - **Two exploratory experiments, both negative (nothing adopted):**
@@ -1223,6 +1227,17 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
   B1 −0.0022, N1 −0.0028, P1 +0.0011, SC0 +0.0012.
 - **Ledger:** both families' rows are spent. No untouched cross-league cells remain except the
   sealed holdout.
+- **Caveats (added 2026-11-26, after an outside review; the result stands):**
+  - **A retrospective cross-league test.** The settings and the choice of NN were made on the big
+    four 2019-25, then scored on other leagues' 2020-22 and 2025-26 seasons. Monthly refits used only
+    earlier rows, but the *choices* drew on seasons after 2020-22. It is a fair test of the model
+    family on unseen leagues, not a reproduction of what could have been chosen in 2020.
+  - **Internal early stopping was not perfectly clean.** GBM's validation split was a row count, so
+    it could separate a match's two side-rows; the NN's inputs were standardised on its whole training
+    frame, validation part included. Both affect only when training stopped, never the test fixtures.
+    The verdict is unchanged: NN − LIN +0.0002 is far inside the closing bound, and the test cannot
+    be re-run. Any reuse of this code should split by date with both rows of a match together and fit
+    the scaling on the fitting part only (noted in `prototypes/run_nlx.py`).
 
 ### 5.34 Injuries checked; fatigue (addendum FAT): closed
 
@@ -1532,32 +1547,21 @@ well over 1,000 matches to detect. I would rather pre-register two or three than
 
 ## 8. What I want from you (the reviewer)
 
-Since the last version, your seventh review's two experiments both ran as pre-registered and both
-were null: boosting over linear (G, §5.30) and the defensive-XI block (DXI, §5.31). API-Football is
-now collected for ten leagues 2015-26 (§3). The protocol freezes at the first gameweek-11 record
-(2026-11-20 from 04:30 UTC). Please give me:
+Since the last version every pre-registered test has been run. The open items are about S2 and
+about how the evidence is presented. Please give me:
 
-1. **Review the NLX pre-registration (§5.32) before it runs.** It is the retry of boosting and the
-   network with player-level inputs.
-   - Is the design fair to all three models (identical inputs, grids of similar size, the same
-     early-stopping rule for GBM and NN)?
-   - Are the test cells sound: split seasons (2020-22 and 2025-26), one season mostly behind closed
-     doors, development on different leagues from the test?
-   - Is Bonferroni at 97.5% with a 0.001 threshold right, or too strict to ever pass with about
-     3,000 test matches?
-   - Is the stop rule (close the line if neither is confirmed) reasonable?
-   - Anything you would change **now**, before code exists. After that it is frozen.
-2. **DXI's reading (§5.31).** Is "the defensive block adds little, if anything" the right reading of
-   −0.0003 [−0.0014, +0.0007]? Is the attacking-XI block's ~0.001 gain over Dixon-Coles (development
-   and test, secondary only) worth its own pre-registered test, and on what data, given that the
-   cross-league cells are now nearly used up?
-3. **What the new data is best spent on.** Ten leagues × eleven seasons of lineups and player match
-   stats, and team xG for 2022-26. Beyond NLX, what one test would you run with it? Odds stay out
-   of the inputs.
-4. **Data hygiene.** Our ledger now records every league-season each experiment touched (§5.30).
-   After NLX, almost no untouched cross-league data remains apart from the Championship and
-   leagues we have not collected. Should the next tests be scored only on the live log, or should
-   we collect more leagues purely to keep a fresh holdout?
+1. **The S2 shadow log (amendment A10, `docs/PROSPECTIVE_PROTOCOL.md`).** It compares pES2 with pE
+   beside the live record and decides at the end of 2027-28 (about 640 fixtures): adopt if the mean is
+   below 0 and the upper bound below +0.005; reject if the lower bound is above 0; otherwise extend
+   once through 2028-29 and adopt if the mean is below 0. Given an SE of about 0.0045, is a
+   safety-check rule like this sound, or should S2's adoption rest on something else?
+2. **Why does S2's gain shrink under the xG stage?** Results only, S2 beats Dixon-Coles; with adjusted
+   xG and lineups on top, the difference is about −0.001 on 2022-27. Is the xG stage already
+   capturing what S2 adds (both react faster than a 173-day refit), and is there a test that would
+   tell?
+3. **Presentation.** For a student project, which evidence would you lead with: the prospective log,
+   the sealed tests, or the backtests? Anything in §5 you think overstates what was shown?
+4. **Anything in §5 that you think is wrong** after reading the caveats (for example §5.33's).
 
 Please flag any claim you are unsure about instead of stating it as fact, and do not suggest using
 bookmaker odds or crowd data as model inputs (pre-season odds and bookmaker relegation prices

@@ -288,6 +288,10 @@ def fit_lin(tr, te, feats, l2):
     return b[0] + Xte @ b[1:]
 
 
+# Known limitation (outside review, 2026-11-26; kept as run, since the test is spent): the GBM split below is
+# a row count, which can separate a match's two side-rows, and fit_nn standardises on the whole training
+# frame before tabet.neural holds out its validation part. Both affect only early stopping. Reuse should
+# split by date with both rows of a match together and fit the scaling on the fitting part only.
 def fit_gbm(tr, te, feats, depth, leaf):
     """Addendum G's model: ratio target y/mu_DC with weight mu_DC; chronological stopping on the most
     recent 15% of rows (patience 50, up to 1,000 rounds); built-in early stopping off."""
