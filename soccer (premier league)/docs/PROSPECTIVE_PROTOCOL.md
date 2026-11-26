@@ -558,3 +558,71 @@ on `main` before 2026-11-20 04:30 UTC.
      confidence interval that crosses zero does not establish parity with the market.
 6. **pBP adoption, one more condition.** Beyond A8 item 2's pooled rule, adoption also requires that
    pBP − p0 is ≤ 0 among records with λ3 ≥ 0.02. That shows any gain is not just from dropping ρ.
+
+## Amendment A10 (2026-11-26, written before any code for it exists): S2 shadow records
+
+Addenda TS and S2PL found that the score-driven model S2 beats the refitted Dixon-Coles D0 as a
+results-only model, on 13 new leagues (−0.0024) and on untouched Premier League seasons (−0.0051,
+`docs/IMPROVEMENT_BRIEF.md` §5.38–5.39). The live forecasts sit on D0 plus the xG and lineup stage,
+and S2 under that stage was worse on 2022-26 (§5.18, development data). A10 asks the remaining
+question prospectively:
+
+> **Is the full model built on S2 at least as good as the live model built on D0?**
+
+**Nothing about the live record changes.** `log.jsonl`, its candidates (p0, pE, pα, pBP, the
+sources), the windows, α's fitting rule and every A2–A9 decision stay exactly as they are.
+
+### What is logged
+
+- **Where:** a separate append-only file, `results/prospective/shadow.jsonl`. `log.jsonl` is never
+  touched by shadow code.
+- **When:** in the same run, immediately after a live record is appended, for the same fixture,
+  kickoff, cutoff and record role (primary or fallback). There is no shadow record without a live
+  record. Shadow records start with the first live record logged after the A10 code is merged; there
+  is no backfill.
+- **Same inputs:** the shadow uses the live run's in-memory inputs: the same results, FPL
+  appearances, availability, and the same parsed lineup snapshots. Nothing is fetched again.
+- **Isolation:** shadow code runs after the live record is written, inside its own error handler, with
+  a time limit of 120 seconds per run. A shadow failure writes a shadow record that names the error,
+  never stops or delays the live record, and never opens a logger alert.
+- **Each shadow record holds:** fixture id, kickoff, cutoff, record role, git commit, S2's static
+  parameters and pre-match rates, the stage-2 coefficients, and the shadow candidates below.
+
+### Shadow candidates
+
+| Name | Forecast |
+|---|---|
+| `p0S2` | p0 with S2's rates in place of D0's: the same xG features, stage-2 form and L2 (1.0) |
+| `pES2` | pE with S2's rates in place of D0's: the same lineup sources, features, L2 (100) and source averaging |
+| `S2` | S2 alone (results only), for a live replication of S2 − D0 |
+
+- **S2 settings (fixed now):** `tabet/dynamic.py` with the summer factor, unchanged. The filter runs
+  over every PL match from 2015-16 (`res/history`) to the cutoff. Static parameters are fitted once
+  per season, at that season's first kickoff, on all earlier matches; for 2026-27 that is the
+  fit at 2026-08-21 on 2015-26.
+- **Stage-2 training rows:** the live training rows with log(D0 rate) replaced by each match's
+  walk-forward S2 rate (each season's matches use that season's static parameters). The stage-2
+  coefficients are refitted at every run, as the live ones are.
+
+### Decision
+
+- **Primary: pES2 − pE**, log-loss on fixtures that have both, one record per fixture (A4's
+  primary-over-fallback rule), 14-day calendar-block bootstrap, 2,000 resamples, seed 0.
+- **Period:** every shadow record from the start through the end of 2027-28 (about 640 fixtures).
+  At the end of 2026-27 the result is reported **descriptively only**; it cannot trigger a decision.
+- **Power, stated in advance:** with a per-fixture SD of about 0.115 (addendum S2PL), the SE at 640
+  fixtures is about 0.0045. The shadow cannot confirm a gain of S2PL's size (0.005); it is a safety
+  check that the full model does not get worse, judged together with the two results-only tests.
+- **Rule, at the end of 2027-28:**
+  - **adopt** if the mean is below 0 and the upper bound is below +0.005;
+  - **reject** if the lower bound is above 0;
+  - **otherwise extend once**, through the end of 2028-29 (about 1,020 fixtures), then **adopt** if the
+    mean is below 0 and **reject** otherwise. The weaker final rule is deliberate: two results-only
+    tests already favour S2, so the shadow only has to show the full model is not worse.
+- **Adopt** means S2 replaces D0 as the base of p0 and pE from the next season, through a new
+  amendment written before that season. It never changes records already logged.
+- **Secondary, never decisive:** p0S2 − p0; S2 − D0 (live replication); pES2 and pE against the
+  Pinnacle benchmark (A8); fixtures with a promoted side in its first 10 matches; the first 56 days of
+  each season.
+- **Ledger:** the 2026-27 shadow records are part of the live test (family `live`); 2027-28 and the
+  possible 2028-29 extension are reserved as family S2SH.

@@ -1,0 +1,226 @@
+{
+  "addendum": "S2PL",
+  "n_scored": 4492,
+  "d0_not_converged": [],
+  "excluded_ineligible": 68,
+  "log_loss": {
+    "D0": 0.9937239808439204,
+    "S2": 0.9886218173152812
+  },
+  "primary": {
+    "S2 - D0": {
+      "n": 4492,
+      "mean": -0.005102163528639277,
+      "ci_95": [
+        -0.009306466997144613,
+        -0.0011453551700263125
+      ]
+    },
+    "decision": "better",
+    "margin": 0.002
+  },
+  "secondary": {
+    "by block": {
+      "1995-2000": {
+        "n": 1862,
+        "mean": 7.730474238397739e-05,
+        "ci_95": [
+          -0.005076980993971503,
+          0.00509330037119536
+        ]
+      },
+      "2008-15": {
+        "n": 2630,
+        "mean": -0.00876914828934091,
+        "ci_95": [
+          -0.014885167627662123,
+          -0.0032018472850058157
+        ]
+      }
+    },
+    "by season (mean, n)": {
+      "1995-96": [
+        0.007414348897100138,
+        371
+      ],
+      "1996-97": [
+        -0.007214558910590959,
+        370
+      ],
+      "1997-98": [
+        -0.003556531419143778,
+        375
+      ],
+      "1998-99": [
+        0.00034879266211744204,
+        375
+      ],
+      "1999-00": [
+        0.003411069596491496,
+        371
+      ],
+      "2008-09": [
+        -0.006126615348846039,
+        370
+      ],
+      "2009-10": [
+        -0.0030666823428243646,
+        375
+      ],
+      "2010-11": [
+        -0.008982514781967122,
+        375
+      ],
+      "2011-12": [
+        -0.013961548069233496,
+        375
+      ],
+      "2012-13": [
+        -0.007878595448210365,
+        380
+      ],
+      "2013-14": [
+        -0.012006965766623265,
+        375
+      ],
+      "2014-15": [
+        -0.009330274845606652,
+        380
+      ]
+    },
+    "early season": {
+      "n": 835,
+      "mean": -0.010648171500435837,
+      "ci_95": [
+        -0.025291335335335233,
+        0.001094953977722824
+      ]
+    },
+    "S2 parameters by season": [
+      {
+        "season": "1995-96",
+        "theta_mu": 0.06708,
+        "theta_home": 0.2763,
+        "theta_rho": -0.13507,
+        "theta_alpha_att": 0.02256,
+        "theta_alpha_def": 0.02638,
+        "theta_beta": 0.99261,
+        "theta_beta_summer": 1.0
+      },
+      {
+        "season": "1996-97",
+        "theta_mu": 0.06435,
+        "theta_home": 0.30001,
+        "theta_rho": -0.08421,
+        "theta_alpha_att": 0.02036,
+        "theta_alpha_def": 0.02324,
+        "theta_beta": 0.9939,
+        "theta_beta_summer": 0.97325
+      },
+      {
+        "season": "1997-98",
+        "theta_mu": 0.06397,
+        "theta_home": 0.30238,
+        "theta_rho": -0.09486,
+        "theta_alpha_att": 0.01899,
+        "theta_alpha_def": 0.01946,
+        "theta_beta": 0.99479,
+        "theta_beta_summer": 0.9669
+      },
+      {
+        "season": "1998-99",
+        "theta_mu": 0.07749,
+        "theta_home": 0.30725,
+        "theta_rho": -0.07105,
+        "theta_alpha_att": 0.01875,
+        "theta_alpha_def": 0.0194,
+        "theta_beta": 0.99345,
+        "theta_beta_summer": 1.0
+      },
+      {
+        "season": "1999-00",
+        "theta_mu": 0.07688,
+        "theta_home": 0.30739,
+        "theta_rho": -0.08267,
+        "theta_alpha_att": 0.01588,
+        "theta_alpha_def": 0.01803,
+        "theta_beta": 0.99626,
+        "theta_beta_summer": 1.0
+      },
+      {
+        "season": "2008-09",
+        "theta_mu": 0.07058,
+        "theta_home": 0.31809,
+        "theta_rho": -0.04746,
+        "theta_alpha_att": 0.01075,
+        "theta_alpha_def": 0.01379,
+        "theta_beta": 0.99954,
+        "theta_beta_summer": 1.0
+      },
+      {
+        "season": "2009-10",
+        "theta_mu": 0.07407,
+        "theta_home": 0.31481,
+        "theta_rho": -0.05048,
+        "theta_alpha_att": 0.01055,
+        "theta_alpha_def": 0.0136,
+        "theta_beta": 0.99963,
+        "theta_beta_summer": 1.0
+      },
+      {
+        "season": "2010-11",
+        "theta_mu": 0.06756,
+        "theta_home": 0.32342,
+        "theta_rho": -0.05256,
+        "theta_alpha_att": 0.01144,
+        "theta_alpha_def": 0.01361,
+        "theta_beta": 1.0,
+        "theta_beta_summer": 0.97882
+      },
+      {
+        "season": "2011-12",
+        "theta_mu": 0.08232,
+        "theta_home": 0.32368,
+        "theta_rho": -0.05559,
+        "theta_alpha_att": 0.01099,
+        "theta_alpha_def": 0.01376,
+        "theta_beta": 0.99993,
+        "theta_beta_summer": 0.96618
+      },
+      {
+        "season": "2012-13",
+        "theta_mu": 0.08316,
+        "theta_home": 0.32066,
+        "theta_rho": -0.05869,
+        "theta_alpha_att": 0.01145,
+        "theta_alpha_def": 0.01415,
+        "theta_beta": 0.99913,
+        "theta_beta_summer": 0.99778
+      },
+      {
+        "season": "2013-14",
+        "theta_mu": 0.08504,
+        "theta_home": 0.31594,
+        "theta_rho": -0.06193,
+        "theta_alpha_att": 0.01093,
+        "theta_alpha_def": 0.01358,
+        "theta_beta": 0.99922,
+        "theta_beta_summer": 0.99809
+      },
+      {
+        "season": "2014-15",
+        "theta_mu": 0.08089,
+        "theta_home": 0.31416,
+        "theta_rho": -0.05446,
+        "theta_alpha_att": 0.01174,
+        "theta_alpha_def": 0.01369,
+        "theta_beta": 0.9992,
+        "theta_beta_summer": 0.9977
+      }
+    ],
+    "pooled with addendum D (inverse variance)": {
+      "mean": -0.0034653813763792433,
+      "se": 0.0017754990556252998
+    }
+  }
+}

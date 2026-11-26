@@ -33,7 +33,10 @@ def _slug(s: str) -> str:
 
 
 def season_label(code: str) -> str:
-    return f"20{code[:2]}-{code[2:]}"
+    """football-data's season code -> label: "2526" -> "2025-26", "9394" -> "1993-94" (codes 90-99 are
+    the 1990s; football-data's files start in 1993)."""
+    century = "19" if int(code[:2]) >= 90 else "20"
+    return f"{century}{code[:2]}-{code[2:]}"
 
 
 def download(divs=tuple(LEAGUES), seasons=SEASONS, refresh_current: bool = False) -> None:

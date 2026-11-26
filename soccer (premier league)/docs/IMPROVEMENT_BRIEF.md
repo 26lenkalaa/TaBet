@@ -1417,6 +1417,38 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     pre-registered test on PL data (for example, the prospective log).
 - **SEALED2 has 3 of its 4 uses left.**
 
+### 5.39 Dynamic ratings on the Premier League (addendum S2PL): better than Dixon-Coles
+
+- **Design:** S2 (score-driven ratings, one shared speed) against D0 (Dixon-Coles refitted every
+  matchday), results only, on PL seasons no team-strength comparison had scored: 1995-96 → 1999-00
+  and 2008-09 → 2014-15 (addendum P's closed set), run as one series from 1993-94. Nothing tuned.
+  `prototypes/run_s2pl.py`, `results/s2pl/results.json`.
+- **Result** (4,492 matches; log-loss D0 0.9937, S2 0.9886):
+
+  | Contrast | Mean | 95% CI |
+  |---|---|---|
+  | **S2 − D0 (primary)** | **−0.0051** | [−0.0093, −0.0011] |
+  | 1995-2000 | +0.0001 | [−0.0051, +0.0051] |
+  | 2008-15 | −0.0088 | [−0.0149, −0.0032] |
+  | First 56 days of a season | −0.0106 | [−0.0253, +0.0011] |
+  | Pooled with addendum D (2018-21) | −0.0035 | SE 0.0018 |
+
+  - **Decision: better** (the upper bound is below 0).
+  - **By season:** S2 is better in all seven 2008-15 seasons; the 1990s split 2-3.
+  - **Fitted parameters:** β 0.993-1.000 and β_summer 0.97-1.00, as in addendum D: strengths are
+    persistent and barely reset over the summer. The update speeds roughly halved from the 1990s
+    (α ≈ 0.02) to 2008-15 (α ≈ 0.011).
+- **Reading:**
+  - With SEALED2 (§5.38), dynamic ratings have now beaten the refitted Dixon-Coles on 13 new leagues
+    and on untouched PL seasons. Addendum D's 2018-21 PL result (+0.0009, SE 0.0034) was noise around
+    a small gain.
+  - The gain is concentrated in 2008-15 and early in seasons; it is not uniform.
+  - **The live model does not change yet.** S2 replaced D0 only as a results-only model here. As the
+    base of the xG and lineup stage it was worse on 2022-26 (§5.18). The pre-registered next step is
+    a shadow log: the full model on S2 recorded beside the live record, never replacing it during the
+    prospective test.
+- **Data:** addendum P's closed set (PL 2008-15) has one of its three uses left.
+
 ## 6. Known weaknesses and open questions
 
 1. **Statistical power depends on the contrast.** Use each comparison's own paired variance, not
