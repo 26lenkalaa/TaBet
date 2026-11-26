@@ -118,15 +118,17 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
 
 def _recent_records(hours: float = 8.0) -> list[dict]:
     """Forecast records logged in the last `hours` (only the fields the odds archive needs)."""
+    from .kickoff import KICKOFF
     from .prospective import LOG
-    if not LOG.exists():
-        return []
     cut = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=hours)
     out = []
-    for line in LOG.read_text().splitlines()[-200:]:
-        r = json.loads(line)
-        if pd.Timestamp(r["logged_utc"]) >= cut:
-            out.append({k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")})
+    for path in (LOG, KICKOFF):          # A11: kickoff records get the run's odds snapshot too
+        if not path.exists():
+            continue
+        for line in path.read_text().splitlines()[-200:]:
+            r = json.loads(line)
+            if pd.Timestamp(r["logged_utc"]) >= cut:
+                out.append({k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")})
     return out
 
 

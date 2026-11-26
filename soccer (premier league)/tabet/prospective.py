@@ -263,6 +263,14 @@ def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float]
                 print(f"transfers refreshed ({t['reason']}): {t['rows']} moves in {t['windows']} windows")
         except Exception as e:
             print(f"transfers refresh skipped ({e})")
+    if not dry_run:
+        try:  # kickoff records with confirmed lineups (amendment A11; descriptive; never touches log.jsonl)
+            from .kickoff import log_kickoff
+            k = log_kickoff(now, fx)
+            if k:
+                print(f"kickoff records: {len(k)}")
+        except Exception as e:
+            print(f"kickoff records skipped ({e})")
     due_by_h = {h: due_fixtures(now, h, w, fixtures=fx) for h, w in horizons}
     if dry_run:
         return [dict(r, horizon_h=h) for h, d in due_by_h.items() for r in d.to_dict("records")]

@@ -171,9 +171,13 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     unresolved: dict[str, dict[str, int]] = {}
     invalid: dict[str, dict[str, int]] = {}
     updated: dict[str, str] = {}
+    lineup_status: dict[str, dict[str, str]] = {}      # source -> team -> "confirmed" | "predicted" (A11)
     for src in ("ffs", "rotowire"):
         if len(lineup_snap) and (lineup_snap["source"] == src).any():
             allx = lineup_snap[lineup_snap["source"] == src]
+            if "status" in allx:
+                lineup_status[src] = allx.groupby("team_id")["status"].agg(
+                    lambda st: "confirmed" if (st == "confirmed").all() else "predicted").to_dict()
             unresolved[src] = allx[allx["player_code"].isna()].groupby("team_id").size().astype(int).to_dict()
             if "source_updated" in allx:
                 updated.update({f"{src}:{t}": u for t, u in allx.groupby("team_id")["source_updated"].first().items()
@@ -278,6 +282,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         "xi_stage2": {"cols": ADJ + XI, "coef": [float(v) for v in bx], "mean": [float(v) for v in mux],
                       "sd": [float(v) for v in sdx], "l2": STAGE2_L2_XI},
         "lineup_unresolved": unresolved, "lineup_invalid": invalid, "source_updated": updated,
+        "lineup_status": lineup_status,
         "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "chance_this", "chance", "chance_field", "news"]]
                          .to_dict("records"),
         "lineup_sources": {"retrieved_utc": (lineup_snap["retrieved_utc"].iloc[0] if len(lineup_snap) else None),

@@ -631,3 +631,27 @@ sources), the windows, α's fitting rule and every A2–A9 decision stay exactly
 grid is built (`tabet.model.dc_correct`, used by the live forecast, backtests and the shadow log). This
 changes no forecast: the smallest factor in every logged record so far is 0.902, and in the 2022-27
 backtest rows 0.620. It only keeps a grid valid at rates no forecast has reached.
+
+## Amendment A11 (2026-11-26, written before any code for it exists): kickoff records with confirmed lineups
+
+The protocol's "operational comparison" (a second horizon close to kickoff, with confirmed lineups) was
+sketched but never built. A11 builds it. It is **descriptive**: it adds a separate record; the 24-hour
+records, their candidates, α, every A2–A10 decision and the shadow log are unchanged.
+
+- **Window:** a fixture gets a kickoff record from the first logger run that finds its kickoff **10 to
+  50 minutes ahead** and RotoWire showing **confirmed** XIs for both teams. Runs every 30 minutes put
+  at least one run in that window; if none of them sees both XIs confirmed, the fixture has no kickoff
+  record (counted and reported).
+- **Lineup source:** RotoWire's lineup page, which marks an XI "confirmed" once clubs announce it
+  (about an hour before kickoff). Only a confirmed XI for both sides is used; names resolve to FPL
+  players as for the 24-hour records. The raw page is kept beside the others.
+- **Where:** a separate append-only file, `results/prospective/kickoff.jsonl`, written by its own code
+  path inside its own error handler; it never touches `log.jsonl`.
+- **Candidates:**
+  - **pK:** V2x (the 24-hour pE model) with RotoWire's confirmed XIs, fitted at the kickoff cutoff;
+  - **p0K:** the lineup-free p0 at the same cutoff (to separate "later data" from "confirmed XIs").
+- **Market:** the run's The Odds API snapshot (A7/A8, Pinnacle with Shin's margin removal) is taken
+  for kickoff records as for 24-hour ones; football-data's closing odds are added once published.
+- **Reported (descriptive, after gameweeks 20–29 and 20–38, with the protocol's inference methods):**
+  pK against Pinnacle at the same snapshot; pK against closing odds; pK − pE (24 h); pK − p0K.
+  **No decision rests on it**, and nothing live changes because of it.
