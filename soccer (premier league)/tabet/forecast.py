@@ -62,7 +62,7 @@ def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None =
     whenever a new result arrives (a stale cache would leave new matches out
     of stage-2 training)."""
     done = matches[matches["status"] == "completed"]
-    key = f"{len(done)}_{done['match_id'].max()}"
+    key = _rows_key(done, app)
     path = None
     if cache is not None:
         path = cache.with_name(f"{cache.stem}_{key}.pkl")
@@ -78,6 +78,21 @@ def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None =
             old.unlink()
         rows.to_pickle(path)
     return rows
+
+
+def _rows_key(done: pd.DataFrame, app: pd.DataFrame) -> str:
+    """Cache key for the training rows: a hash of the completed results, the appearance data they are
+    built from, and the code that builds them, so a corrected result, revised xG or a code change
+    rebuilds the rows instead of reusing stale ones."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(pd.util.hash_pandas_object(done[["match_id", "home_goals", "away_goals"]].astype(str), index=False).values.tobytes())
+    cols = [c for c in ("match_id", "player_code", "minutes", "xg", "xa", "started") if c in app.columns]
+    h.update(pd.util.hash_pandas_object(app[cols].astype(str), index=False).values.tobytes())
+    here = Path(__file__).resolve().parent
+    for f in ("features.py", "experiments.py", "xg_strength.py", "forecast.py"):
+        h.update((here / f).read_bytes())
+    return f"{len(done)}_{h.hexdigest()[:16]}"
 
 
 def _score_matrix(lh: float, la: float, rho: float) -> np.ndarray:
@@ -116,6 +131,9 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
              lineups: bool = True, fixture_ids: list[int] | None = None,
              rows_cache: Path | None = ROOT / "data/processed/forecast_rows.pkl") -> dict:
     cutoff = cutoff or pd.Timestamp.now(tz="UTC").floor("min")
+    if lineups and cutoff < pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=6):
+        # live inputs (today's FPL availability, today's lineup pages) cannot be replayed for an old cutoff
+        raise ValueError("forecast() uses live inputs; for a historical cutoff use the backtest pipeline")
     matches, _ = load_all(ROOT / "res")
     app = load_appearances(matches, ARCHIVE_SEASONS, LIVE_SEASON, refresh_live=refresh)
     fx = upcoming_fixtures(refresh=refresh)
@@ -190,7 +208,11 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
             bad = set(listed[listed != 11].index) | dup_teams
             if bad:
                 invalid[src] = {t: int(listed.get(t, 0)) for t in sorted(bad)}
-            x = allx[~allx["team_id"].isin(bad)].dropna(subset=["player_code"]).copy()
+            x = allx[~allx["team_id"].isin(bad)].copy()
+            # an unresolved name keeps its place in the XI with the position-prior rating (protocol,
+            # "Frozen definitions"): a negative placeholder code has no rating, so the prior fills it
+            miss = x["player_code"].isna()
+            x.loc[miss, "player_code"] = -np.arange(1, int(miss.sum()) + 1)
             x["player_code"] = x["player_code"].astype(int)
             x["position"] = x["player_code"].map(pos_now).fillna(x["position"])
             xis[src] = x[["team_id", "player_code", "position"]]

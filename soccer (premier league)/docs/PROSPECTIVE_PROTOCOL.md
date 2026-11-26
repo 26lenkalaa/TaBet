@@ -655,3 +655,16 @@ records, their candidates, α, every A2–A10 decision and the shadow log are un
 - **Reported (descriptive, after gameweeks 20–29 and 20–38, with the protocol's inference methods):**
   pK against Pinnacle at the same snapshot; pK against closing odds; pK − pE (24 h); pK − p0K.
   **No decision rests on it**, and nothing live changes because of it.
+
+**Operations note (2026-11-26): unresolved lineup names (bug fix).** The frozen definitions say an
+unresolved source name "contributes the position-prior rating". The code instead dropped unresolved
+names, so that player's attacking contribution was missing from the XI. Found by an outside review.
+- **Affected:** one fixture, both records: Hull v Brighton (FPL 106, primary and fallback), where one
+  Brighton name on RotoWire did not resolve. No other record had an unresolved name.
+- **Size:** Brighton's XI feature −0.152 instead of −0.026; RotoWire's candidate 26.7 / 31.2 / 42.1 instead
+  of 24.6 / 29.7 / 45.7 (reconstructed from the record's stored inputs, which reproduce the logged
+  candidate exactly). pE moved by about half of that. Hull won 2-0, so the logged values scored slightly
+  better than the corrected ones would have.
+- **Handling:** the log is append-only and these records stay as logged and are scored as logged; this
+  note is reported beside the gameweek 20-29 and 20-38 results. From this commit an unresolved name keeps
+  its place with the position prior (a placeholder code with no rating), as the protocol specifies.
