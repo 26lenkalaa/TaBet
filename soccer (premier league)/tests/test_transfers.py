@@ -93,3 +93,10 @@ def test_squad_cost_keeps_current_players_and_adjusts_for_inflation():
     f = T.squad_cost(moves, "leeds", pd.Timestamp("2022-07-02 15:00", tz="UTC"), idx)
     # Old (10 in 2015 money = 20 today) + New (40); Mid was sold; Gone joined on the cutoff's own day
     assert f["squad_cost"] == 60.0 and f["squad_players_recorded"] == 2
+
+
+def test_fee_index_point_in_time_ignores_later_moves():
+    moves = pd.DataFrame({"date": pd.to_datetime(["2010-07-01", "2011-07-01", "2012-07-01"], utc=True),
+                          "kind": ["fee"] * 3, "to_id": ["leeds"] * 3, "fee_gbp_m": [1.0, 2.0, 100.0]})
+    idx = T.fee_index(moves, before=pd.Timestamp("2012-01-01", tz="UTC"))
+    assert list(idx.index) == [2010, 2011] and idx.loc[2011] == 1.5

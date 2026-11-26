@@ -361,12 +361,15 @@ def club_features(moves: pd.DataFrame, team: str, season_start_year: int, cutoff
 PERMANENT = ("fee", "undisclosed", "free")
 
 
-def fee_index(moves: pd.DataFrame) -> pd.Series:
-    """Fee inflation by window year: the mean disclosed fee paid by clubs we know (Premier League ids), relative
-    to the latest year. A fee from year y counts as fee * index[latest] / index[y] in today's money."""
+def fee_index(moves: pd.DataFrame, before: pd.Timestamp | None = None) -> pd.Series:
+    """Fee inflation by year: the mean disclosed fee paid by clubs we know, smoothed over a trailing three
+    years. With `before`, only moves dated before that day count (point in time, addendum TV). A fee from
+    year y counts as fee * index[latest] / index[y] in the latest year's money."""
     paid = moves[(moves["kind"] == "fee") & moves["to_id"].notna() & moves["date"].notna()]
+    if before is not None:
+        paid = paid[paid["date"] < pd.Timestamp(before).tz_convert("UTC").normalize()]
     by = paid.groupby(paid["date"].dt.year)["fee_gbp_m"].mean()
-    return by.rolling(3, min_periods=1, center=True).mean()          # smooth thin years
+    return by.rolling(3, min_periods=1).mean()
 
 
 def squad_cost(moves: pd.DataFrame, team: str, cutoff: pd.Timestamp, index: pd.Series | None = None) -> dict:

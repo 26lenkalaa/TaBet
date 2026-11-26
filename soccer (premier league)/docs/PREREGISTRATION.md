@@ -1177,3 +1177,78 @@ the league starts from a learned "new team" level and learns faster over its fir
 - **What a confirmation means:** NT becomes the S2 used by any later S2-based work, including a new
   A10-style shadow amendment. It never changes the live model or the A10 shadow records directly.
 - **Ledger:** family NT, rows in this commit (development rows on the big four, test rows on SEALED2).
+
+## Addendum TV (2026-11-26, written before any code for it existed; restored 2026-11-26 before any model was fitted): transfer value in the early season
+
+*Restoration note:* this text was drafted and described in PR #107, but its commit never happened, so
+#107 merged without it. It is restored here verbatim, together with its ledger rows, before any TV model
+was fitted or any test season loaded (the runner's first ledger check failed for exactly this reason).
+
+A results-only model cannot see summer spending, so it is slowest to react exactly when squads change.
+The literature finds wage bills explain most of league position, transfer fees less so and with a lag
+(Kuper and Szymanski; Nowland and Sankara 2024); squad market values forecast about as well as betting
+odds (Peeters 2018), but those are crowd estimates and out of bounds here. A descriptive look at PL
+2016-26 (development data, `results/transfers_descriptive/results.json`) found that clubs' summer fees
+and inflation-adjusted squad cost both correlate with the results-only model's goal-difference residual
+in their first 10 matches (r = +0.24 and +0.27; 200 club-seasons), much less afterwards. TV tests that
+as a forecast.
+
+- **Prior expectation:** a small gain concentrated early in seasons; little later. The descriptive
+  sample is small (30 promoted club-seasons), and fees are only a proxy for wages.
+- **Data:** Wikipedia's English transfer lists (`tabet/transfers.py`, CC BY-SA), every window from
+  summer 2005. Features at a cutoff use only moves dated before the cutoff's day. Pages are read at
+  their current revision; later edits to old fees are a small hindsight risk, recorded but not
+  controlled.
+- **Features** (for team T scoring against opponent O; each z-scored against the other clubs in
+  that league-season at the cutoff, on the log of 1 + £m):
+  - **squad cost:** `tabet.transfers.squad_cost` (inflation-adjusted fees of the players at the club);
+  - **summer fees:** `club_features(...)["fees_in"]` since 1 May of the season;
+  - the stage inputs are the differences T − O of squad cost, and of summer fees times an early-season
+    weight w = max(0, 1 − n/10), where n is the club's league matches this season before the match.
+- **Models** (Premier League only, results only, since xG does not exist before 2016):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, L2 = 10), refitted every matchday;
+  - **TV:** D0's expected goals times exp(b0 + b1·Δcost + b2·Δfees_early), a Poisson regression with
+    log(D0 rate) as the offset and an L2 penalty on b1, b2; refitted every month on all earlier
+    team-matches (from 2005-06).
+- **Development choice (the only one):** the L2 penalty ∈ {1, 10, 100}, by TV's log-loss on PL
+  2016-17 → 2025-26 (D0 rates from that run, training rows from 2005-06). 2026-27 is not used.
+- **Withdrawal rule:** if TV − D0 on development (chosen L2) is not below 0, TV is withdrawn before the
+  test seasons are scored.
+- **Test (scored once): PL 2008-09 → 2014-15**, addendum P's closed test set, third and last of its
+  three uses. Training rows from 2005-06; 2005-06 → 2007-08 are history only.
+- **Eligibility:** every match in the test seasons that D0 forecasts (a matchday whose fit does not
+  converge gives no forecast, as in TS).
+- **Primary: TV − D0** log-loss, mean over eligible matches, 14-day blocks, 2,000 resamples, seed 0,
+  95% interval.
+- **Decision** (FAT's and GK's thresholds):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, 2,660 expected test matches).
+- **Secondary, never decisive:** the first 10 matches of each club's season; matches with a promoted
+  club in its first 10; squad cost only and summer fees only; each season; the fitted b1, b2 by season.
+- **What a confirmation means:** TV's features become a candidate for the live stage, through a new
+  shadow amendment (like A10). Nothing live changes directly.
+- **Ledger:** family TV: E0 2005-06 → 2007-08 training (history), 2016-17 → 2025-26 development,
+  2008-09 → 2014-15 test (quota 3, with P and S2PL); rows in this commit.
+
+### Amendment to TV (2026-11-26, before any code for TV exists and before any model is fitted)
+
+Two data-separation fixes, found while planning the code:
+
+1. **The test seasons stay untouched during development.** "Training rows from 2005-06" would have put
+   the 2008-15 test seasons into development's training. Instead there are two separate series:
+   - **development:** PL matches from 2015-16 only. D0 is fitted on them (2015-16 burn-in, as in the
+     clean replication studies); stage training rows are the 2016-17 onward team-matches before each
+     monthly refit;
+   - **test:** PL matches 2005-06 → 2014-15 only. D0 is fitted on them (2005-06 burn-in); stage
+     training rows are the 2006-07 onward team-matches before each monthly refit; 2008-09 → 2014-15 are
+     scored.
+   The stage is inactive (TV = D0) until it has `tabet.experiments.MIN_TRAIN_MATCHES` training matches.
+2. **The fee-inflation index is point in time.** `tabet.transfers.fee_index` is computed only from moves
+   dated before each cutoff, with a trailing (not centred) three-year window, so no later year's fees
+   enter a feature.
+
+Also fixed before any fitting: ten 2005-15 clubs were missing from `tabet/teams.py` (Birmingham,
+Blackburn, Blackpool, Bolton, Charlton, Derby, Portsmouth, QPR, Reading, Wigan); without them their
+spending would have read as zero. They are added, and every 2005-15 club now has transfer rows.
