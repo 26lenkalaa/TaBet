@@ -254,6 +254,15 @@ def log_due(now: pd.Timestamp | None = None, horizons: tuple[tuple[float, float]
         except Exception as e:
             print(f"daily results refresh failed ({e})")
     fx = upcoming_fixtures(refresh=True)
+    if not dry_run:
+        try:  # transfer values from Wikipedia (research data; never a forecast input): new FPL players or an open window
+            from .transfers import auto_refresh
+            boot = json.loads((fetch_live_season(LIVE_SEASON, refresh=False) / "bootstrap.json").read_text())
+            t = auto_refresh(now, {int(e["code"]) for e in boot["elements"]})
+            if t:
+                print(f"transfers refreshed ({t['reason']}): {t['rows']} moves in {t['windows']} windows")
+        except Exception as e:
+            print(f"transfers refresh skipped ({e})")
     due_by_h = {h: due_fixtures(now, h, w, fixtures=fx) for h, w in horizons}
     if dry_run:
         return [dict(r, horizon_h=h) for h, d in due_by_h.items() for r in d.to_dict("records")]

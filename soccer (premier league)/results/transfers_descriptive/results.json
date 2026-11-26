@@ -1,0 +1,295 @@
+{
+  "note": "descriptive; development data PL 2016-26; no decision",
+  "team_seasons": 200,
+  "promoted_team_seasons": 30,
+  "first 10 | all": {
+    "n": 200,
+    "mean residual GD per match": 0.0008965036858354359,
+    "corr(resid, z log fees in)": 0.24496133857790736,
+    "corr(resid, z net spend)": 0.19293713573014867,
+    "corr(resid, signings)": -0.06931816149961154,
+    "slope GD per +1 sd log fees in": 0.1438526529368622
+  },
+  "first 10 | promoted": {
+    "n": 30,
+    "mean residual GD per match": -0.26379543741587086,
+    "corr(resid, z log fees in)": 0.27549722827132783,
+    "corr(resid, z net spend)": 0.25427667525091546,
+    "corr(resid, signings)": 0.07309124115828654,
+    "slope GD per +1 sd log fees in": 0.1187644397239615
+  },
+  "first 10 | not promoted": {
+    "n": 170,
+    "mean residual GD per match": 0.047606846233195374,
+    "corr(resid, z log fees in)": 0.20028932524782747,
+    "corr(resid, z net spend)": 0.1778779491253365,
+    "corr(resid, signings)": -0.003471127534328472,
+    "slope GD per +1 sd log fees in": 0.12397540272479507
+  },
+  "rest | all": {
+    "n": 200,
+    "mean residual GD per match": -0.00032017988779836415,
+    "corr(resid, z log fees in)": 0.005492699028341504,
+    "corr(resid, z net spend)": 0.1003875753517275,
+    "corr(resid, signings)": -0.13601486449368097,
+    "slope GD per +1 sd log fees in": 0.0017338768332528995
+  },
+  "rest | promoted": {
+    "n": 30,
+    "mean residual GD per match": -0.044153880682136125,
+    "corr(resid, z log fees in)": 0.1643646583497849,
+    "corr(resid, z net spend)": 0.12373103208968805,
+    "corr(resid, signings)": -0.13894856031011413,
+    "slope GD per +1 sd log fees in": 0.043661877857012026
+  },
+  "rest | not promoted": {
+    "n": 170,
+    "mean residual GD per match": 0.007415179075908297,
+    "corr(resid, z log fees in)": -0.03414038287520985,
+    "corr(resid, z net spend)": 0.09453020504175035,
+    "corr(resid, signings)": -0.12216726641762687,
+    "slope GD per +1 sd log fees in": -0.01142471060624397
+  },
+  "promoted clubs, by summer fees in": [
+    {
+      "season": "2025-26",
+      "team": "sunderland",
+      "fees_in": 161.3,
+      "net": 123.5,
+      "signings": 13,
+      "resid_first10": 0.06
+    },
+    {
+      "season": "2022-23",
+      "team": "nottm_forest",
+      "fees_in": 116.7,
+      "net": 116.7,
+      "signings": 23,
+      "resid_first10": -0.84
+    },
+    {
+      "season": "2024-25",
+      "team": "ipswich",
+      "fees_in": 103.0,
+      "net": 102.6,
+      "signings": 13,
+      "resid_first10": -0.38
+    },
+    {
+      "season": "2024-25",
+      "team": "southampton",
+      "fees_in": 87.0,
+      "net": 82.0,
+      "signings": 15,
+      "resid_first10": -0.06
+    },
+    {
+      "season": "2025-26",
+      "team": "burnley",
+      "fees_in": 86.5,
+      "net": 55.5,
+      "signings": 13,
+      "resid_first10": 0.27
+    },
+    {
+      "season": "2018-19",
+      "team": "wolves",
+      "fees_in": 73.0,
+      "net": 70.0,
+      "signings": 10,
+      "resid_first10": 0.07
+    },
+    {
+      "season": "2025-26",
+      "team": "leeds",
+      "fees_in": 72.1,
+      "net": 64.5,
+      "signings": 9,
+      "resid_first10": -0.22
+    },
+    {
+      "season": "2019-20",
+      "team": "aston_villa",
+      "fees_in": 66.75,
+      "net": 66.75,
+      "signings": 13,
+      "resid_first10": 0.35
+    },
+    {
+      "season": "2022-23",
+      "team": "bournemouth",
+      "fees_in": 64.0,
+      "net": 64.0,
+      "signings": 8,
+      "resid_first10": -0.24
+    },
+    {
+      "season": "2020-21",
+      "team": "leeds",
+      "fees_in": 59.0,
+      "net": 59.0,
+      "signings": 9,
+      "resid_first10": -0.16
+    },
+    {
+      "season": "2022-23",
+      "team": "fulham",
+      "fees_in": 56.4,
+      "net": 48.7,
+      "signings": 8,
+      "resid_first10": -0.15
+    },
+    {
+      "season": "2024-25",
+      "team": "leicester",
+      "fees_in": 53.0,
+      "net": 23.0,
+      "signings": 8,
+      "resid_first10": -0.28
+    },
+    {
+      "season": "2023-24",
+      "team": "burnley",
+      "fees_in": 52.6,
+      "net": 52.6,
+      "signings": 12,
+      "resid_first10": -0.82
+    },
+    {
+      "season": "2018-19",
+      "team": "fulham",
+      "fees_in": 48.3,
+      "net": 48.3,
+      "signings": 8,
+      "resid_first10": -1.02
+    },
+    {
+      "season": "2017-18",
+      "team": "brighton",
+      "fees_in": 38.5,
+      "net": 38.5,
+      "signings": 13,
+      "resid_first10": 0.16
+    },
+    {
+      "season": "2020-21",
+      "team": "west_brom",
+      "fees_in": 33.9,
+      "net": 33.9,
+      "signings": 8,
+      "resid_first10": -0.17
+    },
+    {
+      "season": "2019-20",
+      "team": "sheffield_united",
+      "fees_in": 27.5,
+      "net": 27.5,
+      "signings": 9,
+      "resid_first10": 0.16
+    },
+    {
+      "season": "2017-18",
+      "team": "huddersfield",
+      "fees_in": 26.44,
+      "net": 26.44,
+      "signings": 9,
+      "resid_first10": -0.6
+    },
+    {
+      "season": "2017-18",
+      "team": "newcastle",
+      "fees_in": 25.7,
+      "net": 25.7,
+      "signings": 5,
+      "resid_first10": 0.22
+    },
+    {
+      "season": "2018-19",
+      "team": "cardiff",
+      "fees_in": 24.5,
+      "net": 24.5,
+      "signings": 6,
+      "resid_first10": -0.42
+    },
+    {
+      "season": "2016-17",
+      "team": "middlesbrough",
+      "fees_in": 23.3,
+      "net": 23.3,
+      "signings": 14,
+      "resid_first10": -0.06
+    },
+    {
+      "season": "2021-22",
+      "team": "norwich",
+      "fees_in": 21.3,
+      "net": -11.7,
+      "signings": 4,
+      "resid_first10": -0.63
+    },
+    {
+      "season": "2023-24",
+      "team": "sheffield_united",
+      "fees_in": 18.0,
+      "net": -14.0,
+      "signings": 9,
+      "resid_first10": -0.91
+    },
+    {
+      "season": "2016-17",
+      "team": "burnley",
+      "fees_in": 17.85,
+      "net": 17.85,
+      "signings": 7,
+      "resid_first10": -0.14
+    },
+    {
+      "season": "2021-22",
+      "team": "brentford",
+      "fees_in": 13.5,
+      "net": 13.5,
+      "signings": 6,
+      "resid_first10": -0.24
+    },
+    {
+      "season": "2021-22",
+      "team": "watford",
+      "fees_in": 7.25,
+      "net": -0.75,
+      "signings": 16,
+      "resid_first10": -0.11
+    },
+    {
+      "season": "2020-21",
+      "team": "fulham",
+      "fees_in": 6.0,
+      "net": 6.0,
+      "signings": 6,
+      "resid_first10": 0.23
+    },
+    {
+      "season": "2023-24",
+      "team": "luton",
+      "fees_in": 4.0,
+      "net": 4.0,
+      "signings": 14,
+      "resid_first10": -0.04
+    },
+    {
+      "season": "2019-20",
+      "team": "norwich",
+      "fees_in": 1.1,
+      "net": 1.1,
+      "signings": 6,
+      "resid_first10": -0.71
+    },
+    {
+      "season": "2016-17",
+      "team": "hull",
+      "fees_in": 0.0,
+      "net": 0.0,
+      "signings": 8,
+      "resid_first10": -1.24
+    }
+  ]
+}
