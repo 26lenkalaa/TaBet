@@ -326,7 +326,7 @@ ROU,2012-13,2025-26,NT,test,spent,4,PREREGISTRATION addendum NT,new-team entry l
 RUS,2012-13,2025-26,NT,test,spent,4,PREREGISTRATION addendum NT,new-team entry level and early speed: SEALED2's second use; scored once on 2026-11-26 (NT closed); TS's scored seasons (closed set with SEALED2)
 SWE,2012-13,2025-26,NT,test,spent,4,PREREGISTRATION addendum NT,new-team entry level and early speed: SEALED2's second use; scored once on 2026-11-26 (NT closed); TS's scored seasons (closed set with SEALED2)
 USA,2012-13,2025-26,NT,test,spent,4,PREREGISTRATION addendum NT,new-team entry level and early speed: SEALED2's second use; scored once on 2026-11-26 (NT closed); TS's scored seasons (closed set with SEALED2)
-E0,2015-16,2015-16,TV,training,reserved,1,PREREGISTRATION addendum TV (amendment),transfer value: D0 burn-in of the development series (history only)
-E0,2005-06,2007-08,TV,training,reserved,1,PREREGISTRATION addendum TV,transfer value: history and training rows only
-E0,2016-17,2025-26,TV,development,reserved,1,PREREGISTRATION addendum TV,transfer value: the L2 choice and the withdrawal rule
-E0,2008-09,2014-15,TV,test,reserved,3,PREREGISTRATION addendum TV,transfer value: scored once; third and last use of P's closed set (with S2PL)
+E0,2015-16,2015-16,TV,training,spent,1,PREREGISTRATION addendum TV (amendment),transfer value: D0 burn-in of the development series (history only)
+E0,2005-06,2007-08,TV,training,spent,1,PREREGISTRATION addendum TV,transfer value: history and training rows only
+E0,2016-17,2025-26,TV,development,spent,1,PREREGISTRATION addendum TV,transfer value: the L2 choice and the withdrawal rule
+E0,2008-09,2014-15,TV,test,spent,3,PREREGISTRATION addendum TV,transfer value: scored once on 2026-11-26 (TV inconclusive); third and last use of P's closed set (with S2PL)
