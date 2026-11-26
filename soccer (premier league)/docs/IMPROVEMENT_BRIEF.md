@@ -1448,6 +1448,15 @@ GBM 0.99279, DC 0.99489. NN went to the test as NL. MDE 0.0028.
     a shadow log: the full model on S2 recorded beside the live record, never replacing it during the
     prospective test.
 - **Data:** addendum P's closed set (PL 2008-15) has one of its three uses left.
+- **Descriptive backtest of the A10 shadow setup** (development data 2022-27, 1,620 matches, after A10
+  was frozen; `prototypes/run_shadow_backtest.py`, `results/shadow_backtest/results.json`). S2 base −
+  D0 base, the same walk-forward stage 2 on identical rows:
+  - results only +0.0002 [−0.0052, +0.0056]; xG layer (p0-style) −0.0009 [−0.0061, +0.0040];
+    xG + confirmed XI (pE-style) −0.0011 [−0.0061, +0.0038];
+  - by period, pE-style: 2022-24 −0.0028, 2024-26 +0.0015, 2026-27 to date −0.0076 (100 matches).
+  - Reading: on recent PL seasons S2 alone ties D0, and the full S2 model is level to slightly better.
+    With S2 fitted from 2015 it no longer loses under the stage as it did in §5.18 (+0.003 to +0.005).
+    Nothing in A10 changes.
 
 ## 6. Known weaknesses and open questions
 

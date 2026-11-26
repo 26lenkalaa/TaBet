@@ -35,6 +35,9 @@ ADJ = [f"f_xgadj_att_{int(XG_HALF_LIFE)}", f"f_xgadj_def_opp_{int(XG_HALF_LIFE)}
 XI = ["f_xi_position", "f_backline_opp"]
 STAGE2_L2_XI = 100.0  # chosen on dev for the XI model (results/fpl_v0_v5/manifest.json)
 ARCHIVE_SEASONS = ["2021-22", "2022-23", "2023-24", "2024-25", "2025-26"]
+# The last run's training inputs, for the S2 shadow records (tabet/shadow.py, amendment A10). In memory
+# only; never written to a forecast or a log record.
+LAST_CONTEXT: dict = {}
 LIVE_SEASON = "2026-27"
 
 
@@ -133,6 +136,8 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
 
     rows = training_rows(matches, app, rows_cache)
     tr = rows[rows["kickoff_utc"] + RESULT_LAG <= cutoff]
+    LAST_CONTEXT.clear()
+    LAST_CONTEXT.update(matches=matches, rows=tr, cutoff=cutoff)
     Xtr = tr[ADJ].astype(float)
     mu, sd = Xtr.mean(), Xtr.std().replace(0, 1)
     b = _fit_poisson(((Xtr - mu) / sd).to_numpy(), tr["log_dc"].to_numpy(), tr["goals"].to_numpy(float), STAGE2_L2)
