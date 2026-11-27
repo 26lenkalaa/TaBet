@@ -459,16 +459,22 @@ def events(client: Client, league: int = EVENTS_LEAGUE, first: int = EVENTS_FIRS
         store.put(path, body)
         store.add_list(league, cur, path, len(body.get("response", [])))
         fetched = store.fetched_ids()
-        todo = [f["fixture"]["id"] for f in body["response"]
-                if f["fixture"]["status"]["short"] in FINISHED and f["fixture"]["id"] not in fetched]
-        for i in range(0, len(todo), BATCH):
-            ids = todo[i:i + BATCH]
-            got_body = client.get("fixtures", ids="-".join(map(str, ids)))
-            got = [f["fixture"]["id"] for f in got_body.get("response", [])]
-            obj = f"details/{league}-{cur}/{ids[0]}.json.gz"
-            store.put(obj, got_body)
-            store.add_fixtures(league, cur, obj, got)
-            summary["new_fixtures"] += len(got)
+        for season in range(first, cur + 1):     # newly finished matches, and any an earlier collection missed
+            lp = store.list_path(league, season)
+            if lp is None:
+                continue
+            listing = body if season == cur else store.get(lp)
+            todo = [f["fixture"]["id"] for f in listing["response"]
+                    if f["fixture"]["status"]["short"] in FINISHED and f["fixture"]["id"] not in fetched]
+            for i in range(0, len(todo), BATCH):
+                ids = todo[i:i + BATCH]
+                got_body = client.get("fixtures", ids="-".join(map(str, ids)))
+                got = [f["fixture"]["id"] for f in got_body.get("response", [])]
+                obj = f"details/{league}-{season}/{ids[0]}.json.gz"
+                store.put(obj, got_body)
+                store.add_fixtures(league, season, obj, got)
+                fetched.update(got)
+                summary["new_fixtures"] += len(got)
     except (DailyLimit, PlanLimit) as e:
         summary["stopped"] = f"{type(e).__name__}: {e}"[:250]
     for season in range(first, cur + 1):
