@@ -38,3 +38,26 @@ def test_match_events_joins_on_the_home_away_pair():
     entries[0]["home"], entries[0]["away"] = TEAMS["man_united"], TEAMS["nottm_forest"]
     got = match_events(entries, {"2025-26": {"fixtures": [A.compact_events(_fx())]}})
     assert list(got["2025-26"]) == ["m1"] and got["2025-26"]["m1"]["check"] is True
+
+
+class _FakeClient:
+    """Serves one season list and fixture details; counts requests."""
+    def __init__(self, store, fixtures):
+        self.store, self.fx, self.used = store, {f["fixture"]["id"]: f for f in fixtures}, 0
+
+    def get(self, endpoint, **p):
+        self.used += 1
+        if "ids" in p:
+            return {"response": [self.fx[int(i)] for i in p["ids"].split("-")]}
+        return {"response": [{"fixture": {"id": i, "status": {"short": "FT"}}} for i in self.fx]}
+
+
+def test_events_fetches_what_the_lookup_cannot_find_and_writes_a_season_file():
+    store = A.MemoryStore()
+    fx = [_fx()]
+    c = _FakeClient(store, fx)
+    s = A.events(c, first=2025, now=1_760_000_000)          # Oct 2025 -> current season 2025
+    assert s["new_fixtures"] == 1 and s["seasons"][2025] == {"fixtures": 1, "missing_details": 0, "score_mismatch": 0}
+    assert store.get("events/39-2025.json.gz")["fixtures"][0]["id"] == 7
+    s2 = A.events(c, first=2025, now=1_760_000_000)         # nothing missing: only the list is requested
+    assert s2["new_fixtures"] == 0 and c.used == 3

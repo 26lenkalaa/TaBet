@@ -135,6 +135,10 @@ class MemoryStore:
         for i in ids:
             self.fixtures.setdefault(i, path)
 
+    def upsert_fixtures(self, league, season, path, ids):
+        for i in ids:
+            self.fixtures[i] = path
+
     def blocked(self):
         return set(self.blocked_)
 
@@ -170,6 +174,7 @@ class SupabaseStore:
     def _rows(self, table, select, **filters):
         out, offset = [], 0
         while True:
+            filters.setdefault("order", select.split(",")[0])     # a stable order, so pages neither skip nor repeat rows
             q = urllib.parse.urlencode({"select": select, **filters, "limit": 1000, "offset": offset})
             page = json.loads(self._req("GET", f"/rest/v1/{table}?{q}"))
             out += page
@@ -203,6 +208,10 @@ class SupabaseStore:
 
     def add_fixtures(self, league, season, path, ids):
         self._insert("apif_fixtures", [{"fixture_id": i, "league": league, "season": season, "object_path": path} for i in ids])
+
+    def upsert_fixtures(self, league, season, path, ids):
+        self._insert("apif_fixtures", [{"fixture_id": i, "league": league, "season": season, "object_path": path} for i in ids],
+                     upsert=True)
 
     def blocked(self):
         return {(r["league"], r["season"]) for r in self._rows("apif_blocked", "league,season")}
@@ -441,10 +450,13 @@ def compact_events(fx: dict) -> dict:
             "check": n["home"] == goals.get("home") and n["away"] == goals.get("away"), "events": out}
 
 
-def _fixture_paths(store, ids) -> dict:
+def _fixture_paths(store, ids, season: int) -> dict:
+    """{fixture id: object path}. Filtered to one season so the lookup fits one page: unordered paging over
+    all PL rows (more than 1,000) can skip rows between pages."""
     if isinstance(store, MemoryStore):
         return {i: store.fixtures[i] for i in ids if i in store.fixtures}
-    rows = store._rows("apif_fixtures", "fixture_id,object_path", league=f"eq.{EVENTS_LEAGUE}")
+    rows = store._rows("apif_fixtures", "fixture_id,object_path", league=f"eq.{EVENTS_LEAGUE}", season=f"eq.{season}",
+                       order="fixture_id")
     want = set(ids)
     return {r["fixture_id"]: r["object_path"] for r in rows if r["fixture_id"] in want}
 
@@ -458,22 +470,21 @@ def events(client: Client, league: int = EVENTS_LEAGUE, first: int = EVENTS_FIRS
         path = f"fixtures/{league}-{cur}.json.gz"
         store.put(path, body)
         store.add_list(league, cur, path, len(body.get("response", [])))
-        fetched = store.fetched_ids()
         for season in range(first, cur + 1):     # newly finished matches, and any an earlier collection missed
             lp = store.list_path(league, season)
             if lp is None:
                 continue
             listing = body if season == cur else store.get(lp)
-            todo = [f["fixture"]["id"] for f in listing["response"]
-                    if f["fixture"]["status"]["short"] in FINISHED and f["fixture"]["id"] not in fetched]
+            finished = [f["fixture"]["id"] for f in listing["response"] if f["fixture"]["status"]["short"] in FINISHED]
+            have = _fixture_paths(store, finished, season)       # what this season's lookup can actually find
+            todo = [i for i in finished if i not in have]
             for i in range(0, len(todo), BATCH):
                 ids = todo[i:i + BATCH]
                 got_body = client.get("fixtures", ids="-".join(map(str, ids)))
                 got = [f["fixture"]["id"] for f in got_body.get("response", [])]
-                obj = f"details/{league}-{season}/{ids[0]}.json.gz"
+                obj = f"details/{league}-{season}/events-{ids[0]}.json.gz"
                 store.put(obj, got_body)
-                store.add_fixtures(league, season, obj, got)
-                fetched.update(got)
+                store.upsert_fixtures(league, season, obj, got)
                 summary["new_fixtures"] += len(got)
     except (DailyLimit, PlanLimit) as e:
         summary["stopped"] = f"{type(e).__name__}: {e}"[:250]
@@ -483,7 +494,7 @@ def events(client: Client, league: int = EVENTS_LEAGUE, first: int = EVENTS_FIRS
             continue
         listing = store.get(lp)
         ids = [f["fixture"]["id"] for f in listing["response"] if f["fixture"]["status"]["short"] in FINISHED]
-        paths = _fixture_paths(store, ids)
+        paths = _fixture_paths(store, ids, season)
         rows = []
         for obj in sorted(set(paths.values())):
             for fx in store.get(obj).get("response", []):
