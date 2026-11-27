@@ -14,13 +14,14 @@ name: API-Football data (training only)
 # `probe`, `coverage`, `xgcheck` and other budgets can be run by hand.
 on:
   schedule:
-    - cron: "17 6 * * *"   # 06:17 UTC daily
+    - cron: "17 6 * * *"   # 06:17 UTC daily: fetch, then match events
+    - cron: "47 22 * * *"  # 22:47 UTC daily: match events only (the day's games are over), for the match pages
   workflow_dispatch:
     inputs:
       mode:
         description: "probe (5 calls) | fetch | xgcheck (2 calls) | coverage (11 calls: what each league has by season)"
         type: choice
-        options: [probe, fetch, xgcheck, coverage, injcheck, injuries]
+        options: [probe, fetch, xgcheck, coverage, injcheck, injuries, events]
         default: probe
       budget:
         description: "Most requests this run may use (free plan: 100 a day)"
@@ -53,7 +54,7 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-      MODE: ${{ inputs.mode || 'fetch' }}
+      MODE: ${{ inputs.mode || (github.event.schedule == '47 22 * * *' && 'events') || 'fetch' }}
       BUDGET: ${{ inputs.budget || '2000' }}
       LEAGUE: ${{ inputs.league || '39' }}
       SEASON: ${{ inputs.season || '2022' }}
@@ -69,3 +70,7 @@ jobs:
           set -o pipefail   # a crash must fail the run, even through tee
           python -m tabet.api_football "$MODE" --budget "$BUDGET" --league "$LEAGUE" --season "$SEASON" --ids "$IDS" | tee result.json
           { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Match events for the site (after the daily fetch; never fails the run)
+        if: env.MODE == 'fetch'
+        continue-on-error: true
+        run: python -m tabet.api_football events --budget 200 | tee -a "$GITHUB_STEP_SUMMARY"

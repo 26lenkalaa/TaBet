@@ -14,6 +14,12 @@ Nothing is written to git or to anyone's laptop.
     python -m tabet.api_football probe                # plan, allowed seasons, one sample match (5 calls)
     python -m tabet.api_football coverage             # plan + what each league offers by season (1 + 10 calls)
     python -m tabet.api_football fetch --budget 50
+    python -m tabet.api_football events               # match events with minutes for the site (PL, 2022 on)
+
+`events` is the one mode whose output is shown publicly: goals (with assists), missed penalties and cards,
+with the minute, for the Premier League match pages. It refreshes the current season's fixture list,
+fetches newly finished matches, and writes one compact file per season to the private bucket
+(events/39-<season>.json.gz); the site build reads those files (tabet/site_data.py).
 
 Budget: a run uses at most `--budget` requests (counting the /status check) and never goes within
 `RESERVE` of the daily limit. fetch reads the plan from /status:
@@ -395,6 +401,96 @@ def fetch(client: Client, leagues=LEAGUES, seasons=SEASONS) -> dict:
     return summary
 
 
+# ---------------------------------------------------------------- match events for the site
+
+EVENTS_LEAGUE = 39
+EVENTS_FIRST_SEASON = 2022
+EVENT_KIND = {("Goal", "Normal Goal"): "goal", ("Goal", "Penalty"): "pen_goal", ("Goal", "Own Goal"): "own_goal",
+              ("Goal", "Missed Penalty"): "pen_missed", ("Card", "Yellow Card"): "yellow",
+              ("Card", "Second Yellow card"): "second_yellow", ("Card", "Red Card"): "red"}
+SCORING = {"goal", "pen_goal", "own_goal"}
+
+
+def current_season(now=None) -> int:
+    t = time.gmtime(now) if now is not None else time.gmtime()
+    return t.tm_year if t.tm_mon >= 7 else t.tm_year - 1
+
+
+def compact_events(fx: dict) -> dict:
+    """One API-Football fixture -> the site's compact form. Substitutions and VAR notes are left out.
+    `check` is False when the scoring events don't add up to the final score (the site then shows a note)."""
+    home_id = fx["teams"]["home"]["id"]
+    out = []
+    for ev in fx.get("events") or []:
+        kind = EVENT_KIND.get((ev.get("type"), ev.get("detail")))
+        if kind is None or not (ev.get("player") or {}).get("name"):
+            continue
+        side = "home" if (ev.get("team") or {}).get("id") == home_id else "away"
+        e = {"min": (ev.get("time") or {}).get("elapsed"), "side": side, "type": kind, "player": ev["player"]["name"]}
+        extra = (ev.get("time") or {}).get("extra")
+        if extra:
+            e["extra"] = extra
+        if kind in ("goal", "pen_goal") and (ev.get("assist") or {}).get("name"):
+            e["assist"] = ev["assist"]["name"]
+        out.append(e)
+    out.sort(key=lambda e: ((e["min"] or 0), e.get("extra") or 0))
+    goals = fx.get("goals") or {}
+    n = {sd: sum(1 for e in out if e["side"] == sd and e["type"] in SCORING) for sd in ("home", "away")}
+    return {"id": fx["fixture"]["id"], "kickoff": fx["fixture"]["date"], "home": fx["teams"]["home"]["name"],
+            "away": fx["teams"]["away"]["name"], "score": [goals.get("home"), goals.get("away")],
+            "check": n["home"] == goals.get("home") and n["away"] == goals.get("away"), "events": out}
+
+
+def _fixture_paths(store, ids) -> dict:
+    if isinstance(store, MemoryStore):
+        return {i: store.fixtures[i] for i in ids if i in store.fixtures}
+    rows = store._rows("apif_fixtures", "fixture_id,object_path", league=f"eq.{EVENTS_LEAGUE}")
+    want = set(ids)
+    return {r["fixture_id"]: r["object_path"] for r in rows if r["fixture_id"] in want}
+
+
+def events(client: Client, league: int = EVENTS_LEAGUE, first: int = EVENTS_FIRST_SEASON, now=None) -> dict:
+    """Refresh the current season's list, fetch its newly finished matches, write events/<league>-<season>.json.gz."""
+    store, cur = client.store, current_season(now)
+    summary = {"current_season": cur, "new_fixtures": 0, "seasons": {}}
+    try:
+        body = client.get("fixtures", league=league, season=cur)     # the list changes all season: always refreshed
+        path = f"fixtures/{league}-{cur}.json.gz"
+        store.put(path, body)
+        store.add_list(league, cur, path, len(body.get("response", [])))
+        fetched = store.fetched_ids()
+        todo = [f["fixture"]["id"] for f in body["response"]
+                if f["fixture"]["status"]["short"] in FINISHED and f["fixture"]["id"] not in fetched]
+        for i in range(0, len(todo), BATCH):
+            ids = todo[i:i + BATCH]
+            got_body = client.get("fixtures", ids="-".join(map(str, ids)))
+            got = [f["fixture"]["id"] for f in got_body.get("response", [])]
+            obj = f"details/{league}-{cur}/{ids[0]}.json.gz"
+            store.put(obj, got_body)
+            store.add_fixtures(league, cur, obj, got)
+            summary["new_fixtures"] += len(got)
+    except (DailyLimit, PlanLimit) as e:
+        summary["stopped"] = f"{type(e).__name__}: {e}"[:250]
+    for season in range(first, cur + 1):
+        lp = store.list_path(league, season)
+        if lp is None:
+            continue
+        listing = store.get(lp)
+        ids = [f["fixture"]["id"] for f in listing["response"] if f["fixture"]["status"]["short"] in FINISHED]
+        paths = _fixture_paths(store, ids)
+        rows = []
+        for obj in sorted(set(paths.values())):
+            for fx in store.get(obj).get("response", []):
+                if fx["fixture"]["id"] in paths:
+                    rows.append(compact_events(fx))
+        rows.sort(key=lambda r: r["kickoff"])
+        store.put(f"events/{league}-{season}.json.gz", {"league": league, "season": season, "fixtures": rows})
+        summary["seasons"][season] = {"fixtures": len(rows), "missing_details": len(ids) - len(paths),
+                                      "score_mismatch": sum(1 for r in rows if not r["check"])}
+    summary["requests_used"] = client.used
+    return summary
+
+
 def coverage(client: Client, leagues=LEAGUES) -> dict:
     """1 + len(leagues) calls: the plan, and per league and season what API-Football says it has
     (lineups, team statistics, player statistics). Team xG is not a coverage flag; xgcheck samples it."""
@@ -483,7 +579,7 @@ def injuries(client: Client, leagues=INJURY_LEAGUES, seasons=INJURY_SEASONS) -> 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck", "injuries"])
+    ap.add_argument("mode", choices=["probe", "fetch", "xgcheck", "coverage", "injcheck", "injuries", "events"])
     ap.add_argument("--league", type=int, default=39, help="xgcheck: league id")
     ap.add_argument("--season", type=int, default=2022, help="xgcheck: season (starting year)")
     ap.add_argument("--ids", default="", help="coverage: comma-separated league ids instead of LEAGUES")
@@ -495,7 +591,7 @@ def main(argv=None) -> int:
     if not key:
         print("API_FOOTBALL_KEY is not set; nothing to do.")
         return 0
-    if a.mode in ("fetch", "injuries") and not (url and skey):
+    if a.mode in ("fetch", "injuries", "events") and not (url and skey):
         print("SUPABASE_URL / SUPABASE_SECRET_KEY are not set; fetch stores everything in Supabase, so it stops here.")
         return 1
     store = SupabaseStore(url, skey) if url and skey else MemoryStore()
@@ -508,7 +604,7 @@ def main(argv=None) -> int:
         if a.mode == "coverage" and a.ids:
             result = coverage(client, [(int(x), "?") for x in a.ids.split(",") if x.strip()])
         else:
-            result = {"probe": probe, "fetch": fetch, "coverage": coverage, "injuries": injuries}[a.mode](client)
+            result = {"probe": probe, "fetch": fetch, "coverage": coverage, "injuries": injuries, "events": events}[a.mode](client)
     print(json.dumps(result, indent=1))
     return 0
 
