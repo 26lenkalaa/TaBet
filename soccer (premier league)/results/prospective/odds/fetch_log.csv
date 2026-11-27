@@ -334,3 +334,4 @@ retrieved_utc,status,sha256,changed,raw_file,n_rows,n_e0,n_e0_upcoming,n_unmatch
 2026-11-27T07:31:11+00:00,ok,09b5cca1b8029ed7f1e89bba82c3c609c27d397a7cc62fb60aea62b81c39a2b1,False,,43,0,0,0,"Tue, 24 Nov 2026 09:32:25 GMT",
 2026-11-27T08:30:40+00:00,ok,09b5cca1b8029ed7f1e89bba82c3c609c27d397a7cc62fb60aea62b81c39a2b1,False,,43,0,0,0,"Tue, 24 Nov 2026 09:32:25 GMT",
 2026-11-27T09:30:39+00:00,ok,09b5cca1b8029ed7f1e89bba82c3c609c27d397a7cc62fb60aea62b81c39a2b1,False,,43,0,0,0,"Tue, 24 Nov 2026 09:32:25 GMT",
+2026-11-27T10:30:50+00:00,ok,c86cbd00243da04216eaee79b628df262229601c8241712f2a18808f2ee6ad0c,True,results/prospective/odds/raw/20261127T103050Z_fixtures.csv.gz,175,10,10,0,"Fri, 27 Nov 2026 10:25:50 GMT",
