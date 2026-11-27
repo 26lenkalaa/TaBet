@@ -8,6 +8,9 @@ rebuilt on S2 (score-driven ratings, tabet/dynamic.py) instead of Dixon-Coles:
     pES2   pE's stage 2 (adjusted xG + XI, L2 = 100) on S2's rates, same sources and averaging as pE
     S2     S2 alone (results only)
 
+A12 adds squad cost on the live D0 base (p0C, pEC); A13 adds squad cost on S2's base (p0S2C, pES2C). Each
+runs in its own handler, so a failure is stored as cost_error / s2c_error and the earlier candidates stand.
+
 Inputs are the live run's own: the training rows and matches that `forecast()` used (kept in
 `forecast.LAST_CONTEXT`), and each live record's stored xG and XI features. Nothing is fetched again.
 The live log is never read for writing or changed. Any failure becomes an error record; the logger
@@ -184,11 +187,12 @@ def build(records: list[dict], ctx: dict) -> list[dict]:
     log_s2 = np.log(lam.astype(float))
     s1 = stage2(tr, log_s2, ADJ, STAGE2_L2, fill=False)
     sx = stage2(tr, log_s2, ADJ + XI, STAGE2_L2_XI, fill=True)
-    out = []
+    out, bases = [], []
     for r in records:
         s = fixture_seasons[r["fpl_fixture"]]
         th = thetas[s]
         base = next_rates(done, th, r["home_id"], r["away_id"], pd.Timestamp(r["kickoff_utc"]), s)
+        bases.append((base, float(th[2])))
         cand = candidates(r, base, float(th[2]), s1, sx)
         out.append({**{k: r[k] for k in ("fpl_fixture", "horizon_h", "record_role", "logged_utc", "kickoff_utc",
                                         "gameweek", "home_id", "away_id", "git_commit")},
@@ -198,7 +202,22 @@ def build(records: list[dict], ctx: dict) -> list[dict]:
                     "s2": {"season": s, "theta": dict(zip(D.NAMES, map(float, th))), "rate_home": base[0], "rate_away": base[1]},
                     "stage2": {"p0S2": s1, "pES2": {**sx, "cols": ADJ + XI}}, "n_train_rows": int(len(tr))})
     add_cost(out, records, ctx)
+    add_s2c(out, records, ctx, tr, log_s2, bases)
     return out
+
+
+def add_s2c(out: list[dict], records: list[dict], ctx: dict, tr: pd.DataFrame, log_s2: np.ndarray,
+            bases: list[tuple]) -> None:
+    """A13: squad cost on S2's base (p0S2C, pES2C), added in place; a failure is stored as s2c_error."""
+    from .forecast import ADJ, STAGE2_L2, STAGE2_L2_XI, XI
+    try:
+        got = s2c_candidates(records, ctx, tr, log_s2, bases, ADJ, XI, STAGE2_L2, STAGE2_L2_XI)
+        for o, g in zip(out, got):
+            o["candidates"].update(g["candidates"])
+            o["s2c"] = g["s2c"]
+    except Exception as e:  # noqa: BLE001
+        for o in out:
+            o["s2c_error"] = f"{type(e).__name__}: {e}"[:300]
 
 
 def add_cost(out: list[dict], records: list[dict], ctx: dict) -> None:
@@ -266,6 +285,31 @@ def cost_candidates(records: list[dict], ctx: dict, ADJ, XI, L2, L2_XI) -> dict:
         out[r["fpl_fixture"]] = {"cost": {"dcost_home": dh, "stage2": {"p0C": s1, "pEC": {**sx, "cols": ADJ + XI + ["dcost"]}}},
                                  "candidates_cost": {"p0C": cand["p0"], "pEC": cand["pE"],
                                                      **{f"{k}C": v for k, v in cand.items() if k not in ("p0", "pE")}}}
+    COST_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    COST_CACHE.write_text(json.dumps(cache, separators=(",", ":")) + "\n")
+    return out
+
+
+def s2c_candidates(records: list[dict], ctx: dict, tr: pd.DataFrame, log_s2: np.ndarray, bases: list[tuple],
+                   ADJ, XI, L2, L2_XI) -> list[dict]:
+    """A13: A10's training rows (offset log S2 rate) with A12's dcost; candidates on each record's S2 rates."""
+    from . import transfers as T
+    matches = ctx["matches"]
+    cache = json.loads(COST_CACHE.read_text()) if COST_CACHE.exists() else {}
+    moves = T.load()
+    trc = add_dcost(tr.reset_index(drop=True), matches, moves, cache)
+    s1 = stage2(trc, log_s2, ADJ + ["dcost"], L2, fill=False)
+    sx = stage2(trc, log_s2, ADJ + XI + ["dcost"], L2_XI, fill=True)
+    clubs = {s: sorted(set(g["home_id"]) | set(g["away_id"])) for s, g in matches.groupby("season")}
+    out = []
+    for r, (base, rho) in zip(records, bases):
+        season = _season_of(matches, r)
+        z = cost_z(moves, clubs[season], season, pd.Timestamp(r["logged_utc"]).normalize(), cache)
+        dh = z.get(r["home_id"], 0.0) - z.get(r["away_id"], 0.0)
+        cand = candidates(r, base, rho, s1, sx, {"home": [dh], "away": [-dh]})
+        out.append({"s2c": {"dcost_home": dh, "stage2": {"p0S2C": s1, "pES2C": {**sx, "cols": ADJ + XI + ["dcost"]}}},
+                    "candidates": {"p0S2C": cand["p0"], "pES2C": cand["pE"],
+                                   **{f"{k}S2C": v for k, v in cand.items() if k not in ("p0", "pE")}}})
     COST_CACHE.parent.mkdir(parents=True, exist_ok=True)
     COST_CACHE.write_text(json.dumps(cache, separators=(",", ":")) + "\n")
     return out

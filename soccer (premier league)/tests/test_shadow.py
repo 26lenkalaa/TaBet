@@ -79,3 +79,13 @@ def test_a_squad_cost_failure_keeps_the_s2_candidates(monkeypatch):
     S.add_cost(out, [_rec()], {})
     assert out[0]["candidates"] == {"pES2": {"p_home": 0.5}}
     assert out[0]["cost_error"].startswith("RuntimeError")
+
+
+def test_an_s2c_failure_keeps_the_earlier_candidates(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("no transfer table")
+    monkeypatch.setattr(S, "s2c_candidates", boom)
+    out = [{"candidates": {"pES2": {"p_home": 0.5}, "pEC": {"p_home": 0.6}}}]
+    S.add_s2c(out, [_rec()], {}, pd.DataFrame(), np.array([]), [((1.6, 1.1), -0.05)])
+    assert out[0]["candidates"] == {"pES2": {"p_home": 0.5}, "pEC": {"p_home": 0.6}}
+    assert out[0]["s2c_error"].startswith("RuntimeError")
