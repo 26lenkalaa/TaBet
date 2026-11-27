@@ -702,3 +702,54 @@ and the A10 decision stay as they are.
   the first 56 days of each season.
 - **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
   extension are reserved as family SC.
+
+## Amendment A13 (2026-11-27, written before any code for it exists): S2 and squad cost together
+
+A10 tests the S2 base and A12 tests squad cost, each against the live model on its own. The two are
+different kinds of information (S2 changes how fast ratings follow results; squad cost brings in
+spending a results-only rating cannot see), so their gains may add up. Neither has been tested together
+with the other, and no historical Premier League data is left to do it (the 2008-15 closed set is used
+up, `docs/data_ledger.csv`). A13 adds the combination to the shadow records.
+
+**Nothing about the live record, A10 or A12 changes.** The live log, its candidates, α, the A10 and A12
+candidates and their decision rules stay as they are.
+
+- **Where:** the same shadow record (`results/prospective/shadow.jsonl`), as extra candidates. Computed
+  after the A10 and A12 candidates inside its own error handler; a failure is stored as `s2c_error` and
+  leaves the A10 and A12 candidates intact. Starts with the first shadow record logged after the A13 code
+  is merged; there is no backfill.
+- **Base:** S2's pre-match rates, exactly as A10 computes them (same static parameters, same filter).
+- **Feature:** A12's `dcost`, exactly as A12 computes it (same cache, same point-in-time fee index).
+- **Stage-2 training rows:** A10's rows (offset log of the walk-forward S2 rate) with A12's `dcost`
+  added. The coefficients are refitted at every run, like the live ones.
+- **Candidates:**
+  - **p0S2C:** p0's stage 2 on S2's rates with `dcost` (adjusted xG + dcost, L2 = 1);
+  - **pES2C:** pE's stage 2 on S2's rates with `dcost` (adjusted xG + XI + dcost, L2 = 100), same
+    sources and averaging as pE; the per-source versions are stored too.
+- **Primary: pES2C − pE**, log-loss, one record per fixture (A4's rule), 14-day calendar-block
+  bootstrap, 2,000 resamples, seed 0, from the first record with these candidates through the end of
+  2027-28. The end of 2026-27 is reported descriptively only.
+- **Rule** (A12's thresholds):
+  - **adopt** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **reject** if not adopted and the lower bound is above −0.0015;
+  - **otherwise extend once** through 2028-29 and apply the same two rules; if still neither, the
+    combination is not adopted.
+- **How A10, A12 and A13 combine** (fixed now, so the three results cannot be picked from afterwards):
+  1. if A13 adopts, S2 replaces D0 as the base **and** `dcost` joins the stage 2;
+  2. otherwise A10 and A12 are applied as each is written. If both adopt on their own while A13 does
+     not, only A10 (S2 base) is adopted: it has the stronger prior evidence (two results-only tests),
+     and the combined model failing its own test is evidence against stacking the two.
+  Adoption always takes effect from the next season, through an amendment written before that season,
+  and never changes records already logged.
+- **Secondary, never decisive:** pES2C − pES2 (does squad cost add on S2); pES2C − pEC (does S2 add with
+  squad cost); p0S2C − p0; pES2C against the Pinnacle benchmark (A8); matches with a promoted side in
+  its first 10; the first 56 days of each season.
+- **Power, stated in advance:** A13 starts on gameweek 13 at the earliest, so it will have about 260
+  fixtures by the end of 2026-27 and about 640 by the end of 2027-28. With A10's per-fixture SD for a
+  candidate against pE (about 0.115 for a base change), the SE at 640 is about 0.0045, too large to
+  confirm a gain of 0.002 (about 0.0036 at 1,020 fixtures after the extension). Unless the combined
+  gain is several times the sum of the two historical estimates (S2PL −0.0051, TV squad cost −0.0016),
+  A13 will most likely end "not adopted". This is stated so that such an ending is not read as
+  evidence against the combination; the full-season descriptive reads are reported either way.
+- **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
+  extension are reserved as family S2C.
