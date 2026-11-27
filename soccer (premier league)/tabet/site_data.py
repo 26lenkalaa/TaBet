@@ -489,7 +489,22 @@ def stale(max_age_h: float = 20.0, out: Path = INDEX) -> bool:
     age = (now - built).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
     return (age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(built)
-            or _match_moment_passed(built, now))
+            or _match_moment_passed(built, now) or _newer_events(built))
+
+
+def _newer_events(built: pd.Timestamp) -> bool:
+    """True if an API-Football match-events file (tabet.api_football.events) changed since the build, so the
+    nightly timelines reach the site the same night. False without Supabase credentials or on any error."""
+    from . import supabase_storage as ss
+    if not ss.configured():
+        return False
+    try:
+        body = json.dumps({"prefix": "events", "limit": 100}).encode()
+        items = json.loads(ss._request("POST", "/storage/v1/object/list/api-football", body, "application/json"))
+        times = [pd.Timestamp(i["updated_at"]) for i in items if i.get("updated_at")]
+        return bool(times) and max(times) > built
+    except Exception:
+        return False
 
 
 # After these offsets from a logged match's kickoff the site should show something new: "awaiting
