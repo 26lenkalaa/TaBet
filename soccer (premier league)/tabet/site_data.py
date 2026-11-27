@@ -250,6 +250,41 @@ def _logged_forecasts(r: dict) -> list[dict]:
             if key in r["candidates"]]
 
 
+def match_events(entries: list[dict], api_seasons: dict[str, dict]) -> dict[str, dict]:
+    """{season: {match id: {"events": [...], "check": bool}}} for played matches, from the compact API-Football
+    files (tabet.api_football.events). A home/away pair happens once per league season, so it is the key."""
+    out: dict[str, dict] = {}
+    for season, blob in api_seasons.items():
+        by_pair = {}
+        for fx in blob.get("fixtures", []):
+            h, a = try_resolve_team(fx["home"]), try_resolve_team(fx["away"])
+            if h and a:
+                by_pair[(TEAMS.get(h, h), TEAMS.get(a, a))] = fx
+        got = {}
+        for e in entries:
+            if e["season"] == season and e["status"] == "played":
+                fx = by_pair.get((e["home"], e["away"]))
+                if fx is not None:
+                    got[e["id"]] = {"events": fx["events"], "check": bool(fx["check"])}
+        out[season] = got
+    return out
+
+
+def _api_events(seasons: list[str]) -> dict[str, dict]:
+    """The compact event files from the private api-football bucket; {} without Supabase credentials."""
+    import gzip
+    from . import supabase_storage as ss
+    if not ss.configured():
+        return {}
+    got = {}
+    for season in seasons:
+        try:
+            got[season] = json.loads(gzip.decompress(ss.get("api-football", f"events/39-{season[:4]}.json.gz")))
+        except Exception as ex:  # a season without a file yet
+            print(f"match events {season} skipped ({str(ex)[:120]})")
+    return got
+
+
 def build(preview: bool = True, out: Path = INDEX) -> dict:
     """Build the site data. `out` is the index.json path; the per-season files are written beside it.
     Returns the full data dict (built_utc, n_log_records, seasons, matches)."""
@@ -413,7 +448,19 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         name = f"lineups-{season}.json"
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
         lfiles[season] = name
-    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
+    # goals, assists and cards with minutes (API-Football), one file per season; without Supabase credentials
+    # (a local build) the files already there are kept
+    efiles = {}
+    try:
+        for season, got in match_events(entries, _api_events(data["seasons"])).items():
+            rows = [json.dumps(k) + ":" + json.dumps(v, separators=(",", ":"), ensure_ascii=False) for k, v in got.items()]
+            (out.parent / f"events-{season}.json").write_text('{"season":' + json.dumps(season) + ',"events":{\n' + ",\n".join(rows) + "\n}}\n")
+    except Exception as ex:  # the site must still build
+        print(f"match events skipped ({ex})")
+    for season in data["seasons"]:
+        if (out.parent / f"events-{season}.json").exists():
+            efiles[season] = f"events-{season}.json"
+    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles, event_files=efiles), separators=(",", ":")) + "\n")
     try:   # weekly digest feed for the group's email (tabet/digest.py; descriptive only)
         from .digest import build as build_digest
         build_digest(out.parent)

@@ -87,6 +87,14 @@ select option { background: #0b2c14; color: #fff; }
 @keyframes blink { 50% { opacity: 0; } }
 .goals { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; margin: -4px 0 14px; font-size: 14px; }
 .goals ul { list-style: none; margin: 0; padding: 0; } .goals .away { text-align: right; }
+.tl { margin: -4px 0 14px; font-size: 14px; }
+.tl ol { list-style: none; margin: 0; padding: 0; }
+.tl li { display: grid; grid-template-columns: 1fr 4.2em 1fr; align-items: baseline; padding: 3px 0; border-bottom: 1px solid var(--chalk-dim, rgba(255,255,255,.12)); }
+.tl li:last-child { border-bottom: 0; }
+.tl .min { text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.tl .a { text-align: right; } .tl .as { display: block; font-size: 12px; color: var(--muted); }
+.tl li.ht { grid-template-columns: 1fr; text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.tl .src { margin-top: 6px; font-size: 12px; color: var(--muted); text-align: center; }
 .goals li { padding: 2px 0; } .goals .src { grid-column: 1 / -1; font-size: 12px; color: var(--muted); text-align: center; }
 @media (prefers-reduced-motion: reduce) { .t-live::before { animation: none; } }
 @media (max-width: 600px) { .teams .side { font-size: 10px; } .teams .score { font-size: 22px; min-width: 70px; } .match { padding: 14px 12px; } }
@@ -404,9 +412,45 @@ function render() {
   if (!m.market.length) notes.push(played ? "No odds are available for this match yet." : "Betting odds appear once bookmakers list the match, usually one to two weeks before.");
   var callout = notes.length ? '<div class="callout"><p>' + notes.map(esc).join("</p><p>") + "</p></div>" : "";
   card.innerHTML = '<div class="meta">' + status + "<span>" + esc(when(m.kickoff, "long")) + (m.gameweek ? ", gameweek " + m.gameweek : "") + ". Season " + esc(m.season) + ".</span></div>" +
-    '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" + goalsHTML(lx) +
+    '<div class="teams"><div class="side">' + esc(m.home) + "</div>" + score + '<div class="side away">' + esc(m.away) + "</div></div>" + goalsHTML(lx) + '<div id="events"></div>' +
     summary(m, y) + takeaway(m) + '<div id="lineups"></div>' + table + callout;
   showLineups(m);
+  showEvents(m);
+}
+
+/* ---- match timeline: goals (with assists), missed penalties and cards, with the minute (API-Football) ---- */
+var eventCache = {};
+function getEvents(season) {
+  if (!eventCache[season]) eventCache[season] = fetch("data/events-" + season + ".json")
+    .then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) { return d.events || {}; })
+    .catch(function () { return {}; });
+  return eventCache[season];
+}
+var EV = { goal: ["⚽", ""], pen_goal: ["⚽", " (pen)"], own_goal: ["⚽", " (own goal)"], pen_missed: ["✗", " (penalty missed)"],
+           yellow: ["🟨", ""], second_yellow: ["🟨🟥", " (second yellow)"], red: ["🟥", ""] };
+function eventsHTML(rec) {
+  var rows = [], ht = false;
+  rec.events.forEach(function (e) {
+    if (!ht && e.min > 45) { ht = true; if (rows.length) rows.push('<li class="ht">HALF TIME</li>'); }
+    var k = EV[e.type] || ["•", ""], minute = e.min + (e.extra ? "+" + e.extra : "") + "′";
+    var who = '<span title="' + esc(e.type.replace("_", " ")) + '">' + k[0] + "</span> " + esc(e.player) + esc(k[1]) +
+      (e.assist ? '<span class="as">assist: ' + esc(e.assist) + "</span>" : "");
+    rows.push("<li><span>" + (e.side === "home" ? who : "") + '</span><span class="min">' + minute + '</span><span class="a">' + (e.side === "away" ? who : "") + "</span></li>");
+  });
+  if (!rows.length) return "";
+  return '<div class="tl"><ol aria-label="Match events">' + rows.join("") + "</ol>" +
+    '<p class="src">Minutes from API-Football.' + (rec.check ? "" : " These events don’t add up to the final score, so the feed may be missing one.") + "</p></div>";
+}
+function showEvents(m) {   // like the lineups: nothing while loading or when there is no event data
+  var el = document.getElementById("events");
+  if (!el || m.status !== "played") return;
+  getEvents(m.season).then(function (E) {
+    if (matchEl.value !== m.id || !E[m.id]) return;
+    var html = eventsHTML(E[m.id]);
+    if (!html) return;
+    el.innerHTML = html;
+    var g = card.querySelector(".goals"); if (g) g.remove();   // the timeline replaces FPL's minute-less list
+  });
 }
 
 /* ---- lineups: names only, with the differences between predicted and actual XIs highlighted ---- */
