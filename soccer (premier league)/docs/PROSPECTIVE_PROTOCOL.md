@@ -753,3 +753,75 @@ candidates and their decision rules stay as they are.
   evidence against the combination; the full-season descriptive reads are reported either way.
 - **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
   extension are reserved as family S2C.
+
+## Amendment A14 (2026-11-28, written before any code for it exists and before any defensive-contribution data has been analysed): the opponent's defensive XI (F8)
+
+Brief item F8. Addendum DXI (`docs/IMPROVEMENT_BRIEF.md` §5.31) tested a defensive-XI block on four other
+leagues with API-Football's tackles, interceptions and duels: −0.0003 [−0.0014, +0.0007], not confirmed,
+with what signal there was in ball-winning. F8 asks the Premier League version with a different measure:
+FPL's `defensive_contribution`, published per player and match since 2025-26 (clearances, blocks,
+interceptions and tackles for defenders; the same plus recoveries for midfielders and forwards). It is
+ingested as `def_contrib` (`tabet/fpl.py`) but no TaBet model or analysis has used it so far.
+
+The PL's backtest seasons cannot be used: 2026-27 and 2027-28 are reserved by the live test and the
+shadow amendments, and the data only starts in 2025-26. So the test is prospective, on the A11 kickoff
+records, which carry confirmed XIs. **Nothing about the live record, A10–A13 or their decisions changes.**
+
+### Feature (fixed now)
+
+- **Player rating:** for player p in FPL position q (DEF or MID only; keepers and forwards are left out),
+  from that player's league matches dated before the cutoff, in the current and previous season:
+  r_p = (Σ def_contrib + (k/90)·μ_q) / (Σ minutes/90 + k/90), where μ_q is the league's per-90 mean for
+  position q over the same earlier matches. A player with no earlier minutes gets μ_q. Positions are
+  FPL's for that season.
+- **Relative rating:** r_p / μ_q, so defenders and midfielders are on one scale despite FPL's different
+  definitions.
+- **Block:** DEFXI(T, match) = log(mean relative rating of T's starting DEF and MID ÷ T's mean of the same
+  block over its previous 10 league matches with data). Set to 0 (the team's usual XI) when T has fewer
+  than 5 such matches. The ratio to the team's own baseline also removes team style and possession,
+  which FPL does not report.
+- **In the model:** for the scoring team's goals, the opponent's DEFXI enters as `f_def_opp`.
+
+### Development (once, on PL 2025-26, before any 2026-27 value of the feature is computed)
+
+- **Choice (the only one):** k ∈ {300, 900, 2700} minutes, by log-loss of V2x + `f_def_opp` (L2 = 100,
+  monthly refits, confirmed XIs) on 2025-26 matches where both teams have a non-zero DEFXI.
+- **Withdrawal rule:** if (V2x + `f_def_opp`) − V2x on those matches is not below 0 at the chosen k, F8 is
+  withdrawn before any record is logged, and the result is reported.
+- **Data check, reported before fitting:** the share of 2025-26 starter rows (DEF and MID) with a
+  non-missing `def_contrib`; development runs only if it is at least 95%.
+
+### Logged candidates (in `kickoff.jsonl`, from the first kickoff record after the code is merged; no backfill)
+
+- **pKD:** pK's stage (V2x: adjusted xG + XI features, L2 = 100) plus `f_def_opp`, refitted at each run.
+  Training rows before 2025-26, which have no data, enter with `f_def_opp` = 0.
+- Computed after pK inside its own error handler; a failure is stored as `def_error` and leaves pK and
+  p0K intact. The record also stores both teams' DEFXI and the stage coefficients.
+- **Secondary only:** pED in the 24-hour shadow records (pE's stage + `f_def_opp` from the predicted XIs,
+  same sources and averaging), to see whether the block survives predicted lineups.
+
+### Decision
+
+- **Primary: pKD − pK**, log-loss, one kickoff record per fixture, 14-day calendar blocks, 2,000
+  resamples, seed 0, from the first record with pKD through the end of 2027-28. The end of 2026-27 is
+  reported descriptively only.
+- **Rule** (A12's thresholds): **adopt** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  **reject** if not adopted and the lower bound is above −0.0015; **otherwise extend once** through
+  2028-29 and apply the same two rules; if still neither, F8 is not adopted.
+- **Coverage, reported:** the share of played fixtures with a kickoff record. If it is below 70% in
+  2027-28, that is stated beside the result as a limitation (the kickoff records depend on RotoWire
+  marking both XIs confirmed in time).
+- **Power, stated in advance:** XI-feature contrasts have a per-match SD of about 0.026 (brief §6.1), so
+  about 600 kickoff records give an SE of about 0.0011: enough to see a gain of about 0.002, not 0.0005.
+- **Adopt** means `f_def_opp` joins the lineup stage (pE and V2x) from the next season, on whichever base
+  A10/A13 have chosen, through an amendment written before that season.
+- **Secondary, never decisive:** pED − pE (24-hour shadow); defenders only and midfielders only; the
+  first 10 matches of each season; matches where either DEFXI is in its top or bottom 10%.
+- **Ledger:** family F8. Development E0 2025-26 (reserved in this commit). Test: the 2026-27 kickoff
+  records are part of the live test (family `live`); 2027-28 and the possible 2028-29 extension are
+  reserved as family F8.
+
+**Ledger note (same commit), fixing a conflict in A10, A12 and A13:** their 2027-28 and 2028-29 rows each
+had a quota of 1, so whichever was scored first would have blocked the others under `tabet.ledger.claim`.
+They all score different candidates in the same prospective records, so those seasons are now one closed
+test set shared by S2SH, SC, S2C and F8 (quota 4). No 2027-28 data exists, so no decision is affected.

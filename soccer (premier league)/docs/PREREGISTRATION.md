@@ -1252,3 +1252,9 @@ Two data-separation fixes, found while planning the code:
 Also fixed before any fitting: ten 2005-15 clubs were missing from `tabet/teams.py` (Birmingham,
 Blackburn, Blackpool, Bolton, Charlton, Derby, Portsmouth, QPR, Reading, Wigan); without them their
 spending would have read as zero. They are added, and every 2005-15 club now has transfer rows.
+
+## Pointer: the opponent's defensive XI (2026-11-28)
+
+The test of F8 (FPL defensive contribution as an opponent's-XI block) is amendment **A14** of
+`docs/PROSPECTIVE_PROTOCOL.md`: development once on PL 2025-26, then prospective candidates pKD in the A11
+kickoff records; primary pKD − pK, decided at the end of 2027-28 with one pre-set extension. Ledger family F8.
