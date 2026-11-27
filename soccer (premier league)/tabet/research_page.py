@@ -6,6 +6,8 @@ site_data writes them. Descriptive only: the confirmatory reads are the ones in 
   * backtest: V2x (confirmed-XI backtest) against closing and earlier odds, 2022-23 -> 2025-26:
     cumulative mean log-loss difference by date, per-season means with 14-day block intervals, a
     calibration table (all three outcomes pooled, ten bins), and promoted sides in their first 10 matches.
+  * experiments: every pre-registered test's primary result with its 95% interval and what happened to the
+    idea (EXPERIMENTS below, copied from docs/IMPROVEMENT_BRIEF.md §5.15-5.41; negative = better).
   * live: logged forecasts (pE, falling back to p0) against the market at the forecast time, with coverage
     of played fixtures since gameweek 11, and counts of shadow (A10) and kickoff (A11) records.
 """
@@ -26,6 +28,60 @@ OUTCOMES = {"H": 0, "D": 1, "A": 2}
 BACKTEST_SEASONS = ("2022-23", "2023-24", "2024-25", "2025-26")
 LIVE_FROM_GW = 11
 EARLY_N = 10
+
+# Each pre-registered test's primary contrast (log-loss; below 0 = the idea helped), from the brief section
+# named. status: "kept" (adopted or moved on to the shadow log), "live" (still being tested in the live log),
+# "dropped". Withdrawn before any test (MGR, CAP) are listed in WITHDRAWN instead: they have no interval.
+EXPERIMENTS = [
+    ("Promoted-team prior (Championship data)", "§5.15", "prior − Dixon-Coles, promoted sides' first 10", -0.0134, -0.058, 0.028, 111, "dropped",
+     "Too few matches: the interval is very wide and crosses 0."),
+    ("Starting-XI strength, pre-xG seasons", "§5.16", "XI − baseline, PL 2018-21", -0.0009, -0.0022, 0.0004, 1140, "live",
+     "Not confirmed on its own; the lineup layer is still being tested in the live log (pE)."),
+    ("Transfer priors for new signings", "§5.17", "priors − position prior, PL 2024-26", -0.00025, -0.0010, 0.0005, 760, "dropped",
+     "Close to 0 and the interval crosses 0."),
+    ("Dynamic ratings (S2), first test", "§5.18", "S2 − Dixon-Coles, PL 2018-21", 0.0009, -0.0051, 0.0066, 1140, "dropped",
+     "No gain on that test. Revisited later on more data (below), where it won."),
+    ("Elo blend", "§5.20", "blend − Dixon-Coles, PL 2018-21", -0.0009, -0.0030, 0.0009, 1140, "dropped",
+     "The interval crosses 0."),
+    ("Bivariate Poisson goals", "§5.23", "BP − Dixon-Coles, 4 leagues 2022-26", -0.0006, -0.0017, 0.0004, 5562, "live",
+     "Not confirmed; logged in the live test as pBP."),
+    ("Table stakes (late-season motivation)", "§5.23", "stakes − baseline, PL 2018-21, gameweek 30+", 0.0035, -0.0063, 0.0149, 273, "dropped",
+     "Worse on average, and the interval crosses 0."),
+    ("Promoted-team mapping", "§5.28", "mapping − Dixon-Coles, promoted sides, PL 2000-15", -0.0031, -0.0203, 0.0124, None, "dropped",
+     "Very wide interval crossing 0; its stop rule closed the line."),
+    ("Boosted-tree stage 2", "§5.30", "boosted − linear, big four leagues", 0.0005, -0.0026, 0.0032, None, "dropped",
+     "No better than the linear stage."),
+    ("Defensive-XI block", "§5.31", "with − without", -0.0003, -0.0014, 0.0007, None, "dropped",
+     "Close to 0 and the interval crosses 0."),
+    ("Neural-network stage 2", "§5.33", "network − linear", 0.0002, -0.0025, 0.0029, None, "dropped",
+     "No better than the linear stage; the line is closed."),
+    ("Attacking-XI block", "§5.33", "with − without", -0.0007, -0.0024, 0.0010, None, "dropped",
+     "The interval crosses 0."),
+    ("Rest and fatigue", "§5.34", "with − without, sealed leagues", 0.00021, -0.00020, 0.00063, None, "dropped",
+     "Slightly worse; the interval rules out any useful gain."),
+    ("Ratings from all competitions", "§5.35", "all − league only, sealed leagues", -0.00026, -0.0008, 0.0003, None, "dropped",
+     "Too small to matter; the interval rules out a useful gain."),
+    ("Goalkeeper quality", "§5.37", "with − without, sealed leagues", -0.00025, -0.0006, 0.0002, None, "dropped",
+     "Too small to matter; the interval rules out a useful gain."),
+    ("Per-team rating speeds", "§5.38", "per-team − one shared speed, 13 new leagues", 0.00009, 0.00002, 0.00017, 44352, "dropped",
+     "Slightly worse, and the whole interval is above 0."),
+    ("Dynamic ratings (S2), 13 new leagues", "§5.38", "S2 − Dixon-Coles", -0.0024, -0.0037, -0.0010, 44352, "kept",
+     "Better: the whole interval is below 0."),
+    ("Dynamic ratings (S2), untouched PL seasons", "§5.39", "S2 − Dixon-Coles, PL 1995-2000 and 2008-15", -0.0051, -0.0093, -0.0011, 4492, "kept",
+     "Better: the whole interval is below 0. Now in the shadow log against the live model."),
+    ("Faster learning for new teams", "§5.40", "with − S2, 13 new leagues", 0.0, -0.00045, 0.00046, None, "dropped",
+     "Exactly 0; the interval rules out a useful gain."),
+    ("Transfer value (squad cost)", "§5.41", "with − Dixon-Coles, PL 2008-15", -0.0014, -0.0034, 0.0007, None, "live",
+     "Promising but the interval crosses 0; now tested in the shadow log."),
+]
+WITHDRAWN = [("New-manager shifts", "§5.36", "every setting was worse on development data"),
+             ("Capping blowouts", "§5.35", "every cap was worse on development data")]
+
+
+def _experiments() -> dict:
+    keys = ("idea", "section", "comparison", "mean", "lo", "hi", "n", "status", "why")
+    return {"rows": [dict(zip(keys, e)) for e in EXPERIMENTS],
+            "withdrawn": [dict(zip(("idea", "section", "why"), w)) for w in WITHDRAWN]}
 
 
 def _ll(p, result) -> float:
@@ -166,6 +222,6 @@ def build(site_data: Path) -> dict:
     df = _matches(site_data)
     data = {"built_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat(),
             "note": "Descriptive. The confirmatory reads are gameweeks 20-38 (docs/PROSPECTIVE_PROTOCOL.md).",
-            "backtest": _backtest(df), "live": _live(df)}
+            "backtest": _backtest(df), "live": _live(df), "experiments": _experiments()}
     (site_data / "research.json").write_text(json.dumps(data, separators=(",", ":"), default=float) + "\n")
     return data
