@@ -8,10 +8,10 @@ import { PGlite } from "@electric-sql/pglite";
 import { buildPayload } from "../src/soccer-payload.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const DATA = path.resolve(here, "..", "..", "soccer (premier league)", "site", "data");
+const DATA = path.resolve(here, "..", "..", "site", "data");
 const readJSON = async (f) => JSON.parse(await readFile(path.join(DATA, f), "utf8"));
 
-const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql"];
+const MIGRATIONS = ["0001_init.sql", "0002_row_order.sql", "0005_awaiting_status.sql", "0008_logged_supersede.sql", "0009_newsletter.sql"];
 let db;
 let payload;
 
@@ -121,4 +121,72 @@ test("the public role can read but not write", async () => {
   } finally {
     await db.exec("reset role");
   }
+});
+
+// Migration 0008: a logged fallback can be superseded by the primary record, nothing else changes.
+test("the primary record supersedes a logged fallback; a primary never changes", async () => {
+  const base = structuredClone(payload);
+  const f = base.forecasts.find((x) => x.kind === "logged");
+  const id = { match: f.match_id, key: f.key };
+  // start from a stored fallback with slightly different probabilities (as on 2026-11-22)
+  await db.exec("alter table forecasts disable trigger forecasts_logged_append_only");
+  await db.query("update forecasts set record_role = 'fallback', p_draw = p_draw + 0.0001, p_away = p_away - 0.0001 where match_id = $1 and key = $2",
+                 [id.match, id.key]);
+  await db.exec("alter table forecasts enable trigger forecasts_logged_append_only");
+  // the primary arrives: accepted, and the row now holds the primary
+  f.record_role = "primary";
+  await sync(base);
+  const row = await one("select record_role, p_draw::float8 d from forecasts where match_id = $1 and key = $2", [id.match, id.key]);
+  assert.equal(row.record_role, "primary");
+  assert.equal(row.d, Number(f.p_draw));
+  // a changed primary is refused, as is a fallback replacing it
+  const changed = structuredClone(base);
+  const g = changed.forecasts.find((x) => x.match_id === id.match && x.key === id.key);
+  g.p_draw = Math.round((g.p_draw + 0.01) * 1e4) / 1e4;
+  g.p_away = Math.round((g.p_away - 0.01) * 1e4) / 1e4;
+  await assert.rejects(sync(changed), /logged forecast/);
+  g.record_role = "fallback";
+  await assert.rejects(sync(changed), /logged forecast/);
+  await assert.rejects(db.query("update forecasts set record_role = 'fallback' where match_id = $1 and key = $2", [id.match, id.key]), /append-only/);
+  await assert.rejects(db.query("delete from forecasts where match_id = $1 and key = $2", [id.match, id.key]), /append-only/);
+});
+
+test("a logged row stored without a role gets its role filled in, probabilities unchanged", async () => {
+  const f = payload.forecasts.filter((x) => x.kind === "logged").at(-1);
+  await db.exec("alter table forecasts disable trigger forecasts_logged_append_only");
+  await db.query("update forecasts set record_role = null where match_id = $1 and key = $2", [f.match_id, f.key]);
+  await db.exec("alter table forecasts enable trigger forecasts_logged_append_only");
+  const withRole = structuredClone(payload);
+  withRole.forecasts.find((x) => x.match_id === f.match_id && x.key === f.key).record_role = "fallback";
+  await sync(withRole);
+  const row = await one("select record_role from forecasts where match_id = $1 and key = $2", [f.match_id, f.key]);
+  assert.equal(row.record_role, "fallback");
+  // a fallback's probabilities change only when the primary replaces it
+  await assert.rejects(db.query("update forecasts set p_home = 0.5 where match_id = $1 and key = $2", [f.match_id, f.key]), /append-only/);
+});
+
+// Migration 0009: the public role can join and leave, never read the list.
+test("newsletter: anon can join and leave but never read addresses", async () => {
+  await db.exec("set role anon");
+  try {
+    await db.query("select public.newsletter_join($1)", ["  Fan@Example.com"]);
+    await db.query("select public.newsletter_join($1)", ["fan@example.com"]);          // again: no error, no duplicate
+    await assert.rejects(db.query("select public.newsletter_join($1)", ["nope"]), /invalid email/);
+    await assert.rejects(db.query("select * from newsletter_subscribers"), /permission denied/);
+    await assert.rejects(db.query("select * from newsletter_sends"), /permission denied/);
+  } finally {
+    await db.exec("reset role");
+  }
+  const row = await one("select email, status, token::text from newsletter_subscribers");
+  assert.equal(row.email, "fan@example.com");
+  assert.equal(row.status, "active");
+  await db.exec("set role anon");
+  try {
+    assert.equal((await one("select public.newsletter_leave($1::uuid) as ok", [row.token])).ok, true);
+    assert.equal((await one("select public.newsletter_leave($1::uuid) as ok", ["00000000-0000-0000-0000-000000000000"])).ok, false);
+    await db.query("select public.newsletter_join($1)", ["fan@example.com"]);          // rejoining reactivates
+  } finally {
+    await db.exec("reset role");
+  }
+  assert.equal((await one("select status from newsletter_subscribers")).status, "active");
 });

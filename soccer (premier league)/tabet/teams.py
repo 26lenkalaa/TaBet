@@ -40,6 +40,17 @@ TEAMS: dict[str, str] = {
     "west_brom": "West Bromwich Albion",
     "west_ham": "West Ham United",
     "wolves": "Wolverhampton Wanderers",
+    # Premier League clubs of 2005-15 only (addendum TV's history and test seasons)
+    "birmingham": "Birmingham City",
+    "blackburn": "Blackburn Rovers",
+    "blackpool": "Blackpool",
+    "bolton": "Bolton Wanderers",
+    "charlton": "Charlton Athletic",
+    "derby": "Derby County",
+    "portsmouth": "Portsmouth",
+    "qpr": "Queens Park Rangers",
+    "reading": "Reading",
+    "wigan": "Wigan Athletic",
 }
 
 # Extra spellings seen in sources (football-data.co.uk names first). Display
@@ -71,6 +82,13 @@ _EXTRA_ALIASES: dict[str, str] = {
     "West Ham": "west_ham",
     "Wolverhampton": "wolves",
     "AFC Bournemouth": "bournemouth",
+    "Birmingham": "birmingham",
+    "Blackburn": "blackburn",
+    "Bolton": "bolton",
+    "Charlton": "charlton",
+    "Derby": "derby",
+    "QPR": "qpr",
+    "Wigan": "wigan",
 }
 
 

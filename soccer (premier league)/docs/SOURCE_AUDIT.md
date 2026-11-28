@@ -87,6 +87,31 @@ which we will not do.
 - **Key handling:** the key is a GitHub repository secret (`ODDS_API_KEY`), passed only to the logging
   step; it is never written to the repository, the logs or the raw files (a test checks this).
 
+### 2.0c API-Football (api-sports.io; research experiments only)
+
+- **Plan and cost:** the free plan (100 requests a day) before and after one month of the paid **Pro
+  plan, $16, bought 2026-11-17**. The paid month collected about 100,000 matches: ten leagues
+  2015-16 → 2025-26, European competitions, domestic cups and the first sealed holdout, with lineups
+  and per-player match statistics.
+- **Use:** inputs and test data for the pre-registered experiments (DXI, NLX/XIA, FAT, XC, GK, MGR).
+  **Never an input to the live model or the site's forecasts.**
+- **Storage:** raw responses in a private Supabase bucket and private research tables
+  (`docs/DATA_SOURCES.md`); nothing from it is published in the repository or on the site.
+
+### 2.0d Wikipedia transfer lists (transfer fees; research only)
+
+- **Source:** the "List of English football transfers" pages, one per window (summer 2005 → now,
+  winter 2005–06 → now), read through Wikipedia's official API (`action=parse`), about one request
+  every 3 seconds with back-off on 429. No login, no protection to get around.
+- **Licence:** CC BY-SA 4.0. Anything derived and published must credit Wikipedia and share alike.
+- **Content:** date, player, clubs, and the **reported fee** with a source cited on most rows;
+  "Undisclosed", free transfers and loans (a separate table from 2020) are kept as kinds. Fees are
+  journalists' reported figures, not crowd valuations.
+- **Point in time:** every move has a date, so a feature at a cutoff can use only earlier moves. Pages
+  are edited after a window closes; each stored page keeps its revision id.
+- **Automation:** the prospective logger refreshes it when FPL lists new players (at most hourly) and
+  daily while a window is open or recent. **Not a model input** until a pre-registered test.
+
 ### 2.1 WhoScored (via `soccerdata` 2026.43.0)
 - **[documented]** `soccerdata.WhoScored` exposes `read_leagues`, `read_seasons`,
   `read_season_stages`, `read_schedule`, `read_missing_players` and `read_events`.

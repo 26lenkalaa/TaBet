@@ -318,3 +318,937 @@ inputs, on league-seasons no TaBet experiment has ever used?
   installs it.
 - **Ledger:** the rows for family G are added to `docs/data_ledger.csv` in this commit. The test
   seasons are **reserved**, and the script must call `tabet.ledger.claim` before scoring them.
+
+## Addendum DXI (2026-11-16, committed before any player data for it has been looked at): a defensive-XI block
+
+The seventh review's experiment 2. Question: does a fixed block describing the starting XI's
+**defensive** output add information beyond an **attacking**-XI rating, on leagues no TaBet
+experiment has used? Nothing about the live Premier League model changes.
+
+- **Data.**
+  - **Source:** API-Football (`tabet/api_football.py`, stored in Supabase). Per-player match stats:
+    `games.minutes`, `games.position` (G/D/M/F), `games.substitute`, `shots.total`, `passes.key`,
+    `tackles.total`, `tackles.interceptions`, `duels.total`, `duels.won`. Per-team match stats:
+    `Ball Possession`. Plus the starting lineups and final scores.
+  - **Development:** La Liga, Serie A, Bundesliga and Ligue 1, 2022-23 → 2024-25. Spent as test
+    data by addendum B, and usable for development under the ledger.
+  - **Test:** Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership, 2022-23 →
+    2024-25. **Untouched** per `docs/data_ledger.csv` on 2026-11-16.
+  - **Run condition:** the test runs only once at least 95% of each test league-season's finished
+    fixtures are stored with player stats. That check, and a check of the provider's field
+    definitions (for example whether `duels` mixes aerial and ground contests), happen before any
+    model is fitted, and are reported.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  API-Football results from earlier dates, over the previous 3 years. A match is used once its
+  league has at least 150 earlier matches and both teams have at least 5 earlier matches with
+  player stats. Ratings never cross leagues.
+- **Player ratings** (from earlier dates only, within the league):
+  - **attack:** (shots + key passes) per 90 minutes, shrunk toward that position's league mean with
+    a prior weight of `k_att` minutes;
+  - **ball-winning:** (tackles + interceptions) per 90 minutes, possession-adjusted (multiplied by
+    50 / the opponent's possession % in each match), shrunk toward the position mean with
+    `k_def` minutes;
+  - **duels:** (won + `a` × position mean rate) / (total + `a`).
+- **XI blocks**, each as the log ratio of this match's starting XI to the team's own average for the
+  same block over its previous 10 league matches:
+  - **ATT** = the mean attack rating of the starting outfielders;
+  - **BW** = the mean ball-winning rating of the starting defenders and midfielders;
+  - **DUEL** = the mean duel rate of the starting defenders and midfielders.
+- **Models** (pooled penalised Poisson stage 2 on goals, offset the log DC rate, refitted monthly on
+  all eight leagues' side-rows from earlier dates):
+  - **BASE:** the scoring side's ATT;
+  - **DEF:** BASE plus the **opponent's** BW and DUEL.
+- **Development choices** (only these, by equal-weight mean log-loss over the four development
+  leagues, monthly walk-forward on 2022-25):
+  - for BASE: L2 ∈ {1, 10, 100} and `k_att` ∈ {300, 900, 2700};
+  - then for DEF, with BASE's choices fixed: `k_def` ∈ {300, 900, 2700}, `a` ∈ {20, 60} and its own
+    L2 ∈ {1, 10, 100}.
+- **Primary.** DEF − BASE: the mean paired log-loss difference per test league, averaged over the
+  four test leagues with equal weight, on 2022-23 → 2024-25. Inference: 14-day calendar blocks
+  spanning all four leagues, 2,000 resamples, seed 0, 95% interval.
+- **Decision.** **Confirmed** only if DEF − BASE ≤ −0.001 **and** its upper bound is below 0.
+  - The 0.001 threshold is fixed now, as for addendum G.
+  - If confirmed, the block becomes a candidate for the Premier League XI model. That requires its
+    own prospective test, with FPL data in a later season.
+- **Secondary, never decisive:**
+  - each league and each season;
+  - BW alone and DUEL alone;
+  - early-season matches;
+  - BASE − DC, which shows how much the attacking block alone adds.
+- **Ledger:** family DXI. Development on SP1/I1/D1/F1 2022-25; test on N1/P1/B1/SC0 2022-25, all
+  reserved in this commit. The script must call `tabet.ledger.claim` before scoring.
+
+## Addendum NLX (2026-11-17, committed before any code for it exists and before its test seasons are loaded; revised the same day after the eighth review, still before any code or test data): nonlinear stage 2 with player-level inputs
+
+The retry of the neural network (brief §5.26–§5.29) and of boosting (addendum G, §5.30). Both
+reached parity with the linear stage 2 on **team-level** inputs. The new question is whether a
+nonlinear model gains once **player-level XI inputs** are available, which give interactions (a
+strong attack against a weak ball-winning midfield) for it to find. Nothing about the live Premier
+League model changes.
+
+- **Prior expectation (written down so a null is read correctly):** low, especially for the
+  network. Development refits train on roughly 6,000-8,000 big-four matches and the test-phase pool
+  is about 25,000, below the 30,000-40,000 at which §5.29 found the network only reached parity on
+  simpler inputs. DXI found the ball-winning main effect to be about 0.0005, and interactions built
+  from weak main effects are usually weaker still.
+- **Data:** API-Football only (`tabet/api_football.py`, stored in Supabase): results, team match
+  statistics (`Shots on Goal`, `Ball Possession`), starting lineups and per-player match statistics.
+  League matches only (status FT).
+  - **Training only** (inputs and history, never scored): La Liga, Serie A, Bundesliga, Ligue 1
+    2015-16 → 2018-19; Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership
+    2015-16 → 2019-20 and 2022-23 → 2024-25.
+  - **Development:** La Liga, Serie A, Bundesliga, Ligue 1, 2019-20 → 2024-25.
+  - **Test:** Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership, **2020-21,
+    2021-22 and 2025-26**. **Untouched** per `docs/data_ledger.csv` on 2026-11-17. A closed test set
+    with a quota of two families: NLX and XIA (below).
+  - The development phase loads no data from the four test leagues at all (their history runs
+    through the test seasons). The test phase loads all of the above.
+  - **Run condition:** at least 95% of each test league-season's finished matches stored with player
+    statistics (2020-21 onward; Belgian and Scottish player statistics start in 2020). Checked and
+    reported before any model is fitted.
+  - **Known handicap:** development is on the big four, the test on four smaller leagues. That is a
+    transfer handicap (not leakage), and it probably hurts the flexible models more, since their
+    settings are tuned on big-four volumes. It is accepted, not corrected.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  earlier matches over the previous 3 years, once the league has at least 150 earlier matches.
+- **Inputs, identical for all three models** (per side-row: the scoring side and its opponent; all
+  from earlier dates only, within the league):
+  - **Team form (addendum G's ten):** shots-on-target and goals for and against, decayed with a
+    120-day half-life and scaled to the league's previous-365-day average; DC relative strength;
+    rest days for both sides; games played this season for both sides (capped at 10); home.
+  - **XI blocks (addendum DXI's definitions and its frozen development settings, `k_att` 300,
+    `k_def` 2700, `a` 20):** ATT, BW and DUEL for **both** the scoring side and the opponent: six
+    inputs, each the log ratio of this match's starting XI to the team's mean over its previous
+    (up to) 10 matches, i.e. deviation from the usual XI, not its level.
+  - **League indicators:** one indicator per league (eight), so a pooled fit is not steered by
+    big-four levels.
+  - **Eligibility, identical for every model:** a DC rate exists; both sides have at least 5 earlier
+    matches with shots data and at least 5 earlier matches with player statistics (the minimum XI
+    history); all inputs are finite. The number of eligible matches per league-season is reported.
+- **Models** (Poisson on goals with offset log DC rate; pooled over all loaded leagues' side-rows
+  from earlier dates; refitted monthly; standardised inputs; **no model falls back to Dixon-Coles**):
+  - **LIN:** penalised linear, unpenalised intercept, L2 ∈ {0.1, 1, 10, 100}.
+  - **GBM:** addendum G's model. scikit-learn `HistGradientBoostingRegressor(loss="poisson")`; the DC
+    offset enters exactly through the target y/μ_DC with sample weight μ_DC; learning rate 0.05,
+    `l2_regularization` 1, `random_state` 0; built-in early stopping **off**. Depth ∈ {2, 3} and
+    minimum leaf ∈ {50, 200}.
+  - **NN:** `tabet/neural.py` (`_fit_predict`): two hidden layers, last layer initialised at zero
+    (so it starts at Dixon-Coles), AdamW, learning rate 0.01, up to 300 full-batch epochs, mean of
+    5 seeds (seeds 0-4); hidden ∈ {16, 64} and weight decay ∈ {0.001, 0.01}. Its Dixon-Coles
+    fallback is switched **off**, so no model has that safety valve.
+  - **Stopping, identical for GBM and NN:** each refit holds out the most recent 15% of its training
+    rows **chronologically**, trains on the rest, and keeps the round (GBM, up to 1,000, patience
+    50) or epoch (NN, checked every 10) with the lowest held-out Poisson deviance.
+  - A month is scored only if it has at least 500 earlier side-rows to train on (the same months
+    for every model).
+- **Development choices** (only these), by equal-weight mean log-loss over the four development
+  leagues, monthly walk-forward on 2019-20 → 2024-25:
+  - each model's own grid;
+  - then **which nonlinear model goes to the test**: GBM or NN, whichever has the lower development
+    log-loss with its chosen settings.
+- **Minimum detectable effect,** computed at the end of development and recorded in `dev.json`
+  before the test runs: (1.96 + 0.84) × SE, with SE the 14-day-block bootstrap SE of the chosen
+  model − LIN on development, scaled by √(development matches / expected test matches). A null
+  smaller than this is read as "not detectable at this size". On addendum G's SE the expectation is
+  about 0.004.
+- **Primary (one contrast): NL − LIN,** where NL is the model chosen on development. For each test
+  league, the mean paired log-loss difference over its test matches; then the four leagues
+  averaged with equal weight.
+- **Inference.** 14-day calendar blocks spanning all four leagues together, 2,000 resamples,
+  seed 0, two-sided 95% percentile interval (so the upper bound is a one-sided 97.5% bound).
+- **Decision.**
+  - **Confirmed** only if the mean is **≤ −0.001** and the 95% upper bound is below 0. If
+    confirmed, NL becomes a candidate for the Premier League stage 2; adopting it needs its own
+    frozen prospective comparison in a later season.
+  - **Closed** if not confirmed **and** the 95% lower bound is above −0.003 (a gain larger than
+    0.003 is ruled out). The nonlinear stage-2 line is then closed until a new kind of input exists
+    (for example player xG).
+  - **Inconclusive** otherwise: not confirmed, but a practically relevant gain is not ruled out. The
+    line is parked, not refuted.
+  - No secondary can rescue a failed primary; in particular excluding 2020-21 (behind closed doors)
+    is descriptive only.
+- **Secondary, never decisive:**
+  - the model not chosen on development, minus LIN;
+  - LIN − DC, GBM − DC, NN − DC;
+  - **LIN-X − LIN:** LIN plus two named products, own ATT × opponent BW and own ATT × opponent DUEL
+    (same L2 as LIN), to tell whether a nonlinear gain is just these interactions;
+  - each league; each test season; excluding 2020-21;
+  - early-season matches (either side within its first 10 league matches);
+  - eligible matches per league-season; GBM's rounds; the NN's chosen epochs.
+- **Ledger:** family NLX, rows in this commit, test seasons **reserved** (quota 2, shared with XIA).
+  The script must call `tabet.ledger.claim` for every role before loading the data.
+
+## Addendum XIA (2026-11-17, committed with the revised NLX, before any code or test data): the attacking-XI block, confirmatory
+
+The eighth review's suggestion. In DXI the attacking-XI block (BASE − DC) gained about 0.001 on both
+development and test, as a secondary. This tests it as a primary, on NLX's untouched test cells in
+the same run, with its own error control. Nothing in it adapts to NLX's results.
+
+- **Data, periods, base, eligibility, stage-2 fitting and inference:** exactly NLX's.
+- **What the block measures:** deviation from the usual XI, not its level (Dixon-Coles already
+  absorbs a team's level): the six XI inputs as defined in NLX (log ratio to the team's previous
+  up-to-10 matches).
+- **Models:** LIN from NLX (G's ten team-form features, league indicators and the six XI inputs)
+  versus **LIN−XI**, the same model without the six XI inputs. Each has its own L2 from {0.1, 1, 10,
+  100}, chosen on NLX's development seasons by the same rule.
+- **Primary:** LIN − LIN−XI, the equal-weight mean over the four test leagues.
+- **Decision.** **Confirmed** only if the mean is ≤ −0.001 and the 95% upper bound is below 0. If
+  confirmed, the XI block's deviation form is supported across leagues, and its Premier League use
+  is judged by the live log (V2 already uses an XI layer).
+- **Main secondary: XI-deviation bands.** Each match's deviation is the larger of the two sides'
+  |ATT| log ratios. Bands are terciles of that value on the development rows, fixed in `dev.json`
+  before the test. The Premier League effect sat in high-deviation matches (§5.16), so the top band
+  is the one to watch.
+- **Other secondaries:** each league; each test season; early season.
+- **Ledger:** family XIA, rows in this commit. Training and development cells as NLX; test cells
+  shared with NLX as a closed set with a quota of two. The script calls `tabet.ledger.claim` for
+  XIA separately.
+
+## Ledger note: sealed holdout (2026-11-17, before any of it is collected)
+
+The eighth review's advice: keep a fresh cross-league holdout while bulk collection is cheap. Before
+API-Football collects them, these cells are registered in `docs/data_ledger.csv` as family
+**SEALED**, role test, status reserved, quota 4:
+
+- Austrian Bundesliga (AUT), Swiss Super League (SWZ), Danish Superliga (DNK): 2015-16 → 2025-26
+  (never used by any experiment);
+- Greek Super League (G1), Süper Lig (T1), Serie B (I2), 2. Bundesliga (D2), Ligue 2 (F2), Segunda
+  División (SP2): 2020-21 → 2025-26 (their earlier seasons were used by the learning curve, §5.29).
+
+What this means, enforced by `tabet.ledger.claim`:
+- No one may use these cells for training or development, and no one looks at them, even as
+  summary statistics, outside a pre-registered test.
+- Up to three pre-registered families may score a test on them (SEALED itself takes the fourth
+  place in the quota). Each must register its own test rows first.
+- They are expected to transfer to the Premier League less well than the leagues already used.
+
+## Amendment to NLX and XIA (2026-11-17, before any model was fitted or any test result seen): Belgian 2020-21 excluded
+
+The test phase's run condition stopped the first test run before any model was fitted: Belgian Pro
+League 2020-21 had player statistics for 88 of 332 finished matches (27%; every other test
+league-season 97-100%). All 332 matches' details were fetched. API-Football has no player statistics
+for that season before February 2021 (0 of 225 matches from August 2020 to January 2021; 88 of 107
+from February to May 2021), so the gap is the provider's and re-fetching cannot close it.
+
+- **Change:** B1 2020-21 is removed from both families' test cells and becomes **training** for both
+  (history for B1 2021-22's ratings and Dixon-Coles fits, and earlier stage-2 rows); it is never
+  scored. Belgium is still one of the four equally weighted test leagues, scored on 2021-22 and
+  2025-26.
+- **Basis:** only the completeness check, which reads no results. Nothing else changes.
+
+## Addendum FAT (2026-11-19, committed before any code for it exists and before any sealed data is loaded): rest, congestion and XI fatigue (F1, F2)
+
+The eighth review's pick for the new data (brief §8; F1 and F2 in the feature list). Every model so
+far has seen only **league** matches, so a team that played a Champions League or cup match three
+days earlier looks rested. The question: does knowing each side's full fixture load (all
+competitions) improve the forecast beyond its league-only rest? This is the first family to score
+on the sealed holdout. Nothing about the live Premier League model changes.
+
+- **Prior expectation (written down so a null is read correctly):** low to moderate, and small if
+  present, likely under 0.001 in log-loss. Clubs rotate for congested weeks, and the lineup already
+  shows the rotation. The best case is in top flights with European football.
+- **The injury lists are not used.** The check of 2026-11-19 (PR #77) found them reconciled after
+  the match.
+- **Data:** API-Football only (`tabet/api_football.py`, stored in Supabase): fixture dates,
+  results, team match statistics (`Shots on Goal`) and starting lineups. **No player statistics are
+  needed.** That is deliberate: the sealed leagues' player statistics are patchy (Greece only from
+  2022-23, per the coverage flags of 2026-11-19, which are metadata).
+  - **Counted competitions:**
+    - the team's league;
+    - the Champions League (2), Europa League (3) and Conference League (848), qualifying rounds
+      included;
+    - the domestic cups FA Cup (45), League Cup (48), Copa del Rey (143), Coppa Italia (137),
+      DFB Pokal (81), Coupe de France (66), KNVB Beker (90), Taça de Portugal (96), Belgian Cup
+      (147), Scottish FA Cup (181), Scottish League Cup (185), Austrian Cup (220), Schweizer Cup
+      (209), DBU Pokalen (121), Greek Cup (199) and Türkiye Kupası (206).
+    - **Not counted (known gaps):** super cups, the Taça da Liga, the Coupe de la Ligue (ended in
+      2020), the Club World Cup, friendlies and national-team matches.
+    - The last five cups' ids were checked against the API's own names on 2026-11-19. They are
+      collected before the test (they involve sealed teams, so they are treated as sealed: never
+      looked at outside the test).
+  - **Training only** (inputs and history, never scored): La Liga, Serie A, Bundesliga, Ligue 1,
+    Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership, 2015-16 → 2020-21; Greek
+    Super League, Süper Lig, Serie B, 2. Bundesliga, Ligue 2 and Segunda División, 2015-16 → 2019-20.
+  - **Development:** the same eight leagues, 2021-22 → 2025-26. All of these cells are spent test
+    or development sets of earlier families, which the ledger allows for development.
+  - **Test (the sealed holdout):** Austrian Bundesliga, Swiss Super League, Danish Superliga, Greek
+    Super League, Süper Lig, Serie B, 2. Bundesliga, Ligue 2, Segunda División, **2020-21 →
+    2025-26 scored**.
+    - The Austrian, Swiss and Danish cells for 2015-16 → 2019-20 are loaded as history only and
+      never scored. They are part of the sealed set, so they are registered as this family's test
+      use.
+    - The development phase loads nothing from the nine test leagues or their five new cups.
+  - **Run condition,** checked and reported before any model is fitted (as the NLX amendment did):
+    - for each scored league-season, at least 95% of finished league matches have lineups and both
+      teams' shots on target;
+    - at least 90% of counted non-league fixtures involving that league's teams have lineups.
+    - A failing league-season stops the run. It is then excluded by a written amendment before any
+      fitting.
+- **Base:** Dixon-Coles per league (`Hyperparams()` defaults), refitted weekly on that league's
+  earlier matches over the previous 3 years, once the league has at least 150 earlier matches.
+- **Inputs** (per side-row: the scoring side and its opponent; earlier dates only):
+  - **BASE block:** addendum G's ten team-form features (shots on target and goals for and against,
+    decayed with a 120-day half-life and scaled to the league's previous-365-day average; DC
+    relative strength; **league-only** rest days for both sides; games played this season for both
+    sides, capped at 10; home). Plus one indicator per league.
+  - **FAT block** (six inputs, three for each side, all from the counted competitions):
+    - **rest:** days since the team's previous counted match, capped at 14;
+    - **load14:** the team's counted matches in the previous 14 days;
+    - **xi7:** for this match's starting XI, the mean number of counted starts each player made in
+      the previous 7 days. A player with no recorded start counts 0. It uses this match's lineup, so
+      it is a lineup-time input, like V2's XI layer.
+  - **Eligibility, identical for both models:**
+    - a DC rate exists;
+    - both sides have at least 5 earlier league matches with shots data;
+    - this match has both lineups;
+    - all inputs are finite.
+    - The number of eligible matches per league-season is reported.
+- **Models** (Poisson on goals with offset log DC rate; pooled over all loaded leagues' side-rows
+  from earlier dates; refitted monthly; standardised inputs; unpenalised intercept; no fallback):
+  - **LIN:** the BASE block;
+  - **LIN+FAT:** the BASE block plus the FAT block.
+  - Each model has its own L2 from {0.1, 1, 10, 100}. A month is scored only if it has at least 500
+    earlier side-rows, the same months for both models.
+  - Only linear models: the nonlinear stage 2 is closed (NLX).
+- **Development choices (only these):** each model's L2, by equal-weight mean log-loss over the
+  eight development leagues, monthly walk-forward on 2021-22 → 2025-26.
+- **Minimum detectable effect,** recorded in `dev.json` before the test, as in NLX: (1.96 + 0.84)
+  × SE, with SE the 14-day-block bootstrap SE of LIN+FAT − LIN on development, scaled by
+  √(development matches / expected test matches).
+- **Primary (one contrast): LIN+FAT − LIN.** For each test league, the mean paired log-loss
+  difference over its scored matches; then the nine leagues averaged with equal weight.
+- **Inference:** 14-day calendar blocks spanning all nine leagues together, 2,000 resamples, seed
+  0, two-sided 95% percentile interval.
+- **Decision.** The thresholds are half of NLX's. The expected effect is smaller, and the test has
+  roughly 15,000 scored matches, against NLX's 3,109.
+  - **Confirmed** only if the mean is **≤ −0.0005** and the 95% upper bound is below 0. Then FAT
+    becomes a candidate for the Premier League stage 2. Live use needs a feed of other-competition
+    fixtures and lineups. Dates are public, but the free API-Football plan excludes the current
+    season. Adoption needs its own frozen prospective comparison.
+  - **Closed** if not confirmed **and** the 95% lower bound is above −0.0015. The fatigue line is
+    then closed.
+  - **Inconclusive** otherwise.
+  - No secondary can rescue a failed primary.
+- **Secondary, never decisive:**
+  - F1 only: LIN plus rest and load14, minus LIN;
+  - F2 only: LIN plus xi7, minus LIN (own L2s, chosen on development);
+  - top flights (AUT, SWZ, DNK, G1, T1) versus second tiers (I2, D2, F2, SP2);
+  - **European hangover:** matches where either side played a European match in the previous 4
+    days;
+  - each league; each test season; excluding 2020-21 (behind closed doors and unusually congested);
+  - counted fixtures per team-season, and the share with lineups.
+- **Ledger:** family FAT. Rows are in this commit; the test cells are added to SEALED's closed set
+  (quota 4: SEALED itself and FAT, leaving two). The script calls `tabet.ledger.claim` for every role
+  before loading data.
+
+## Amendment to FAT (2026-11-22, before any model was fitted or any test result seen): nine sealed league-seasons excluded
+
+The test phase's run condition stopped the first test run before any model was fitted
+(`results/fat/test_check.json`). Nine of the 54 scored league-seasons fell short:
+
+| League-season | Shortfall |
+|---|---|
+| SWZ 2021-22 → 2025-26 | Lineups for 76-85% of counted cup and European fixtures |
+| DNK 2020-21 | 66% |
+| G1 2024-25 | 88% |
+| F2 2025-26 | 41% (cups only) |
+| T1 2022-23 | League matches with lineups and shots 91.8%: the earthquake season |
+
+Counting only the league's own team's lineup, rather than both teams', changes none of these
+(checked on completeness alone). The gaps are the provider's, so re-fetching cannot close them.
+
+- **Change:** these nine league-seasons are never scored. They stay loaded as history (ratings, rest
+  and starts for later matches). All nine leagues remain equally weighted test leagues. Switzerland
+  is scored on 2020-21 only, as Belgium was in NLX.
+- **Basis:** only the completeness check, which reads no results or forecasts. Nothing else changes:
+  the frozen development choices, the primary, the thresholds and the inference.
+
+## Addendum XC (2026-11-22, committed before any code for it exists): team ratings from all competitions
+
+Dixon-Coles rates each league's teams from that league's matches only. Arsenal's Champions League
+and FA Cup matches, and every European meeting between our leagues, are ignored. XC fits **one joint
+Dixon-Coles over all loaded leagues plus their European and domestic-cup matches**, so each team has
+one attack and one defence rating across competitions, and European matches place the leagues on
+one scale. The question: do league forecasts improve? Nothing about the live Premier League model
+changes.
+
+- **Prior expectation:** modest. Most of a team's information is its own league. Any gain should
+  sit early in the season, for teams with many European matches, and in second tiers through cup
+  ties with top-flight sides. Recent-form inputs in stage 2 may already capture part of it, so the
+  primary is judged at stage 1, where the idea lives.
+- **Data:** API-Football only (Supabase). Results only: no lineups or statistics are needed.
+  - **Domestic leagues (rated teams):** the Premier League (E0), Championship (E1), La Liga, Serie A,
+    Bundesliga, Ligue 1, Eredivisie, Primeira Liga, Belgian Pro League and Scottish Premiership; in
+    the test phase also the nine sealed leagues.
+  - **Cross-competition matches:** the Champions League, Europa League and Conference League
+    (qualifiers included), plus the domestic cups listed in addendum FAT. The five sealed-league cups
+    are loaded only in the test phase.
+  - **Scores:** the 90-minute score (`score.fulltime`). Extra time and penalties are ignored.
+  - **Neutral venue:** a cup or European match whose round is "Final", and FA Cup semi-finals, get no
+    home advantage.
+  - **Training only:** the nine development leagues (below), 2015-16 → 2020-21; E1, 2015-16 →
+    2025-26; G1, T1, I2, D2, F2 and SP2, 2015-16 → 2019-20.
+  - **Development (scored):** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2021-22 → 2025-26. All are
+    spent cells, which the ledger allows for development.
+  - **Test (scored once): the sealed holdout,** AUT, SWZ, DNK, G1, T1, I2, D2, F2 and SP2, **2020-21
+    → 2025-26.**
+    - AUT, SWZ and DNK 2015-16 → 2019-20 are loaded as history only and never scored, registered as
+      test use, as in FAT.
+    - FAT's nine exclusions concerned lineups, which XC does not use. They are scored here, subject
+      to XC's own run condition.
+  - **The development phase loads nothing from the nine sealed leagues or their five cups.** Their
+    clubs appear only as opponents in European or other cup matches, as unrated teams (below).
+  - **Run condition,** checked before any fitting:
+    - each scored league-season has at least 95% of its finished league matches with a 90-minute
+      score;
+    - at least 95% of cross-competition matches involving its teams have one too.
+    - A failure stops the run and is handled by a written amendment.
+- **Models.** Stage 1 only: Dixon-Coles probabilities from the score grid. Refitted weekly on
+  matches from the previous 3 years before the week, with time decay and L2 from `Hyperparams()`
+  (half-life about 173 days, L2 = 10 on team ratings).
+  - **LO (league only, the base):** the joint code with both cross-competition weights at 0. That is
+    one fit per league: a scoring level, home advantage and ρ per league. It is the current
+    Dixon-Coles, computed by the same code, so the comparison isolates the extra matches.
+  - **XC:** the same, plus the cross-competition matches. Each match is weighted w_E (European) or
+    w_C (domestic cup) on top of the time decay. European and cup matches each get their own scoring
+    level and home advantage, and no low-score correction (ρ = 0).
+    - A team is **rated** if it has at least 20 matches in a loaded domestic league within the fit
+      window; otherwise it is **unrated**.
+    - **Variant A:** all cross-competition matches. Unrated teams get L2 = 100, so they are shrunk
+      hard toward a lower-level average.
+    - **Variant B:** only cross-competition matches between two rated teams. This drops, for
+      example, Real Madrid against an unloaded league's club, or Chelsea against a League One side.
+  - **Development choices (only these):**
+    - the variant (A or B);
+    - w_E ∈ {0.25, 0.5, 1};
+    - w_C ∈ {0, 0.5, 1}.
+    - They are chosen by equal-weight mean log-loss over the nine development leagues on 2021-22 →
+      2025-26, and frozen in `dev.json` before the test.
+- **MDE:** recorded in `dev.json` before the test, as in FAT, with an expected 15,500 test matches.
+- **Primary: XC − LO** on the test leagues' league matches. Per league, the mean paired log-loss
+  difference; then the nine leagues averaged with equal weight. The inference uses 14-day blocks,
+  2,000 resamples, seed 0, and a two-sided 95% interval.
+- **Decision.**
+  - **Confirmed** if the mean is ≤ −0.001 and the 95% upper bound is below 0. XC then becomes a
+    candidate stage 1 for the Premier League, judged by a frozen prospective comparison before
+    adoption.
+  - **Closed** if not confirmed and the lower bound is above −0.003.
+  - **Inconclusive** otherwise.
+  - No secondary can rescue the primary.
+- **Secondary, never decisive:**
+  - XC and LO each with addendum G's linear stage 2 on top (L2 chosen on development): does the gain
+    survive stage 2?
+  - top flights against second tiers;
+  - early season (either side within its first 10 league matches);
+  - matches where either side played 4 or more European matches in the previous 365 days;
+  - each league; each season;
+  - the development E0 result, reported as Premier League evidence (development data, not a test).
+- **Ledger:** family XC, rows in this commit. The test cells join SEALED's closed set (SEALED, FAT
+  and XC use 3 of its 4 places).
+
+## Addendum CAP (2026-11-22, committed with XC, before any code for it exists): capping blowouts in Dixon-Coles
+
+A 6-0 moves Dixon-Coles ratings six times as far as a 1-0, though late goals in decided games say
+little about strength. CAP fits LO with each side's goals **capped at c** in the likelihood. The
+forecasts are still scored on the real results.
+
+- **Prior expectation:** small, likely under 0.001. Blowouts are rare, and the time decay already
+  dilutes each one.
+- **Data, periods, base, refits, eligibility and inference:** exactly XC's. The base is LO, and only
+  league matches are used.
+- **Development choice (only this):** c ∈ {3, 4, 5}, by the same rule as XC.
+- **Primary: LO-cap − LO,** the equal-weight mean over the nine sealed leagues.
+- **Decision.** The thresholds are FAT's, for an expected small effect: **confirmed** if the mean is
+  ≤ −0.0005 and the upper bound is below 0; **closed** if not confirmed and the lower bound is above
+  −0.0015; **inconclusive** otherwise.
+- **Secondary:** XC with the cap, against XC; each league.
+- **Ledger:** family CAP, rows in this commit. Its test cells take **the last place** in SEALED's
+  closed set (SEALED, FAT, XC, CAP). After it, the sealed holdout has no test slots left.
+
+## Amendment to CAP (2026-11-22, after development, before any sealed data was loaded): CAP withdrawn
+
+CAP's development run (`results/xc/dev.json`) found that every cap made Dixon-Coles worse, on 14,822
+matches in nine leagues:
+
+| Cap | LO-cap − LO |
+|---|---|
+| c = 5 (best) | +0.0003 |
+| c = 4 | +0.0014 |
+| c = 3 | +0.0054 |
+
+The pre-registered test (confirmation needs a gain of 0.0005) has no realistic chance of
+confirming. Running it would only spend the sealed holdout's last test slot.
+
+- **Change:** CAP's test is withdrawn before any sealed data is loaded. Its test rows are removed
+  from `docs/data_ledger.csv`, so the slot returns to SEALED's closed set. Its training and
+  development rows are marked spent.
+- **Status:** CAP is closed on development evidence, without a test. A blowout cap is not
+  re-proposed unless it comes with a new reason.
+- **XC's run still reports LO-cap − LO and XC-cap − XC as descriptive numbers only:** no decision,
+  and no ledger claim of their own. They use the same cells XC claims.
+
+## Addendum MGR (2026-11-22, committed before any code for it exists and before any sealed-league manager data is collected): new-manager rating shifts (F5)
+
+After a permanent new manager arrives, Dixon-Coles still judges the team mostly on matches under the
+old one. MGR lets each team's rating shift after each appointment, learning the shift from matches
+under the new manager only. Nothing about the live Premier League model changes.
+
+- **Model.** The base is **LO**: league-only Dixon-Coles, the joint code of addendum XC with
+  cross-competition weights at 0 (the current fit, reproduced exactly). It is refitted weekly on the
+  previous 3 years with `Hyperparams()` time decay and L2.
+  - **MGR** adds, for each counted appointment of team i at date T inside the fit window, two
+    parameters Δa and Δd. They are added to the team's attack and defence in matches on or after T,
+    so successive appointments stack.
+  - An L2 penalty λ pulls each Δ toward 0. Right after an appointment Δ ≈ 0, so the forecast equals
+    LO's. It moves as matches under the new manager accrue.
+  - Forecasts use the shifts in force at kickoff. A team with no counted appointment in the window
+    gets exactly LO's forecast.
+- **Development choices (only these):**
+  - λ ∈ {3, 10, 30, 100};
+  - whether caretaker or interim appointments count as appointments (yes or no; permanent
+    appointments always count).
+- **Manager data:** Wikipedia season articles' "Managerial changes" tables (`tabet/managers.py`,
+  Supabase table `manager_changes`).
+  - A change counts from its date of appointment; with no appointment date, the date of vacancy.
+  - Wikipedia team names are matched to API-Football team ids by a normalised-name rule, plus an
+    alias list written during development. Unmatched rows are reported and dropped.
+  - **Sealed leagues** (AUT, SWZ, DNK, G1, T1, I2, D2, F2, SP2; 2015-16 → 2025-26) are collected
+    after this commit, storing only team, outgoing and incoming manager, the interim flag, the dates
+    and the source article.
+    - **Not stored:** "position in table" and "manner of departure", which reflect results.
+    - Before the test, nothing about them is looked at except row counts, missing articles and
+      unmatched-name counts. The alias list for sealed teams may only be written from team names,
+      never from results.
+- **Data and periods:** API-Football league results (90-minute scores), as in XC. No cup or
+  European matches.
+  - **Development (scored):** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2016-17 → 2025-26 (spent
+    cells, allowed for development), with 2015-16 as history.
+  - **Test (scored once): the sealed holdout, 2020-21 → 2025-26,** with history as in XC (AUT, SWZ
+    and DNK 2015-16 → 2019-20 registered as test use, never scored; the others as training).
+  - This is **the last place in SEALED's closed set** (SEALED, FAT, XC, MGR).
+- **Affected matches:** a league match where either team is within its first 10 league matches
+  after a counted appointment. Only these can differ between MGR and LO.
+- **Run condition:** at least 95% of each scored league-season's finished league matches have a
+  90-minute score. At least 80% of its Wikipedia managerial-change rows match a team id. Failures
+  stop the run and need a written amendment.
+- **MDE:** recorded in `dev.json` before the test, from the development SE on affected matches,
+  scaled to the expected affected test matches (also recorded there).
+- **Primary: MGR − LO on affected matches** of the nine test leagues. Per league, the mean paired
+  log-loss difference; then the leagues averaged with equal weight. The inference uses 14-day
+  blocks, 2,000 resamples, seed 0, and a two-sided 95% interval.
+- **Decision.**
+  - **Confirmed** if the mean is ≤ −0.001 and the upper bound is below 0. Live use needs current
+    appointments (public) and a frozen prospective comparison.
+  - **Closed** if not confirmed and the lower bound is above −0.003.
+  - **Inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - MGR − LO on all matches;
+  - matches 1–5 against 6–10 after an appointment;
+  - appointments during the season against those in the off-season;
+  - each league; each season;
+  - the development E0 result, reported as Premier League evidence (development data).
+- **Ledger:** family MGR, rows in this commit.
+
+## Amendment to MGR (2026-11-22, after development, before any sealed-league result was loaded): MGR withdrawn
+
+MGR's development run (`results/mgr/dev.json`) found that every setting made forecasts worse. It used
+the nine development leagues, 2016-17 → 2025-26, scored on the 8,919 matches within a team's first 10
+league matches after an appointment. The more the shifts were trusted, the worse it got:
+
+| Setting | MGR − LO |
+|---|---|
+| λ = 100, permanent managers only (best) | +0.0008 |
+| λ = 30 | +0.0047 |
+| λ = 10 | +0.016 |
+| λ = 3 | +0.040 |
+
+The pre-registered test (confirmation needs a gain of 0.001) has no realistic chance of confirming.
+
+- **Change:** MGR's test is withdrawn before any sealed-league match data is loaded for it. Its test
+  rows are removed from `docs/data_ledger.csv`, so the slot returns to SEALED's closed set. Its other
+  rows are marked spent.
+- **What was touched in the sealed leagues:** only the manager rows collected under the addendum
+  (names and dates, no result-derived columns), of which only counts were looked at.
+- **Status:** closed on development evidence, without a test. Not re-proposed without a new reason.
+  The `manager_changes` table and the name matcher stay available.
+
+## Addendum GK (2026-11-22, committed before any code for it exists and before any sealed keeper data is loaded): goalkeeper quality (F7)
+
+The models rate outfield players and teams, but not the goalkeeper. A keeper who saves more shots on
+target than average concedes fewer goals than the team's ratings imply, and a stand-in keeper may
+concede more. GK asks whether the opposing keeper's shot-stopping, and whether he is the usual
+keeper, improve the linear stage 2. Nothing about the live Premier League model changes.
+
+- **Prior expectation:** low. Save percentages are noisy and keepers' true differences are small.
+  Any gain is likely under 0.001, and largest when a weak or reserve keeper plays.
+- **Data:** API-Football only (Supabase): league results, team shots on target (addendum G's form
+  inputs), starting lineups, and each goalkeeper's per-match `goals.saves` and `goals.conceded` with
+  `games.minutes`.
+- **Keeper rating** (from earlier dates only, within the league):
+  - Over a keeper's previous league matches with at least 45 minutes, saves S and goals conceded C
+    are each decayed with a 365-day half-life.
+  - His shrunk save rate is q = (S + k·q̄) / (S + C + k), where q̄ is the league's save rate over
+    the previous 365 days.
+  - **Input g** = log((1 − q) / (1 − q̄)): his conceded-per-shot-on-target relative to the league.
+    It is 0 for a keeper with no history.
+- **Usual-keeper flag u:** 1 if this match's starting keeper is not the one with the most league
+  starts for the team in its previous 10 league matches. It is 0 when no history exists.
+- **Inputs, per side-row** (the scoring side against the opposing keeper): g_opp and u_opp, from
+  this match's starting keeper, so they are lineup-time inputs like V2's XI layer.
+- **Models** (Poisson on goals with offset log DC rate, DC per league as in addendum FAT; pooled;
+  refitted monthly; standardised inputs; L2 from {0.1, 1, 10, 100}):
+  - **LIN:** addendum G's ten team-form features plus league indicators;
+  - **LIN+GK:** the same plus g_opp and u_opp.
+- **Development choices (only these):**
+  - k ∈ {20, 50, 100} shots on target;
+  - each model's L2.
+  - Both are chosen by equal-weight mean log-loss on development.
+- **Periods:**
+  - **Training:** E0, SP1, I1, D1, F1, N1, P1, B1 and SC0, 2015-16 → 2020-21; G1, T1, I2, D2, F2
+    and SP2, 2015-16 → 2019-20.
+  - **Development (scored):** the nine development leagues, 2021-22 → 2025-26 (spent cells, allowed
+    for development).
+  - **Test (scored once): the sealed holdout,** AUT, SWZ, DNK, G1, T1, I2, D2, F2 and SP2,
+    **2020-21 → 2025-26**, with history as in XC.
+  - **Excluded in advance:** G1 2020-21 and 2021-22. API-Football's coverage flags (metadata,
+    2026-11-19) show no player statistics for them; they are history only, never scored.
+  - This is **the last place in SEALED's closed set** (SEALED, FAT, XC, GK).
+- **Eligibility:**
+  - both starting keepers are known;
+  - both teams have at least 5 earlier league matches with shots data;
+  - a DC rate exists.
+- **Run condition:** at least 95% of each scored league-season's finished league matches have both
+  starting keepers with saves and goals conceded recorded. Failures stop the run before any fitting
+  and need a written amendment.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, expected 14,000 test matches).
+- **Primary: LIN+GK − LIN,** the equal-weight mean over the nine test leagues, with 14-day blocks,
+  2,000 resamples, seed 0, and a 95% interval.
+- **Decision** (FAT's thresholds, for a small expected effect):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - matches where u_opp = 1 (a stand-in keeper);
+  - g_opp only and u_opp only;
+  - top flights against second tiers;
+  - each league; each season;
+  - the development E0 result (development data).
+- **Ledger:** family GK, rows in this commit.
+
+## Amendment to GK (2026-11-22, before any model was fitted or any test result seen): the run condition measures what the model uses
+
+The first test run stopped at the run condition (`results/gk/test_check.json`). Every scored
+league-season had both keepers' saves and goals conceded recorded for the current match in only
+78–92% of matches. The development leagues show the same, at 74–91% (`results/gk/dev_check.json`);
+that check was set at 95% without being compared with the development data.
+
+The model never uses the current match's keeper statistics. Its inputs are the starting keeper's
+identity and his earlier matches' lines, and a line without a saves count is skipped. On those terms
+(counts only, no values read):
+
+| What the model needs | Sealed leagues |
+|---|---|
+| Both starting keepers identified | 99.9–100% of finished league matches, in every league |
+| Keeper lines (≥ 45 minutes) with saves and conceded recorded | 89.5–96% |
+
+The development leagues are similar (La Liga 95%).
+
+- **Change:** the run condition becomes, per scored league-season:
+  - both starting keepers identified in at least 95% of finished league matches;
+  - at least 85% of that league's keeper lines (≥ 45 minutes) complete.
+- **Nothing else changes:** the frozen choices (k = 20, L2 = 100), the model, the primary, the
+  thresholds and the inference.
+
+## Second amendment to GK (2026-11-22, before any model was fitted or any test result seen): Süper Lig 2022-23 excluded
+
+Under the amended run condition, one league-season failed: T1 2022-23, with both starting keepers
+identified in 91.8% of finished league matches (`results/gk/test_check.json`). That is the
+earthquake season, which addendum FAT's run condition also failed (lineups). Every other scored
+league-season passes.
+
+- **Change:** T1 2022-23 is history only, never scored, as FAT treated it. Turkey remains one of
+  the nine equally weighted test leagues. Nothing else changes.
+
+## Ledger note: second sealed holdout (2026-11-24, before any of it is collected)
+
+The first sealed holdout is used up (SEALED, FAT, XC, GK). football-data publishes results for leagues
+the project has never downloaded. Before anyone downloads them, these cells are registered in
+`docs/data_ledger.csv` as family **SEALED2**, role test, status reserved, quota 4:
+
+- Argentina (ARG), Brazil (BRA), China (CHN), Finland (FIN), Ireland (IRL), Japan (JPN), Mexico (MEX),
+  Norway (NOR), Poland (POL), Romania (ROU), Russia (RUS), Sweden (SWE), USA (USA): 2012-13 → 2025-26.
+- Calendar-year seasons are recorded under the label of the year they start (2015 → "2015-16").
+- The 2026 calendar-year seasons and every season still in progress are not part of it.
+- Austria, Switzerland and Denmark from the same football-data page are already in SEALED and are
+  not included.
+- Verified before registration: no file for these leagues exists in the repository, in `res/`, or
+  in the API-Football collection (`tabet/api_football.py` LEAGUES). The only request made was for
+  HTTP headers, to confirm that the files exist; no contents were read.
+
+What this means, enforced by `tabet.ledger.claim`:
+- No one downloads these files, uses them for training or development, or looks at them, even as
+  summary statistics, outside a pre-registered test. The download happens inside the test script,
+  after the test's `dev.json` is committed.
+- Up to three pre-registered families may score a test on them (SEALED2 takes the fourth place in
+  the quota). Each must register its own test rows first.
+- They are results-only (scores, dates, teams), so only results-only models can be tested on them.
+- They are not Premier League evidence (§6.1 of the brief). Several have playoffs, split seasons or
+  more parity, so transfer to the Premier League is uncertain.
+
+## Addendum TS (2026-11-24, committed before any code for it exists and before any SEALED2 data is downloaded): team-specific rating speed (F16)
+
+Every team-strength model so far moves all teams' ratings at one shared speed. TS asks whether
+letting each club's attack and defence respond at its own speed, shrunk toward the shared speed,
+improves results-only forecasts. Nothing about the live Premier League model changes.
+
+- **Prior expectation:** low. Addendum D found a shorter half-life clearly worse (+0.0056) and
+  near-1 persistence, so Premier League team strength is persistent. TS can only help if some clubs
+  genuinely change faster than others (for example squads with high turnover). Any gain is likely
+  under 0.001.
+- **Not repeated:** the hierarchical Bayesian Dixon-Coles was tested under addendum M (+0.0063 on
+  clean data, worse) and is not a comparison model here.
+- **Models** (same goal model throughout: Poisson with the Dixon-Coles ρ; each league fitted on its
+  own matches only):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, half-life 173 days, L2 = 10), refitted every matchday,
+    as in addendum D;
+  - **S2:** the score-driven model of addendum D (`tabet/dynamic.py`), one shared α_att and α_def;
+  - **TS:** S2 with per-team speeds α_att,i = α_att·exp(u_i) and α_def,i = α_def·exp(v_i). The
+    filtered one-step log-likelihood gets a penalty λ·Σ(u_i² + v_i²). u and v are bounded to
+    [−2, 2]. A team with no earlier matches in the league has u = v = 0.
+  - Static parameters of S2 and TS (and TS's u, v) are refitted at the start of every scored season
+    on all earlier matches of that league. Matches are processed by matchday, so no same-day
+    result informs another same-day forecast (the leakage test from addendum D is extended to TS).
+- **Development choice (the only one):** λ ∈ {1, 10, 100, 1000}, chosen by the equal-weight mean
+  log-loss of TS over the four development leagues.
+- **Periods:**
+  - **Development (scored):** La Liga, Serie A and Ligue 1, 2005-06 → 2013-14; Bundesliga
+    2006-07 → 2013-14 (football-data results). In each, the first two seasons are burn-in. These
+    cells were used only as training rows for addendum G and never scored for any decision.
+  - **Withdrawal rule:** if the chosen TS's development mean against D0 is not below 0, TS is
+    withdrawn before any SEALED2 file is downloaded. SEALED2 then stays untouched with its quota
+    intact.
+  - **Test (scored once): SEALED2**, all 13 leagues. In each league the first two seasons in the
+    file are history only. Scoring runs from the third season through the last season completed
+    before 2026-11-24.
+- **Matches:** every row in each league's file that has both scores, playoffs included if the file
+  includes them. Rows are never filtered by content.
+- **Eligibility:** both teams have at least 5 earlier matches in that league's data, and all three
+  models produce a forecast.
+- **Run condition** (mechanical, so no amendment is needed when it applies):
+  - a league-season is scored only if at least 98% of its rows have both scores and it has at least
+    50 eligible matches; otherwise it is history only;
+  - a league with fewer than two scored seasons is dropped from the equal-weight mean;
+  - every exclusion, and the SHA-256 of each downloaded file, is written to
+    `results/ts/test_check.json` before any model is fitted.
+- **MDE:** recorded in `dev.json` before the test (FAT's method; expected roughly 30,000 test
+  matches, estimated from fixture counts, not from data).
+- **Primary: TS − D0,** the equal-weight mean over the test leagues, with 14-day blocks, 2,000
+  resamples, seed 0, and a 95% interval.
+- **Decision** (FAT's and GK's thresholds, for a small expected effect):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **Secondary, never decisive:**
+  - TS − S2 (the per-team speeds alone);
+  - S2 − D0 (addendum D replicated on new leagues);
+  - early-season matches (within 56 days of a season's first match);
+  - matches involving the 10% of teams with the largest |u| + |v|;
+  - each league; calendar-year against August–May leagues;
+  - the development result (development data).
+- **Ledger:** family TS (development rows on the big four, test rows on SEALED2) and SEALED2, rows
+  in this commit.
+
+## Addendum S2PL (2026-11-25, committed before any code for it exists and before any of its test data is loaded): dynamic ratings on the Premier League
+
+Addendum TS found that the score-driven model S2 beats the refitted Dixon-Coles D0 on 13 new leagues
+(S2 − D0 −0.0024 [−0.0037, −0.0010], 44,352 matches, §5.38). On the Premier League, addendum D found
+no gain (S2 − D0 +0.0009, SE 0.0034, 2018-21, 1,140 matches). S2PL asks whether S2 is at least as
+good as D0 on Premier League seasons that no team-strength comparison has scored. It is the first
+step before S2 could replace D0 as the base of the live model; it does not change the live model.
+
+- **Prior expectation:** mixed. The 13 leagues favour S2, mostly early in the season. The PL's stable
+  hierarchy suits a slowly decaying refit (addendum D: β ≈ 1, a shorter half-life clearly worse), and
+  S2 as the base of the xG stage 2 was worse on 2022-26 (§5.18). A small PL effect either way is the
+  most likely outcome.
+- **Models** (results only; Poisson with the Dixon-Coles ρ; Premier League matches only):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, half-life 173 days, L2 = 10), refitted every matchday
+    (`tabet.backtest.walk_forward`). A matchday whose fit does not converge gives no D0 forecast.
+  - **S2:** `tabet/dynamic.py` with the summer factor, unchanged since addendum D. Static parameters
+    are refitted at the start of every scored season on all earlier matches in the run.
+  - **Nothing is tuned.** Neither model has a free setting, so there is no development phase and no
+    withdrawal rule.
+- **Data:** football-data's E0 files, 1993-94 → 2014-15, run as one continuous series (the filter and
+  the refits see every earlier season). A match is a row with both scores; rows are never filtered by
+  content.
+  - **History only, never scored:** 1993-94 and 1994-95 (burn-in; 22-team seasons included as they
+    are); 2000-01 → 2007-08 (addendum P's development seasons).
+  - **Scored:** **1995-96 → 1999-00** (never used by any family) and **2008-09 → 2014-15**
+    (addendum P's closed test set; S2PL is the second of its three primary families).
+  - Expected scored matches: about 4,560.
+- **Eligibility:** both teams have at least 5 earlier PL matches in the run, and both models give a
+  forecast. Matches are processed by matchday, so no same-day result informs another same-day
+  forecast (the leakage test from addendum D).
+- **Power, stated in advance:** addendum D's per-match SD of S2 − D0 (0.115) gives an SE of about
+  0.0017 at 4,560 matches, so a 95% interval about ±0.0033 wide. The test cannot confirm an effect the
+  size of SEALED2's (−0.0024) as *better*; it can show *not worse*. The decision rule below is built
+  for that.
+- **Primary: S2 − D0** log-loss, mean over all eligible scored matches, 14-day blocks, 2,000
+  resamples, seed 0, 95% interval.
+- **Decision** (non-inferiority margin 0.0020, about the size of the SEALED2 gain):
+  - **better** if the upper bound is below 0;
+  - **not worse** if not better and the upper bound is below +0.0020;
+  - **worse** if the lower bound is above 0;
+  - **inconclusive** otherwise.
+- **What each outcome means:**
+  - **better or not worse:** S2 may go forward as the base of the live stack. That needs its own
+    addendum: the full model (S2 + xG + lineups) logged in shadow beside the live record, never
+    replacing it during the prospective test.
+  - **worse or inconclusive:** S2 stays a finding about other leagues. Nothing more on the PL.
+- **Secondary, never decisive:**
+  - each block (1995-2000, 2008-15) and each season;
+  - early-season matches (within 56 days of the season's first match);
+  - S2's fitted static parameters by season (β, β_summer, α_att, α_def);
+  - the pooled PL evidence: this test with addendum D's 2018-21 result, inverse-variance weighted.
+- **Implementation note (fixed now):** football-data season codes 9394 → 9900 must be labelled
+  1993-94 → 1999-00. The current season-label helper assumes 20xx and is fixed and tested before the
+  run.
+- **Ledger:** family S2PL, rows in this commit: E0 1993-94 → 1994-95 and 2000-01 → 2007-08 as
+  training (history only); E0 1995-96 → 1999-00 as test (quota 1); E0 2008-09 → 2014-15 as test
+  (quota 3, with P).
+
+## Pointer: S2 shadow records (2026-11-26)
+
+The prospective test of the full model built on S2 is amendment **A10** of
+`docs/PROSPECTIVE_PROTOCOL.md` (shadow records beside the live log; primary pES2 − pE; decision at
+the end of 2027-28, with one pre-set extension). Ledger family S2SH.
+
+## Addendum NT (2026-11-26, committed before any code for it exists and before any of its data is loaded): faster learning for teams new to a league
+
+We lose most to the market on newly promoted teams early in the season (§5.21: +0.030 behind the
+closing market in their first 10 matches, against +0.019 otherwise). Priors tried in Dixon-Coles were
+null (P and R6, §5.15 and §5.28). Rating systems such as Elo often update new teams faster instead.
+NT asks whether S2, the dynamic model that beat Dixon-Coles in TS and S2PL, improves when a team new to
+the league starts from a learned "new team" level and learns faster over its first matches.
+
+- **Prior expectation:** a small overall gain, concentrated in new teams' first matches. TS's per-team
+  speeds were rejected, but NT is narrower: one extra speed, for every team, that depends only on how
+  many matches the team has played since it entered the league.
+- **New team:** a team in a season of a league file that did not play in the previous season of that
+  file (promoted, or an expansion club; the first season of a file flags nobody). This uses only each
+  season's team list, known before its first kickoff. Its **entry count** n is the number of league
+  matches it has played since that season began.
+- **Models** (results only; Poisson with the Dixon-Coles ρ; each league fitted on its own matches):
+  - **S2:** `tabet/dynamic.py` with the summer factor, unchanged (the comparison).
+  - **NT:** S2 plus two changes for new teams:
+    1. **Entry level:** when a new team enters, its attack and defence are set to δ_att and δ_def
+       (fitted), replacing any rating carried from an earlier spell;
+    2. **Early speed:** its update speeds are α·(1 + κ·max(0, 1 − n/N)), so they start (1 + κ) times
+       faster and return to S2's speed linearly over its first N matches. κ is fitted, bounded to
+       [0, 5].
+  - δ_att, δ_def and κ are static parameters, fitted with S2's others (bounds as S2's, δ in
+    [−1, 1]) by maximising the filtered one-step log-likelihood, refitted at the start of every scored
+    season on all earlier matches of that league. Matches are processed by matchday (the leakage test
+    from addendum D extends to NT).
+- **Development choice (the only one):** N ∈ {10, 19, 38}, by the equal-weight mean log-loss of NT over
+  the development leagues. Ties go to the larger N.
+- **Periods:**
+  - **Development:** La Liga, Serie A and Ligue 1 2005-06 → 2013-14; Bundesliga 2006-07 → 2013-14,
+    first two seasons burn-in (TS's development cells, reused for development).
+  - **Withdrawal rule:** if NT − S2 on development (chosen N) is not below 0, NT is withdrawn before
+    SEALED2 is used again; SEALED2 keeps its remaining uses.
+  - **Test (scored once): SEALED2**, all 13 leagues, with TS's run condition, season rules and scored
+    seasons (`results/ts/test_check.json`), the files' recorded SHA-256 checked before fitting.
+    SEALED2's second use of four.
+- **Eligibility:** every match in a scored season with both scores for which both models give a
+  forecast. No minimum number of earlier matches: new teams' first matches are the point.
+- **Primary: NT − S2**, the equal-weight mean over the test leagues of log-loss, 14-day blocks,
+  2,000 resamples, seed 0, 95% interval.
+- **Decision** (NT changes about one match in five, so the thresholds are scaled down from FAT's):
+  - **confirmed** if the mean is ≤ −0.0002 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0005;
+  - **inconclusive** otherwise.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, 44,000 expected test matches).
+- **Secondary, never decisive:**
+  - matches involving a new team within its first 10 matches (the target group);
+  - entry level only (κ = 0) and early speed only (no reset) against S2;
+  - promoted clubs against expansion clubs; teams returning to a league against teams new to the file;
+  - each league; the fitted δ and κ by season;
+  - NT − S2 on development.
+- **What a confirmation means:** NT becomes the S2 used by any later S2-based work, including a new
+  A10-style shadow amendment. It never changes the live model or the A10 shadow records directly.
+- **Ledger:** family NT, rows in this commit (development rows on the big four, test rows on SEALED2).
+
+## Addendum TV (2026-11-26, written before any code for it existed; restored 2026-11-26 before any model was fitted): transfer value in the early season
+
+*Restoration note:* this text was drafted and described in PR #107, but its commit never happened, so
+#107 merged without it. It is restored here verbatim, together with its ledger rows, before any TV model
+was fitted or any test season loaded (the runner's first ledger check failed for exactly this reason).
+
+A results-only model cannot see summer spending, so it is slowest to react exactly when squads change.
+The literature finds wage bills explain most of league position, transfer fees less so and with a lag
+(Kuper and Szymanski; Nowland and Sankara 2024); squad market values forecast about as well as betting
+odds (Peeters 2018), but those are crowd estimates and out of bounds here. A descriptive look at PL
+2016-26 (development data, `results/transfers_descriptive/results.json`) found that clubs' summer fees
+and inflation-adjusted squad cost both correlate with the results-only model's goal-difference residual
+in their first 10 matches (r = +0.24 and +0.27; 200 club-seasons), much less afterwards. TV tests that
+as a forecast.
+
+- **Prior expectation:** a small gain concentrated early in seasons; little later. The descriptive
+  sample is small (30 promoted club-seasons), and fees are only a proxy for wages.
+- **Data:** Wikipedia's English transfer lists (`tabet/transfers.py`, CC BY-SA), every window from
+  summer 2005. Features at a cutoff use only moves dated before the cutoff's day. Pages are read at
+  their current revision; later edits to old fees are a small hindsight risk, recorded but not
+  controlled.
+- **Features** (for team T scoring against opponent O; each z-scored against the other clubs in
+  that league-season at the cutoff, on the log of 1 + £m):
+  - **squad cost:** `tabet.transfers.squad_cost` (inflation-adjusted fees of the players at the club);
+  - **summer fees:** `club_features(...)["fees_in"]` since 1 May of the season;
+  - the stage inputs are the differences T − O of squad cost, and of summer fees times an early-season
+    weight w = max(0, 1 − n/10), where n is the club's league matches this season before the match.
+- **Models** (Premier League only, results only, since xG does not exist before 2016):
+  - **D0:** frozen Dixon-Coles (ξ = 0.004, L2 = 10), refitted every matchday;
+  - **TV:** D0's expected goals times exp(b0 + b1·Δcost + b2·Δfees_early), a Poisson regression with
+    log(D0 rate) as the offset and an L2 penalty on b1, b2; refitted every month on all earlier
+    team-matches (from 2005-06).
+- **Development choice (the only one):** the L2 penalty ∈ {1, 10, 100}, by TV's log-loss on PL
+  2016-17 → 2025-26 (D0 rates from that run, training rows from 2005-06). 2026-27 is not used.
+- **Withdrawal rule:** if TV − D0 on development (chosen L2) is not below 0, TV is withdrawn before the
+  test seasons are scored.
+- **Test (scored once): PL 2008-09 → 2014-15**, addendum P's closed test set, third and last of its
+  three uses. Training rows from 2005-06; 2005-06 → 2007-08 are history only.
+- **Eligibility:** every match in the test seasons that D0 forecasts (a matchday whose fit does not
+  converge gives no forecast, as in TS).
+- **Primary: TV − D0** log-loss, mean over eligible matches, 14-day blocks, 2,000 resamples, seed 0,
+  95% interval.
+- **Decision** (FAT's and GK's thresholds):
+  - **confirmed** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **closed** if not confirmed and the lower bound is above −0.0015;
+  - **inconclusive** otherwise.
+- **MDE:** recorded in `dev.json` before the test (FAT's method, 2,660 expected test matches).
+- **Secondary, never decisive:** the first 10 matches of each club's season; matches with a promoted
+  club in its first 10; squad cost only and summer fees only; each season; the fitted b1, b2 by season.
+- **What a confirmation means:** TV's features become a candidate for the live stage, through a new
+  shadow amendment (like A10). Nothing live changes directly.
+- **Ledger:** family TV: E0 2005-06 → 2007-08 training (history), 2016-17 → 2025-26 development,
+  2008-09 → 2014-15 test (quota 3, with P and S2PL); rows in this commit.
+
+### Amendment to TV (2026-11-26, before any code for TV exists and before any model is fitted)
+
+Two data-separation fixes, found while planning the code:
+
+1. **The test seasons stay untouched during development.** "Training rows from 2005-06" would have put
+   the 2008-15 test seasons into development's training. Instead there are two separate series:
+   - **development:** PL matches from 2015-16 only. D0 is fitted on them (2015-16 burn-in, as in the
+     clean replication studies); stage training rows are the 2016-17 onward team-matches before each
+     monthly refit;
+   - **test:** PL matches 2005-06 → 2014-15 only. D0 is fitted on them (2005-06 burn-in); stage
+     training rows are the 2006-07 onward team-matches before each monthly refit; 2008-09 → 2014-15 are
+     scored.
+   The stage is inactive (TV = D0) until it has `tabet.experiments.MIN_TRAIN_MATCHES` training matches.
+2. **The fee-inflation index is point in time.** `tabet.transfers.fee_index` is computed only from moves
+   dated before each cutoff, with a trailing (not centred) three-year window, so no later year's fees
+   enter a feature.
+
+Also fixed before any fitting: ten 2005-15 clubs were missing from `tabet/teams.py` (Birmingham,
+Blackburn, Blackpool, Bolton, Charlton, Derby, Portsmouth, QPR, Reading, Wigan); without them their
+spending would have read as zero. They are added, and every 2005-15 club now has transfer rows.

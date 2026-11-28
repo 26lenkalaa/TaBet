@@ -2,5 +2,6 @@
 // Express app in backend/.
 import { createApp } from "../backend/src/app.js";
 import { supabaseRepo } from "../backend/src/repo/supabase.js";
+import { createLive } from "../backend/src/live.js";
 
-export default createApp({ repo: supabaseRepo });
+export default createApp({ repo: supabaseRepo, live: createLive() });

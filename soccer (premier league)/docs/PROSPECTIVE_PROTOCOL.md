@@ -558,3 +558,198 @@ on `main` before 2026-11-20 04:30 UTC.
      confidence interval that crosses zero does not establish parity with the market.
 6. **pBP adoption, one more condition.** Beyond A8 item 2's pooled rule, adoption also requires that
    pBP − p0 is ≤ 0 among records with λ3 ≥ 0.02. That shows any gain is not just from dropping ρ.
+
+## Amendment A10 (2026-11-26, written before any code for it exists): S2 shadow records
+
+Addenda TS and S2PL found that the score-driven model S2 beats the refitted Dixon-Coles D0 as a
+results-only model, on 13 new leagues (−0.0024) and on untouched Premier League seasons (−0.0051,
+`docs/IMPROVEMENT_BRIEF.md` §5.38–5.39). The live forecasts sit on D0 plus the xG and lineup stage,
+and S2 under that stage was worse on 2022-26 (§5.18, development data). A10 asks the remaining
+question prospectively:
+
+> **Is the full model built on S2 at least as good as the live model built on D0?**
+
+**Nothing about the live record changes.** `log.jsonl`, its candidates (p0, pE, pα, pBP, the
+sources), the windows, α's fitting rule and every A2–A9 decision stay exactly as they are.
+
+### What is logged
+
+- **Where:** a separate append-only file, `results/prospective/shadow.jsonl`. `log.jsonl` is never
+  touched by shadow code.
+- **When:** in the same run, immediately after a live record is appended, for the same fixture,
+  kickoff, cutoff and record role (primary or fallback). There is no shadow record without a live
+  record. Shadow records start with the first live record logged after the A10 code is merged; there
+  is no backfill.
+- **Same inputs:** the shadow uses the live run's in-memory inputs: the same results, FPL
+  appearances, availability, and the same parsed lineup snapshots. Nothing is fetched again.
+- **Isolation:** shadow code runs after the live record is written, inside its own error handler, with
+  a time limit of 120 seconds per run. A shadow failure writes a shadow record that names the error,
+  never stops or delays the live record, and never opens a logger alert.
+- **Each shadow record holds:** fixture id, kickoff, cutoff, record role, git commit, S2's static
+  parameters and pre-match rates, the stage-2 coefficients, and the shadow candidates below.
+
+### Shadow candidates
+
+| Name | Forecast |
+|---|---|
+| `p0S2` | p0 with S2's rates in place of D0's: the same xG features, stage-2 form and L2 (1.0) |
+| `pES2` | pE with S2's rates in place of D0's: the same lineup sources, features, L2 (100) and source averaging |
+| `S2` | S2 alone (results only), for a live replication of S2 − D0 |
+
+- **S2 settings (fixed now):** `tabet/dynamic.py` with the summer factor, unchanged. The filter runs
+  over every PL match from 2015-16 (`res/history`) to the cutoff. Static parameters are fitted once
+  per season, at that season's first kickoff, on all earlier matches; for 2026-27 that is the
+  fit at 2026-08-21 on 2015-26.
+- **Stage-2 training rows:** the live training rows with log(D0 rate) replaced by each match's
+  walk-forward S2 rate (each season's matches use that season's static parameters). The stage-2
+  coefficients are refitted at every run, as the live ones are.
+
+### Decision
+
+- **Primary: pES2 − pE**, log-loss on fixtures that have both, one record per fixture (A4's
+  primary-over-fallback rule), 14-day calendar-block bootstrap, 2,000 resamples, seed 0.
+- **Period:** every shadow record from the start through the end of 2027-28 (about 640 fixtures).
+  At the end of 2026-27 the result is reported **descriptively only**; it cannot trigger a decision.
+- **Power, stated in advance:** with a per-fixture SD of about 0.115 (addendum S2PL), the SE at 640
+  fixtures is about 0.0045. The shadow cannot confirm a gain of S2PL's size (0.005); it is a safety
+  check that the full model does not get worse, judged together with the two results-only tests.
+- **Rule, at the end of 2027-28:**
+  - **adopt** if the mean is below 0 and the upper bound is below +0.005;
+  - **reject** if the lower bound is above 0;
+  - **otherwise extend once**, through the end of 2028-29 (about 1,020 fixtures), then **adopt** if the
+    mean is below 0 and **reject** otherwise. The weaker final rule is deliberate: two results-only
+    tests already favour S2, so the shadow only has to show the full model is not worse.
+- **Adopt** means S2 replaces D0 as the base of p0 and pE from the next season, through a new
+  amendment written before that season. It never changes records already logged.
+- **Secondary, never decisive:** p0S2 − p0; S2 − D0 (live replication); pES2 and pE against the
+  Pinnacle benchmark (A8); fixtures with a promoted side in its first 10 matches; the first 56 days of
+  each season.
+- **Ledger:** the 2026-27 shadow records are part of the live test (family `live`); 2027-28 and the
+  possible 2028-29 extension are reserved as family S2SH.
+
+**Operations note (2026-11-26):** the Dixon-Coles low-score factors are now floored at 0 when a score
+grid is built (`tabet.model.dc_correct`, used by the live forecast, backtests and the shadow log). This
+changes no forecast: the smallest factor in every logged record so far is 0.902, and in the 2022-27
+backtest rows 0.620. It only keeps a grid valid at rates no forecast has reached.
+
+## Amendment A11 (2026-11-26, written before any code for it exists): kickoff records with confirmed lineups
+
+The protocol's "operational comparison" (a second horizon close to kickoff, with confirmed lineups) was
+sketched but never built. A11 builds it. It is **descriptive**: it adds a separate record; the 24-hour
+records, their candidates, α, every A2–A10 decision and the shadow log are unchanged.
+
+- **Window:** a fixture gets a kickoff record from the first logger run that finds its kickoff **10 to
+  50 minutes ahead** and RotoWire showing **confirmed** XIs for both teams. Runs every 30 minutes put
+  at least one run in that window; if none of them sees both XIs confirmed, the fixture has no kickoff
+  record (counted and reported).
+- **Lineup source:** RotoWire's lineup page, which marks an XI "confirmed" once clubs announce it
+  (about an hour before kickoff). Only a confirmed XI for both sides is used; names resolve to FPL
+  players as for the 24-hour records. The raw page is kept beside the others.
+- **Where:** a separate append-only file, `results/prospective/kickoff.jsonl`, written by its own code
+  path inside its own error handler; it never touches `log.jsonl`.
+- **Candidates:**
+  - **pK:** V2x (the 24-hour pE model) with RotoWire's confirmed XIs, fitted at the kickoff cutoff;
+  - **p0K:** the lineup-free p0 at the same cutoff (to separate "later data" from "confirmed XIs").
+- **Market:** the run's The Odds API snapshot (A7/A8, Pinnacle with Shin's margin removal) is taken
+  for kickoff records as for 24-hour ones; football-data's closing odds are added once published.
+- **Reported (descriptive, after gameweeks 20–29 and 20–38, with the protocol's inference methods):**
+  pK against Pinnacle at the same snapshot; pK against closing odds; pK − pE (24 h); pK − p0K.
+  **No decision rests on it**, and nothing live changes because of it.
+
+**Operations note (2026-11-26): unresolved lineup names (bug fix).** The frozen definitions say an
+unresolved source name "contributes the position-prior rating". The code instead dropped unresolved
+names, so that player's attacking contribution was missing from the XI. Found by an outside review.
+- **Affected:** one fixture, both records: Hull v Brighton (FPL 106, primary and fallback), where one
+  Brighton name on RotoWire did not resolve. No other record had an unresolved name.
+- **Size:** Brighton's XI feature −0.152 instead of −0.026; RotoWire's candidate 26.7 / 31.2 / 42.1 instead
+  of 24.6 / 29.7 / 45.7 (reconstructed from the record's stored inputs, which reproduce the logged
+  candidate exactly). pE moved by about half of that. Hull won 2-0, so the logged values scored slightly
+  better than the corrected ones would have.
+- **Handling:** the log is append-only and these records stay as logged and are scored as logged; this
+  note is reported beside the gameweek 20-29 and 20-38 results. From this commit an unresolved name keeps
+  its place with the position prior (a placeholder code with no rating), as the protocol specifies.
+
+## Amendment A12 (2026-11-27, written before any code for it exists): squad cost in the shadow records
+
+Addendum TV (`docs/IMPROVEMENT_BRIEF.md` §5.41) was inconclusive on PL 2008-15, with its gain coming from
+squad cost (−0.0016 alone, better in 6 of 7 seasons) and none from early-season fees. The PL holdouts are
+used up, so the only fair test left is prospective. A12 adds squad cost to the shadow records.
+
+**Nothing about the live record or A10 changes.** The live log, its candidates, α, the A10 candidates
+and the A10 decision stay as they are.
+
+- **Where:** the same shadow record as A10 (`results/prospective/shadow.jsonl`), as extra candidates.
+  Computed after the A10 candidates inside its own error handler; a failure is stored as `cost_error`
+  and leaves the A10 candidates intact.
+- **Feature (`dcost`):** for the scoring team T against opponent O, z(log(1 + squad cost of T)) −
+  z(log(1 + squad cost of O)), with z taken across that season's clubs at the cutoff;
+  squad cost is `tabet.transfers.squad_cost` with the point-in-time fee index (addendum TV's amendment),
+  from moves dated before the cutoff's day. Each (season, day) is computed once and cached
+  (`results/prospective/shadow_cost_cache.json`), so a day's values are those first computed for it.
+- **Candidates** (both on the live D0 base, refitted at every run like the live stage 2):
+  - **p0C:** p0's stage 2 with `dcost` added (adjusted xG + dcost, L2 = 1);
+  - **pEC:** pE's stage 2 with `dcost` added (adjusted xG + XI + dcost, L2 = 100), same sources and averaging.
+- **Primary: pEC − pE**, log-loss, one record per fixture (A4's rule), 14-day blocks, 2,000 resamples,
+  seed 0, from the first shadow record with these candidates through the end of 2027-28. The end of
+  2026-27 is reported descriptively only.
+- **Rule** (FAT's thresholds, stricter than A10's because the prior evidence is only inconclusive):
+  - **adopt** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **reject** if not adopted and the lower bound is above −0.0015;
+  - **otherwise extend once** through 2028-29 and apply the same two rules; if still neither, squad
+    cost is not adopted.
+- **Adopt** means `dcost` joins the live stage 2 from the next season, through an amendment written before
+  that season. **Secondary, never decisive:** p0C − p0; matches with a promoted side in its first 10;
+  the first 56 days of each season.
+- **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
+  extension are reserved as family SC.
+
+## Amendment A13 (2026-11-27, written before any code for it exists): S2 and squad cost together
+
+A10 tests the S2 base and A12 tests squad cost, each against the live model on its own. The two are
+different kinds of information (S2 changes how fast ratings follow results; squad cost brings in
+spending a results-only rating cannot see), so their gains may add up. Neither has been tested together
+with the other, and no historical Premier League data is left to do it (the 2008-15 closed set is used
+up, `docs/data_ledger.csv`). A13 adds the combination to the shadow records.
+
+**Nothing about the live record, A10 or A12 changes.** The live log, its candidates, α, the A10 and A12
+candidates and their decision rules stay as they are.
+
+- **Where:** the same shadow record (`results/prospective/shadow.jsonl`), as extra candidates. Computed
+  after the A10 and A12 candidates inside its own error handler; a failure is stored as `s2c_error` and
+  leaves the A10 and A12 candidates intact. Starts with the first shadow record logged after the A13 code
+  is merged; there is no backfill.
+- **Base:** S2's pre-match rates, exactly as A10 computes them (same static parameters, same filter).
+- **Feature:** A12's `dcost`, exactly as A12 computes it (same cache, same point-in-time fee index).
+- **Stage-2 training rows:** A10's rows (offset log of the walk-forward S2 rate) with A12's `dcost`
+  added. The coefficients are refitted at every run, like the live ones.
+- **Candidates:**
+  - **p0S2C:** p0's stage 2 on S2's rates with `dcost` (adjusted xG + dcost, L2 = 1);
+  - **pES2C:** pE's stage 2 on S2's rates with `dcost` (adjusted xG + XI + dcost, L2 = 100), same
+    sources and averaging as pE; the per-source versions are stored too.
+- **Primary: pES2C − pE**, log-loss, one record per fixture (A4's rule), 14-day calendar-block
+  bootstrap, 2,000 resamples, seed 0, from the first record with these candidates through the end of
+  2027-28. The end of 2026-27 is reported descriptively only.
+- **Rule** (A12's thresholds):
+  - **adopt** if the mean is ≤ −0.0005 and the upper bound is below 0;
+  - **reject** if not adopted and the lower bound is above −0.0015;
+  - **otherwise extend once** through 2028-29 and apply the same two rules; if still neither, the
+    combination is not adopted.
+- **How A10, A12 and A13 combine** (fixed now, so the three results cannot be picked from afterwards):
+  1. if A13 adopts, S2 replaces D0 as the base **and** `dcost` joins the stage 2;
+  2. otherwise A10 and A12 are applied as each is written. If both adopt on their own while A13 does
+     not, only A10 (S2 base) is adopted: it has the stronger prior evidence (two results-only tests),
+     and the combined model failing its own test is evidence against stacking the two.
+  Adoption always takes effect from the next season, through an amendment written before that season,
+  and never changes records already logged.
+- **Secondary, never decisive:** pES2C − pES2 (does squad cost add on S2); pES2C − pEC (does S2 add with
+  squad cost); p0S2C − p0; pES2C against the Pinnacle benchmark (A8); matches with a promoted side in
+  its first 10; the first 56 days of each season.
+- **Power, stated in advance:** A13 starts on gameweek 13 at the earliest, so it will have about 260
+  fixtures by the end of 2026-27 and about 640 by the end of 2027-28. With A10's per-fixture SD for a
+  candidate against pE (about 0.115 for a base change), the SE at 640 is about 0.0045, too large to
+  confirm a gain of 0.002 (about 0.0036 at 1,020 fixtures after the extension). Unless the combined
+  gain is several times the sum of the two historical estimates (S2PL −0.0051, TV squad cost −0.0016),
+  A13 will most likely end "not adopted". This is stated so that such an ending is not read as
+  evidence against the combination; the full-season descriptive reads are reported either way.
+- **Ledger:** 2026-27 records are part of the live test (family `live`); 2027-28 and the possible
+  extension are reserved as family S2C.

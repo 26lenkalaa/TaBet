@@ -118,15 +118,17 @@ def cmd_log_forecasts(args: argparse.Namespace) -> int:
 
 def _recent_records(hours: float = 8.0) -> list[dict]:
     """Forecast records logged in the last `hours` (only the fields the odds archive needs)."""
+    from .kickoff import KICKOFF
     from .prospective import LOG
-    if not LOG.exists():
-        return []
     cut = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=hours)
     out = []
-    for line in LOG.read_text().splitlines()[-200:]:
-        r = json.loads(line)
-        if pd.Timestamp(r["logged_utc"]) >= cut:
-            out.append({k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")})
+    for path in (LOG, KICKOFF):          # A11: kickoff records get the run's odds snapshot too
+        if not path.exists():
+            continue
+        for line in path.read_text().splitlines()[-200:]:
+            r = json.loads(line)
+            if pd.Timestamp(r["logged_utc"]) >= cut:
+                out.append({k: r[k] for k in ("fpl_fixture", "logged_utc", "kickoff_utc")})
     return out
 
 
@@ -399,6 +401,15 @@ def main(argv: list[str] | None = None) -> int:
     hb.set_defaults(func=cmd_heartbeat)
     sub.choices["check-log"].set_defaults(func=cmd_check_log)
     sd.set_defaults(func=cmd_site_data)
+
+    nl = sub.add_parser("newsletter-send", help="email the newest digest item to the newsletter list (once per issue)")
+    nl.add_argument("--dry-run", action="store_true", help="say what would be sent; sends nothing")
+    nl.set_defaults(func=lambda a: __import__("tabet.newsletter", fromlist=["send"]).send(dry_run=a.dry_run))
+
+    tr = sub.add_parser("transfers", help="fetch Wikipedia's English transfer lists (2005 on), parse and store them")
+    tr.add_argument("--no-refresh", action="store_true", help="use stored pages only; fetch none")
+    tr.set_defaults(func=lambda a: print(__import__("tabet.transfers", fromlist=["x"]).summary(
+        __import__("tabet.transfers", fromlist=["x"]).build(refresh=not a.no_refresh))) or 0)
 
     sub.add_parser("check-sources", help="check each live data source is reachable and parses").set_defaults(
         func=cmd_check_sources)

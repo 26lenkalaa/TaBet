@@ -13,8 +13,8 @@ jobs:
       run:
         working-directory: "soccer (premier league)"   # the football project; other sports get their own folders
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -28,8 +28,8 @@ jobs:
       run:
         working-directory: backend   # Express API + Supabase sync, shared by every sport
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -46,8 +46,8 @@ jobs:
       run:
         working-directory: Football
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: python -m unittest discover -s tests -v

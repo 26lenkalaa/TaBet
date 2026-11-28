@@ -1,0 +1,88 @@
+{
+  "gameweeks": [
+    10,
+    11
+  ],
+  "team_matches_with_actual_xi": 38,
+  "logged_primary_by_source": {
+    "ffs": {
+      "mean_hits_of_11": 9.1,
+      "all_11": 3,
+      "n": 20
+    },
+    "fpl_proj": {
+      "mean_hits_of_11": 8.1,
+      "all_11": 0,
+      "n": 20
+    },
+    "fpl_proj_hist": {
+      "mean_hits_of_11": 7.7,
+      "all_11": 0,
+      "n": 20
+    },
+    "rotowire": {
+      "mean_hits_of_11": 9.25,
+      "all_11": 1,
+      "n": 20
+    }
+  },
+  "logged_primary_by_gameweek": {
+    "GW10 ffs": 9.0,
+    "GW10 fpl_proj": 7.5,
+    "GW10 fpl_proj_hist": 7.5,
+    "GW10 rotowire": 9.5,
+    "GW11 ffs": 9.11,
+    "GW11 fpl_proj": 8.17,
+    "GW11 fpl_proj_hist": 7.72,
+    "GW11 rotowire": 9.22
+  },
+  "worst_team_matches_ffs_rotowire_mean": {
+    "110 tottenham": 6.0,
+    "108 man_city": 7.5,
+    "108 fulham": 8.0,
+    "101 aston_villa": 8.5,
+    "107 man_united": 8.5
+  },
+  "snapshots_by_source_and_lead": {
+    "ffs 24-48 h": {
+      "mean_hits_of_11": 9.44,
+      "n": 62
+    },
+    "ffs 48-96 h": {
+      "mean_hits_of_11": 9.4,
+      "n": 124
+    },
+    "ffs 6-24 h": {
+      "mean_hits_of_11": 9.45,
+      "n": 60
+    },
+    "ffs over 96 h": {
+      "mean_hits_of_11": 8.51,
+      "n": 319
+    },
+    "ffs under 6 h": {
+      "mean_hits_of_11": 9.5,
+      "n": 18
+    },
+    "rotowire 24-48 h": {
+      "mean_hits_of_11": 9.56,
+      "n": 62
+    },
+    "rotowire 48-96 h": {
+      "mean_hits_of_11": 9.48,
+      "n": 124
+    },
+    "rotowire 6-24 h": {
+      "mean_hits_of_11": 9.42,
+      "n": 60
+    },
+    "rotowire over 96 h": {
+      "mean_hits_of_11": 9.02,
+      "n": 310
+    },
+    "rotowire under 6 h": {
+      "mean_hits_of_11": 9.5,
+      "n": 18
+    }
+  }
+}

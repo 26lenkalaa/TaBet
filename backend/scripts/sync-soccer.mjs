@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { buildPayload } from "../src/soccer-payload.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const DATA = path.resolve(here, "..", "..", "soccer (premier league)", "site", "data");
+const DATA = path.resolve(here, "..", "..", "site", "data");
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");

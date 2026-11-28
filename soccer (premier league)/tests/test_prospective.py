@@ -269,6 +269,10 @@ def test_nothing_due_keeps_columns_and_a_real_run_exits_cleanly(tmp_path, monkey
     monkeypatch.setattr(PR, "upcoming_fixtures", lambda refresh=True: fx)
     monkeypatch.setattr(PR, "snapshot_live_xg", lambda now: None)
     monkeypatch.setattr(PR, "daily_refresh", lambda now: None)  # amendment A6; tested in test_odds_archive.py
+    import tabet.transfers as TR
+    monkeypatch.setattr(TR, "auto_refresh", lambda *a, **k: None)   # never fetch Wikipedia in tests
+    import tabet.kickoff as KO
+    monkeypatch.setattr(KO, "log_kickoff", lambda *a, **k: [])        # never scrape lineups in tests
     assert PR.log_due(now=now) == []          # real run, nothing due: no crash, nothing written
     assert PR.log_due(now=now, dry_run=True) == []
     assert not (tmp_path / "log.jsonl").exists()

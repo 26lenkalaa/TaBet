@@ -6,23 +6,35 @@ name: API-Football data (training only)
 # committed to git. It is separate from the forecast logger and never calls the odds or predictions
 # endpoints.
 #
-# Budget: the free plan allows 100 requests a day and refuses the 20-matches-a-request option, so a
-# match costs one request. A run uses at most `budget` requests (default 50, including the status
-# check), always leaves 10 unused, and waits 6.5 s between calls: about 40-45 matches a run.
-# Runs once a day (fetch, 50 requests). `probe` and other budgets can still be run by hand.
+# Budget: a run uses at most `budget` requests (including the status check) and always leaves 10 of
+# the day's limit unused. fetch reads the plan from /status: on a paid plan it fetches 20 matches a
+# request at a fast pace and retries seasons the free plan refused; on the free plan (100 a day) it
+# fetches one match a request, 6.5 s apart. The daily run's budget of 2000 only matters on a paid
+# plan; on the free plan the daily limit caps it at about 90.
+# `probe`, `coverage`, `xgcheck` and other budgets can be run by hand.
 on:
   schedule:
-    - cron: "17 6 * * *"   # 06:17 UTC daily
+    - cron: "17 6 * * *"   # 06:17 UTC daily: fetch, then match events
+    - cron: "47 22 * * *"  # 22:47 UTC daily: match events only (the day's games are over), for the match pages
   workflow_dispatch:
     inputs:
       mode:
-        description: "probe (5 calls: plan, allowed seasons, one sample match) | fetch"
+        description: "probe (5 calls) | fetch | xgcheck (2 calls) | coverage (11 calls: what each league has by season)"
         type: choice
-        options: [probe, fetch, xgcheck]
+        options: [probe, fetch, xgcheck, coverage, injcheck, injuries, events]
         default: probe
       budget:
         description: "Most requests this run may use (free plan: 100 a day)"
-        default: "50"
+        default: "2000"
+      league:
+        description: "xgcheck/injcheck: league id (39 = Premier League)"
+        default: "39"
+      season:
+        description: "xgcheck/injcheck: season, starting year"
+        default: "2022"
+      ids:
+        description: "coverage only: comma-separated league ids (default: the collector's list)"
+        default: ""
 
 permissions:
   contents: read
@@ -34,7 +46,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: "soccer (premier league)"
@@ -42,16 +54,23 @@ jobs:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-      MODE: ${{ inputs.mode || 'fetch' }}
-      BUDGET: ${{ inputs.budget || '50' }}
+      MODE: ${{ inputs.mode || (github.event.schedule == '47 22 * * *' && 'events') || 'fetch' }}
+      BUDGET: ${{ inputs.budget || '2000' }}
+      LEAGUE: ${{ inputs.league || '39' }}
+      SEASON: ${{ inputs.season || '2022' }}
+      IDS: ${{ inputs.ids || '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install certifi
       - name: Run
         run: |
           set -o pipefail   # a crash must fail the run, even through tee
-          python -m tabet.api_football "$MODE" --budget "$BUDGET" | tee result.json
+          python -m tabet.api_football "$MODE" --budget "$BUDGET" --league "$LEAGUE" --season "$SEASON" --ids "$IDS" | tee result.json
           { echo '```json'; cat result.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Match events for the site (after the daily fetch; never fails the run)
+        if: env.MODE == 'fetch'
+        continue-on-error: true
+        run: python -m tabet.api_football events --budget 200 | tee -a "$GITHUB_STEP_SUMMARY"

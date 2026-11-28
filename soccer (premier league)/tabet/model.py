@@ -58,6 +58,18 @@ class Hyperparams:
         return float(np.log(2) / self.xi) if self.xi > 0 else float("inf")
 
 
+def dc_correct(m: np.ndarray, lh: float, la: float, rho: float) -> np.ndarray:
+    """Apply the Dixon-Coles low-score factors to a score grid in place and renormalise. Each factor is
+    floored at 0: a score's probability can never be negative. With |rho| <= RHO_BOUND a factor goes
+    negative only for extreme rates (a rate above 1/|rho|, or a product above 1/rho), which no
+    forecast has reached; the floor keeps the grid valid if one ever does."""
+    m[0, 0] *= max(1 - lh * la * rho, 0.0)
+    m[0, 1] *= max(1 + lh * rho, 0.0)
+    m[1, 0] *= max(1 + la * rho, 0.0)
+    m[1, 1] *= max(1 - rho, 0.0)
+    return m / m.sum()
+
+
 def promoted_team_seasons(matches: pd.DataFrame) -> set[tuple[str, str]]:
     """(team_id, season) pairs where the team was not in the previous season.
     The earliest season in the data has nothing to compare against, so none of
@@ -154,6 +166,7 @@ class DixonColes:
             tau[c01] = 1 + lh[c01] * rho
             tau[c10] = 1 + la[c10] * rho
             tau[c11] = 1 - rho
+            live = tau > 1e-10                 # where tau is clipped, log(tau) is flat: no tau gradient
             tau = np.maximum(tau, 1e-10)
 
             ll = x * ll_h - lh + y * ll_a - la + np.log(tau)
@@ -171,6 +184,12 @@ class DixonColes:
             g_rho[c10] = la[c10] / tau[c10]
             ga[c10] += la[c10] * rho / tau[c10]
             g_rho[c11] = -1 / tau[c11]
+            # undo the tau part where tau was clipped (the clipped objective does not depend on it)
+            dead = ~live
+            if dead.any():
+                gh[dead] = (x - lh)[dead]
+                ga[dead] = (y - la)[dead]
+                g_rho[dead] = 0.0
             gh, ga, g_rho = w * gh, w * ga, w * g_rho
 
             g = np.empty_like(p)
@@ -241,12 +260,7 @@ class DixonColes:
         lh, la = self.expected_goals(home, away, season)
         g = np.arange(MAX_GOALS + 1)
         m = np.outer(poisson.pmf(g, lh), poisson.pmf(g, la))
-        r = self.rho
-        m[0, 0] *= 1 - lh * la * r
-        m[0, 1] *= 1 + lh * r
-        m[1, 0] *= 1 + la * r
-        m[1, 1] *= 1 - r
-        return m / m.sum()
+        return dc_correct(m, lh, la, self.rho)
 
     def predict_proba(self, home: str, away: str, season: str | None = None) -> tuple[float, float, float]:
         """(p_home, p_draw, p_away), summing to 1."""

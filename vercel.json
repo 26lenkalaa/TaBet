@@ -3,7 +3,7 @@
   "framework": null,
   "installCommand": "npm ci --omit=dev",
   "buildCommand": "",
-  "outputDirectory": "soccer (premier league)/site",
+  "outputDirectory": "site",
   "cleanUrls": true,
   "rewrites": [
     {

@@ -27,7 +27,7 @@ from scipy.stats import poisson
 from .backtest import OUTCOMES, scores
 from .features import FeatureParams, known, match_features, player_ratings
 from .ingest import LOCAL_TZ
-from .model import MAX_GOALS, DixonColes, Hyperparams, promoted_team_seasons
+from .model import dc_correct, MAX_GOALS, DixonColes, Hyperparams, promoted_team_seasons
 from .store import RESULT_LAG, MatchStore
 
 DEV_SEASONS = ("2022-23", "2023-24")
@@ -148,13 +148,7 @@ def _probs(lh: np.ndarray, la: np.ndarray, rho: np.ndarray) -> np.ndarray:
     g = np.arange(MAX_GOALS + 1)
     out = np.empty((len(lh), 3))
     for i in range(len(lh)):
-        m = np.outer(poisson.pmf(g, lh[i]), poisson.pmf(g, la[i]))
-        r = rho[i]
-        m[0, 0] *= 1 - lh[i] * la[i] * r
-        m[0, 1] *= 1 + lh[i] * r
-        m[1, 0] *= 1 + la[i] * r
-        m[1, 1] *= 1 - r
-        m /= m.sum()
+        m = dc_correct(np.outer(poisson.pmf(g, lh[i]), poisson.pmf(g, la[i])), lh[i], la[i], rho[i])
         out[i] = np.tril(m, -1).sum(), np.trace(m), np.triu(m, 1).sum()
     return out
 

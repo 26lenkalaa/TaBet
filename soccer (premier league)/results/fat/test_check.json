@@ -1,0 +1,518 @@
+{
+  "AUT 2020-21": {
+    "finished": 197,
+    "league_share": 1.0,
+    "other": 60,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 34,
+      "cup": 26
+    }
+  },
+  "AUT 2021-22": {
+    "finished": 195,
+    "league_share": 1.0,
+    "other": 67,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 44,
+      "cup": 23
+    }
+  },
+  "AUT 2022-23": {
+    "finished": 195,
+    "league_share": 1.0,
+    "other": 60,
+    "other_share": 0.95,
+    "other_by_kind": {
+      "europe": 33,
+      "cup": 27
+    }
+  },
+  "AUT 2023-24": {
+    "finished": 195,
+    "league_share": 1.0,
+    "other": 60,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 33,
+      "cup": 27
+    }
+  },
+  "AUT 2024-25": {
+    "finished": 195,
+    "league_share": 1.0,
+    "other": 68,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 42,
+      "cup": 26
+    }
+  },
+  "AUT 2025-26": {
+    "finished": 195,
+    "league_share": 1.0,
+    "other": 61,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 36,
+      "cup": 25
+    }
+  },
+  "SWZ 2020-21": {
+    "finished": 182,
+    "league_share": 1.0,
+    "other": 27,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 14,
+      "cup": 13
+    }
+  },
+  "SWZ 2021-22": {
+    "finished": 182,
+    "league_share": 0.989,
+    "other": 63,
+    "other_share": 0.8254,
+    "other_by_kind": {
+      "cup": 36,
+      "europe": 27
+    }
+  },
+  "SWZ 2022-23": {
+    "finished": 182,
+    "league_share": 0.9835,
+    "other": 75,
+    "other_share": 0.8533,
+    "other_by_kind": {
+      "europe": 40,
+      "cup": 35
+    }
+  },
+  "SWZ 2023-24": {
+    "finished": 230,
+    "league_share": 0.9913,
+    "other": 76,
+    "other_share": 0.8289,
+    "other_by_kind": {
+      "europe": 38,
+      "cup": 38
+    }
+  },
+  "SWZ 2024-25": {
+    "finished": 230,
+    "league_share": 0.9913,
+    "other": 82,
+    "other_share": 0.8415,
+    "other_by_kind": {
+      "europe": 44,
+      "cup": 38
+    }
+  },
+  "SWZ 2025-26": {
+    "finished": 230,
+    "league_share": 1.0,
+    "other": 76,
+    "other_share": 0.7632,
+    "other_by_kind": {
+      "europe": 41,
+      "cup": 35
+    }
+  },
+  "DNK 2020-21": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 53,
+    "other_share": 0.6604,
+    "other_by_kind": {
+      "cup": 39,
+      "europe": 14
+    }
+  },
+  "DNK 2021-22": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 82,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 46,
+      "cup": 36
+    }
+  },
+  "DNK 2022-23": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 73,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 38,
+      "cup": 35
+    }
+  },
+  "DNK 2023-24": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 71,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 39,
+      "europe": 32
+    }
+  },
+  "DNK 2024-25": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 76,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 40,
+      "cup": 36
+    }
+  },
+  "DNK 2025-26": {
+    "finished": 193,
+    "league_share": 1.0,
+    "other": 79,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 40,
+      "cup": 39
+    }
+  },
+  "G1 2020-21": {
+    "finished": 242,
+    "league_share": 1.0,
+    "other": 57,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "europe": 31,
+      "cup": 26
+    }
+  },
+  "G1 2021-22": {
+    "finished": 242,
+    "league_share": 1.0,
+    "other": 57,
+    "other_share": 0.9298,
+    "other_by_kind": {
+      "cup": 37,
+      "europe": 20
+    }
+  },
+  "G1 2022-23": {
+    "finished": 240,
+    "league_share": 1.0,
+    "other": 38,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 31,
+      "europe": 7
+    }
+  },
+  "G1 2023-24": {
+    "finished": 240,
+    "league_share": 0.9958,
+    "other": 79,
+    "other_share": 0.9494,
+    "other_by_kind": {
+      "europe": 45,
+      "cup": 34
+    }
+  },
+  "G1 2024-25": {
+    "finished": 236,
+    "league_share": 0.9873,
+    "other": 69,
+    "other_share": 0.8841,
+    "other_by_kind": {
+      "cup": 35,
+      "europe": 34
+    }
+  },
+  "G1 2025-26": {
+    "finished": 236,
+    "league_share": 1.0,
+    "other": 95,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 50,
+      "europe": 45
+    }
+  },
+  "T1 2020-21": {
+    "finished": 420,
+    "league_share": 1.0,
+    "other": 67,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 50,
+      "europe": 17
+    }
+  },
+  "T1 2021-22": {
+    "finished": 380,
+    "league_share": 1.0,
+    "other": 81,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 51,
+      "europe": 30
+    }
+  },
+  "T1 2022-23": {
+    "finished": 341,
+    "league_share": 0.9179,
+    "other": 95,
+    "other_share": 0.9895,
+    "other_by_kind": {
+      "cup": 52,
+      "europe": 43
+    }
+  },
+  "T1 2023-24": {
+    "finished": 380,
+    "league_share": 1.0,
+    "other": 94,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 58,
+      "europe": 36
+    }
+  },
+  "T1 2024-25": {
+    "finished": 342,
+    "league_share": 1.0,
+    "other": 109,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 62,
+      "europe": 47
+    }
+  },
+  "T1 2025-26": {
+    "finished": 306,
+    "league_share": 1.0,
+    "other": 110,
+    "other_share": 0.9364,
+    "other_by_kind": {
+      "cup": 67,
+      "europe": 43
+    }
+  },
+  "I2 2020-21": {
+    "finished": 388,
+    "league_share": 0.9974,
+    "other": 41,
+    "other_share": 0.9512,
+    "other_by_kind": {
+      "cup": 41
+    }
+  },
+  "I2 2021-22": {
+    "finished": 390,
+    "league_share": 1.0,
+    "other": 6,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 6
+    }
+  },
+  "I2 2022-23": {
+    "finished": 390,
+    "league_share": 1.0,
+    "other": 9,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 9
+    }
+  },
+  "I2 2023-24": {
+    "finished": 390,
+    "league_share": 1.0,
+    "other": 7,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 7
+    }
+  },
+  "I2 2024-25": {
+    "finished": 389,
+    "league_share": 1.0,
+    "other": 10,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 10
+    }
+  },
+  "I2 2025-26": {
+    "finished": 390,
+    "league_share": 1.0,
+    "other": 6,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 6
+    }
+  },
+  "D2 2020-21": {
+    "finished": 308,
+    "league_share": 1.0,
+    "other": 19,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 19
+    }
+  },
+  "D2 2021-22": {
+    "finished": 308,
+    "league_share": 1.0,
+    "other": 33,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 33
+    }
+  },
+  "D2 2022-23": {
+    "finished": 308,
+    "league_share": 1.0,
+    "other": 34,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 34
+    }
+  },
+  "D2 2023-24": {
+    "finished": 308,
+    "league_share": 0.9968,
+    "other": 36,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 36
+    }
+  },
+  "D2 2024-25": {
+    "finished": 308,
+    "league_share": 1.0,
+    "other": 34,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 34
+    }
+  },
+  "D2 2025-26": {
+    "finished": 308,
+    "league_share": 1.0,
+    "other": 35,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 35
+    }
+  },
+  "F2 2020-21": {
+    "finished": 384,
+    "league_share": 0.9974,
+    "other": 26,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 26
+    }
+  },
+  "F2 2021-22": {
+    "finished": 384,
+    "league_share": 0.9948,
+    "other": 54,
+    "other_share": 0.9444,
+    "other_by_kind": {
+      "cup": 54
+    }
+  },
+  "F2 2022-23": {
+    "finished": 379,
+    "league_share": 1.0,
+    "other": 58,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 58
+    }
+  },
+  "F2 2023-24": {
+    "finished": 382,
+    "league_share": 0.9948,
+    "other": 59,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 59
+    }
+  },
+  "F2 2024-25": {
+    "finished": 310,
+    "league_share": 0.9935,
+    "other": 60,
+    "other_share": 0.9833,
+    "other_by_kind": {
+      "cup": 60
+    }
+  },
+  "F2 2025-26": {
+    "finished": 309,
+    "league_share": 1.0,
+    "other": 54,
+    "other_share": 0.4074,
+    "other_by_kind": {
+      "cup": 54
+    }
+  },
+  "SP2 2020-21": {
+    "finished": 468,
+    "league_share": 1.0,
+    "other": 48,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 48
+    }
+  },
+  "SP2 2021-22": {
+    "finished": 468,
+    "league_share": 1.0,
+    "other": 46,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 46
+    }
+  },
+  "SP2 2022-23": {
+    "finished": 468,
+    "league_share": 1.0,
+    "other": 42,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 42
+    }
+  },
+  "SP2 2023-24": {
+    "finished": 468,
+    "league_share": 0.9979,
+    "other": 43,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 43
+    }
+  },
+  "SP2 2024-25": {
+    "finished": 468,
+    "league_share": 1.0,
+    "other": 44,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 44
+    }
+  },
+  "SP2 2025-26": {
+    "finished": 468,
+    "league_share": 1.0,
+    "other": 49,
+    "other_share": 1.0,
+    "other_by_kind": {
+      "cup": 49
+    }
+  }
+}

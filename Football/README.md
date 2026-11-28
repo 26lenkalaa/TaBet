@@ -31,7 +31,7 @@ The shared site reads a JSON snapshot. Refresh it from the repo root:
 ```sh
 curl -fL https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv -o Football/res/games.csv
 python Football/export_site.py 2025 2026
-python -m http.server 8000 --directory "soccer (premier league)/site"
+python -m http.server 8000 --directory site
 ```
 
 If needed, run `mkdir -p Football/res` before downloading. Open

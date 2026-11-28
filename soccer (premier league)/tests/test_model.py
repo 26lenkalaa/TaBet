@@ -94,3 +94,38 @@ def test_fixed_promoted_offsets_act_as_given_prior_means(real):
     base = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo)
     again = DixonColes(Hyperparams(promoted_prior=True)).fit(train, CUT, promo, fixed_promo=True)
     assert base.promo_att == pytest.approx(again.promo_att)
+
+
+def test_low_score_factors_never_make_a_probability_negative():
+    from scipy.stats import poisson
+    from tabet.model import MAX_GOALS, RHO_BOUND, dc_correct
+    g = np.arange(MAX_GOALS + 1)
+    for lh, la, rho in ((6.0, 1.0, -RHO_BOUND), (3.0, 2.5, RHO_BOUND), (1.4, 1.1, -0.05)):
+        m = dc_correct(np.outer(poisson.pmf(g, lh), poisson.pmf(g, la)), lh, la, rho)
+        assert (m >= 0).all() and np.isclose(m.sum(), 1.0)
+
+
+def test_dixon_coles_gradient_matches_finite_differences_even_when_tau_is_clipped(monkeypatch):
+    import types
+    import tabet.model as M
+    captured = {}
+
+    def fake_minimize(fun, x0, jac, method, bounds, options):
+        captured["f"] = fun
+        return types.SimpleNamespace(success=True, x=x0, message="")
+    monkeypatch.setattr(M, "minimize", fake_minimize)
+    t0 = pd.Timestamp("2025-08-01", tz="UTC")
+    rows = [("a", "b", 0, 1), ("b", "c", 1, 0), ("c", "a", 0, 0), ("a", "c", 1, 1), ("b", "a", 3, 0), ("c", "b", 0, 1)]
+    train = pd.DataFrame({"match_id": [f"m{i}" for i in range(6)], "season": "2025-26",
+                          "kickoff_utc": [t0 + pd.Timedelta(days=7 * i) for i in range(6)],
+                          "home_id": [r[0] for r in rows], "away_id": [r[1] for r in rows],
+                          "home_goals": [r[2] for r in rows], "away_goals": [r[3] for r in rows], "status": "completed"})
+    M.DixonColes(M.Hyperparams()).fit(train, t0 + pd.Timedelta(days=60), set())
+    f = captured["f"]
+    n = 3
+    for p in (np.r_[0.2, 0.25, -0.05, 0, 0, 0.1, -0.2, 0.05, 0.0, 0.1, -0.1, 0, 0],
+              np.r_[1.8, 0.3, -0.2, 0, 0, 0.5, 0.0, 0.0, -0.4, 0.0, 0.0, 0, 0]):   # second: home rate > 5, tau clipped
+        _, g = f(p)
+        num = np.array([(f(p + e)[0] - f(p - e)[0]) / 2e-6 for e in np.eye(len(p)) * 1e-6])
+        free = [0, 1, 2] + list(range(5, 5 + 2 * n))                                  # promo and slope params are fixed at 0
+        assert np.allclose(g[free], num[free], rtol=1e-4, atol=1e-4)

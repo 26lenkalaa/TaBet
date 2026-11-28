@@ -35,6 +35,9 @@ ADJ = [f"f_xgadj_att_{int(XG_HALF_LIFE)}", f"f_xgadj_def_opp_{int(XG_HALF_LIFE)}
 XI = ["f_xi_position", "f_backline_opp"]
 STAGE2_L2_XI = 100.0  # chosen on dev for the XI model (results/fpl_v0_v5/manifest.json)
 ARCHIVE_SEASONS = ["2021-22", "2022-23", "2023-24", "2024-25", "2025-26"]
+# The last run's training inputs, for the S2 shadow records (tabet/shadow.py, amendment A10). In memory
+# only; never written to a forecast or a log record.
+LAST_CONTEXT: dict = {}
 LIVE_SEASON = "2026-27"
 
 
@@ -59,7 +62,7 @@ def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None =
     whenever a new result arrives (a stale cache would leave new matches out
     of stage-2 training)."""
     done = matches[matches["status"] == "completed"]
-    key = f"{len(done)}_{done['match_id'].max()}"
+    key = _rows_key(done, app)
     path = None
     if cache is not None:
         path = cache.with_name(f"{cache.stem}_{key}.pkl")
@@ -77,15 +80,27 @@ def training_rows(matches: pd.DataFrame, app: pd.DataFrame, cache: Path | None =
     return rows
 
 
+def _rows_key(done: pd.DataFrame, app: pd.DataFrame) -> str:
+    """Cache key for the training rows: a hash of the completed results, the appearance data they are
+    built from, and the code that builds them, so a corrected result, revised xG or a code change
+    rebuilds the rows instead of reusing stale ones."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(pd.util.hash_pandas_object(done[["match_id", "home_goals", "away_goals"]].astype(str), index=False).values.tobytes())
+    cols = [c for c in ("match_id", "player_code", "minutes", "xg", "xa", "started") if c in app.columns]
+    h.update(pd.util.hash_pandas_object(app[cols].astype(str), index=False).values.tobytes())
+    here = Path(__file__).resolve().parent
+    for f in ("features.py", "experiments.py", "xg_strength.py", "forecast.py"):
+        h.update((here / f).read_bytes())
+    return f"{len(done)}_{h.hexdigest()[:16]}"
+
+
 def _score_matrix(lh: float, la: float, rho: float) -> np.ndarray:
     from scipy.stats import poisson
     g = np.arange(MAX_GOALS + 1)
+    from .model import dc_correct
     m = np.outer(poisson.pmf(g, lh), poisson.pmf(g, la))
-    m[0, 0] *= 1 - lh * la * rho
-    m[0, 1] *= 1 + lh * rho
-    m[1, 0] *= 1 + la * rho
-    m[1, 1] *= 1 - rho
-    return m / m.sum()
+    return dc_correct(m, lh, la, rho)
 
 
 def _hda(m: np.ndarray) -> tuple[float, float, float]:
@@ -116,6 +131,9 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
              lineups: bool = True, fixture_ids: list[int] | None = None,
              rows_cache: Path | None = ROOT / "data/processed/forecast_rows.pkl") -> dict:
     cutoff = cutoff or pd.Timestamp.now(tz="UTC").floor("min")
+    if lineups and cutoff < pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=6):
+        # live inputs (today's FPL availability, today's lineup pages) cannot be replayed for an old cutoff
+        raise ValueError("forecast() uses live inputs; for a historical cutoff use the backtest pipeline")
     matches, _ = load_all(ROOT / "res")
     app = load_appearances(matches, ARCHIVE_SEASONS, LIVE_SEASON, refresh_live=refresh)
     fx = upcoming_fixtures(refresh=refresh)
@@ -133,6 +151,8 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
 
     rows = training_rows(matches, app, rows_cache)
     tr = rows[rows["kickoff_utc"] + RESULT_LAG <= cutoff]
+    LAST_CONTEXT.clear()
+    LAST_CONTEXT.update(matches=matches, rows=tr, cutoff=cutoff)
     Xtr = tr[ADJ].astype(float)
     mu, sd = Xtr.mean(), Xtr.std().replace(0, 1)
     b = _fit_poisson(((Xtr - mu) / sd).to_numpy(), tr["log_dc"].to_numpy(), tr["goals"].to_numpy(float), STAGE2_L2)
@@ -169,9 +189,13 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
     unresolved: dict[str, dict[str, int]] = {}
     invalid: dict[str, dict[str, int]] = {}
     updated: dict[str, str] = {}
+    lineup_status: dict[str, dict[str, str]] = {}      # source -> team -> "confirmed" | "predicted" (A11)
     for src in ("ffs", "rotowire"):
         if len(lineup_snap) and (lineup_snap["source"] == src).any():
             allx = lineup_snap[lineup_snap["source"] == src]
+            if "status" in allx:
+                lineup_status[src] = allx.groupby("team_id")["status"].agg(
+                    lambda st: "confirmed" if (st == "confirmed").all() else "predicted").to_dict()
             unresolved[src] = allx[allx["player_code"].isna()].groupby("team_id").size().astype(int).to_dict()
             if "source_updated" in allx:
                 updated.update({f"{src}:{t}": u for t, u in allx.groupby("team_id")["source_updated"].first().items()
@@ -184,7 +208,11 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
             bad = set(listed[listed != 11].index) | dup_teams
             if bad:
                 invalid[src] = {t: int(listed.get(t, 0)) for t in sorted(bad)}
-            x = allx[~allx["team_id"].isin(bad)].dropna(subset=["player_code"]).copy()
+            x = allx[~allx["team_id"].isin(bad)].copy()
+            # an unresolved name keeps its place in the XI with the position-prior rating (protocol,
+            # "Frozen definitions"): a negative placeholder code has no rating, so the prior fills it
+            miss = x["player_code"].isna()
+            x.loc[miss, "player_code"] = -np.arange(1, int(miss.sum()) + 1)
             x["player_code"] = x["player_code"].astype(int)
             x["position"] = x["player_code"].map(pos_now).fillna(x["position"])
             xis[src] = x[["team_id", "player_code", "position"]]
@@ -276,6 +304,7 @@ def forecast(cutoff: pd.Timestamp | None = None, gameweeks: int | None = None, r
         "xi_stage2": {"cols": ADJ + XI, "coef": [float(v) for v in bx], "mean": [float(v) for v in mux],
                       "sd": [float(v) for v in sdx], "l2": STAGE2_L2_XI},
         "lineup_unresolved": unresolved, "lineup_invalid": invalid, "source_updated": updated,
+        "lineup_status": lineup_status,
         "availability": fp[fp["team_id"].isin(teams_next)][["player_code", "team_id", "web_name", "status", "chance_next", "chance_this", "chance", "chance_field", "news"]]
                          .to_dict("records"),
         "lineup_sources": {"retrieved_utc": (lineup_snap["retrieved_utc"].iloc[0] if len(lineup_snap) else None),

@@ -1,4 +1,4 @@
-"""Data for the site (pitch, match explorer), written to site/data/:
+"""Data for the site (pitch, match explorer), written to site/data/ at the repository root:
   index.json                built time, log record count, seasons and the per-season file names
   matches-<season>.json     every match of that season with its forecasts and market odds
   lineups-<season>.json     starting XIs (actual and predicted), loaded only by the match page
@@ -36,7 +36,7 @@ from .ingest import implied_probabilities, load_all
 from .teams import TEAMS, try_resolve_team
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE_DATA = ROOT / "site" / "data"
+SITE_DATA = ROOT.parent / "site" / "data"   # the shared site at the repository root
 INDEX = SITE_DATA / "index.json"   # seasons, build time and per-season file names; the other files sit beside it
 LIVE_SEASON = "2026-27"
 LEDGER = ROOT / "results" / "xg_strength" / "ledger.csv"
@@ -245,9 +245,44 @@ def _saved_entries(saved: dict, fixture: int | None, kickoff: pd.Timestamp) -> l
 def _logged_forecasts(r: dict) -> list[dict]:
     role = "primary" if r["horizon_h"] == 24.0 else "fallback"
     note = f"logged {r['hours_before']:.1f} h before kickoff ({role} record)"
-    return [{"key": key, "label": label, "kind": "logged", "note": note, "p": _p(r["candidates"][key])}
+    return [{"key": key, "label": label, "kind": "logged", "role": role, "note": note, "p": _p(r["candidates"][key])}
             for key, label in (("p0", "TaBet, no lineups (p0)"), ("pE", "TaBet, predicted lineups (pE)"))
             if key in r["candidates"]]
+
+
+def match_events(entries: list[dict], api_seasons: dict[str, dict]) -> dict[str, dict]:
+    """{season: {match id: {"events": [...], "check": bool}}} for played matches, from the compact API-Football
+    files (tabet.api_football.events). A home/away pair happens once per league season, so it is the key."""
+    out: dict[str, dict] = {}
+    for season, blob in api_seasons.items():
+        by_pair = {}
+        for fx in blob.get("fixtures", []):
+            h, a = try_resolve_team(fx["home"]), try_resolve_team(fx["away"])
+            if h and a:
+                by_pair[(TEAMS.get(h, h), TEAMS.get(a, a))] = fx
+        got = {}
+        for e in entries:
+            if e["season"] == season and e["status"] == "played":
+                fx = by_pair.get((e["home"], e["away"]))
+                if fx is not None:
+                    got[e["id"]] = {"events": fx["events"], "check": bool(fx["check"])}
+        out[season] = got
+    return out
+
+
+def _api_events(seasons: list[str]) -> dict[str, dict]:
+    """The compact event files from the private api-football bucket; {} without Supabase credentials."""
+    import gzip
+    from . import supabase_storage as ss
+    if not ss.configured():
+        return {}
+    got = {}
+    for season in seasons:
+        try:
+            got[season] = json.loads(gzip.decompress(ss.get("api-football", f"events/39-{season[:4]}.json.gz")))
+        except Exception as ex:  # a season without a file yet
+            print(f"match events {season} skipped ({str(ex)[:120]})")
+    return got
 
 
 def build(preview: bool = True, out: Path = INDEX) -> dict:
@@ -366,6 +401,14 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         entries.append(e)
 
     entries.sort(key=lambda x: x["kickoff"])
+    try:   # paper betting from GW12 (descriptive; tabet/paper_bets.py)
+        from .paper_bets import build as build_bets
+        fin = fpl[fpl["finished"].astype(bool) | fpl["finished_provisional"].astype(bool)]
+        results = {int(f.id): ("H" if f.team_h_score > f.team_a_score else "A" if f.team_a_score > f.team_h_score else "D")
+                   for f in fin.itertuples() if pd.notna(f.team_h_score) and pd.notna(f.team_a_score)}
+        build_bets(logged, odds_log, results, TEAMS, out=out.parent / "paper-bets.json")
+    except Exception as ex:  # the site data must still build
+        print(f"paper bets skipped ({ex})")
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
     data = {"built_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat(), "n_log_records": n_log,
             "seasons": sorted({e["season"] for e in entries}), "matches": entries}
@@ -405,7 +448,29 @@ def build(preview: bool = True, out: Path = INDEX) -> dict:
         name = f"lineups-{season}.json"
         (out.parent / name).write_text('{"season":' + json.dumps(season) + ',"lineups":{\n' + ",\n".join(rows) + "\n}}\n")
         lfiles[season] = name
-    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles), separators=(",", ":")) + "\n")
+    # goals, assists and cards with minutes (API-Football), one file per season; without Supabase credentials
+    # (a local build) the files already there are kept
+    efiles = {}
+    try:
+        for season, got in match_events(entries, _api_events(data["seasons"])).items():
+            rows = [json.dumps(k) + ":" + json.dumps(v, separators=(",", ":"), ensure_ascii=False) for k, v in got.items()]
+            (out.parent / f"events-{season}.json").write_text('{"season":' + json.dumps(season) + ',"events":{\n' + ",\n".join(rows) + "\n}}\n")
+    except Exception as ex:  # the site must still build
+        print(f"match events skipped ({ex})")
+    for season in data["seasons"]:
+        if (out.parent / f"events-{season}.json").exists():
+            efiles[season] = f"events-{season}.json"
+    out.write_text(json.dumps(dict(head, files=files, lineup_files=lfiles, event_files=efiles), separators=(",", ":")) + "\n")
+    try:   # weekly digest feed for the group's email (tabet/digest.py; descriptive only)
+        from .digest import build as build_digest
+        build_digest(out.parent)
+    except Exception as ex:  # the site data must still build
+        print(f"digest skipped ({ex})")
+    try:   # the research page's data (tabet/research_page.py; descriptive only)
+        from .research_page import build as build_research
+        build_research(out.parent)
+    except Exception as ex:
+        print(f"research page data skipped ({ex})")
     return data
 
 
@@ -420,9 +485,45 @@ def stale(max_age_h: float = 20.0, out: Path = INDEX) -> bool:
         pd.Timestamp(head["built_utc"])
     except (ValueError, KeyError, TypeError):
         return True
-    age = (pd.Timestamp.now(tz="UTC") - pd.Timestamp(head["built_utc"])).total_seconds() / 3600
+    built, now = pd.Timestamp(head["built_utc"]), pd.Timestamp.now(tz="UTC")
+    age = (now - built).total_seconds() / 3600
     n_log = len(LOG.read_text().splitlines()) if LOG.exists() else 0
-    return age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(pd.Timestamp(head["built_utc"]))
+    return (age >= max_age_h or n_log != head.get("n_log_records") or _newer_odds(built)
+            or _match_moment_passed(built, now) or _newer_events(built))
+
+
+def _newer_events(built: pd.Timestamp) -> bool:
+    """True if an API-Football match-events file (tabet.api_football.events) changed since the build, so the
+    nightly timelines reach the site the same night. False without Supabase credentials or on any error."""
+    from . import supabase_storage as ss
+    if not ss.configured():
+        return False
+    try:
+        body = json.dumps({"prefix": "events", "limit": 100}).encode()
+        items = json.loads(ss._request("POST", "/storage/v1/object/list/api-football", body, "application/json"))
+        times = [pd.Timestamp(i["updated_at"]) for i in items if i.get("updated_at")]
+        return bool(times) and max(times) > built
+    except Exception:
+        return False
+
+
+# After these offsets from a logged match's kickoff the site should show something new: "awaiting
+# result" at kickoff, then the score (FPL marks a match finished about two hours after kickoff).
+RESULT_MOMENTS = (pd.Timedelta(0), pd.Timedelta(hours=2, minutes=15), pd.Timedelta(hours=4))
+
+
+def _match_moment_passed(built: pd.Timestamp, now: pd.Timestamp) -> bool:
+    """True if a logged match kicked off, or reached the time its result should be in, since the build."""
+    if not LOG.exists():
+        return False
+    for line in LOG.read_text().splitlines():
+        k = json.loads(line).get("kickoff_utc")
+        if not k:
+            continue
+        ko = pd.Timestamp(k)
+        if any(built < ko + d <= now for d in RESULT_MOMENTS):
+            return True
+    return False
 
 
 def _newer_odds(built: pd.Timestamp) -> bool:

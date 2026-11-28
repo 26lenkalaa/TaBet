@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaBet research</title>
+<meta name="description" content="How TaBet's forecasts score against the betting market: backtests, the live test, calibration and coverage.">
+<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-tamid.png?v=2">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="preload" href="fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/press-start-2p-latin.woff2) format("woff2"); }
+@font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin.woff2) format("woff2"); }
+:root {
+  --ink: #ffffff; --muted: #cfe6d3; --faint: #9cc4a4; --gold: #ffd23f;
+  --chalk: rgba(255, 255, 255, .86); --chalk-dim: rgba(255, 255, 255, .28);
+  --panel: #15241b; --panel-hi: #122019; --deep: #0f1c15;
+  --px: "Press Start 2P", ui-monospace, monospace;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+  /* chart roles (validated on the panel surface: dataviz validate_palette.js, all checks pass) */
+  --surface: #15241b;
+  --grid: rgba(255, 255, 255, .12);
+  --axis: rgba(255, 255, 255, .35);
+  --zero: rgba(255, 255, 255, .7);
+  --s-tabet: #3987e5;      /* TaBet */
+  --s-close: #d95926;      /* closing odds */
+  --s-pre: #199e70;        /* earlier odds */
+  /* "what we tried": kept = TaBet blue, still testing live = green, dropped = neutral grey */
+  --st-kept: #3987e5; --st-live: #199e70; --st-dropped: rgba(255, 255, 255, .55);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--sans); color: var(--ink); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: var(--gold); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 48px; }
+h2 { font: 13px/1.6 var(--px); margin: 0 0 6px; color: var(--gold); }
+.sub { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+section { background: var(--panel); border: 1px solid var(--chalk-dim); padding: 20px; margin-top: 20px; }
+.note { color: var(--faint); font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.tile { background: var(--deep); border: 1px solid var(--chalk-dim); padding: 14px; }
+.tile .k { font-size: 13px; color: var(--muted); }
+.tile .v { font: 20px/1.4 var(--px); margin: 6px 0 2px; }
+.tile .d { font-size: 13px; color: var(--faint); }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--sans); font-size: 12px; fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; }
+.legend i.dot { width: 10px; height: 10px; border-radius: 50%; }
+.tip { position: absolute; pointer-events: none; background: var(--deep); border: 1px solid var(--chalk); padding: 8px 10px;
+  font-size: 13px; line-height: 1.45; color: var(--ink); white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); display: none; z-index: 3; }
+.tip b { font-weight: 700; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--gold); font-size: 14px; }
+table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }
+th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--chalk-dim); font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; }
+.scroll { overflow-x: auto; }
+footer { max-width: 1040px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 14px; }
+@media (max-width: 460px) { section { padding: 14px; } .tile .v { font-size: 16px; } }
+</style>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="./" aria-label="TaBet home"><img src="img/tamid-mark.png" width="48" height="48" alt="TAMID Group at Northeastern"></a>
+  <div class="site-heading">
+    <h1>RESEARCH</h1>
+    <p>Premier League: how TaBet's forecasts score against the betting market.</p>
+  </div>
+  <nav class="pages" aria-label="Pages">
+    <a href="./">PITCH</a>
+    <a href="matches.html">MATCHES</a>
+    <a href="notebook.html">NOTEBOOK</a>
+  </nav>
+</header>
+
+<main class="wrap" id="main">
+  <p class="note" id="built">Loading…</p>
+
+  <section aria-labelledby="h-summary">
+    <h2 id="h-summary">THE SCORECARD</h2>
+    <p class="sub">Log-loss gap, TaBet minus the market: <strong>above 0 means the market was better</strong>. Brackets are 95% intervals (14-day blocks).</p>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="h-cum">
+    <h2 id="h-cum">GAP TO THE MARKET OVER TIME</h2>
+    <p class="sub">Backtest 2022-23 to 2025-26: TaBet's full model with confirmed lineups (V2x), cumulative mean gap after each matchday (drawn from the 100th match on).</p>
+    <div class="legend" id="leg-cum"></div>
+    <div class="chart" id="c-cum"></div>
+    <details><summary>Table: gap by season</summary><div class="scroll"><table id="t-season"></table></div></details>
+  </section>
+
+  <section aria-labelledby="h-season">
+    <h2 id="h-season">GAP BY SEASON</h2>
+    <p class="sub">TaBet minus closing odds, each season with its 95% interval. The line at 0 is "level with the market".</p>
+    <div class="chart" id="c-season"></div>
+  </section>
+
+  <section aria-labelledby="h-cal">
+    <h2 id="h-cal">CALIBRATION</h2>
+    <p class="sub">When a forecast says 30%, does it happen about 30% of the time? Home, draw and away pooled, in 10-point bins; the diagonal is perfect calibration.</p>
+    <div class="legend" id="leg-cal"></div>
+    <div class="chart" id="c-cal"></div>
+    <details><summary>Table: calibration bins</summary><div class="scroll"><table id="t-cal"></table></div></details>
+  </section>
+
+  <section aria-labelledby="h-promo">
+    <h2 id="h-promo">PROMOTED TEAMS</h2>
+    <p class="sub">Our known weak spot: matches with a newly promoted side in its first 10 games, against all the rest (gap to closing odds).</p>
+    <div class="chart" id="c-promo"></div>
+  </section>
+
+  <section aria-labelledby="h-tried">
+    <h2 id="h-tried">WHAT WE TRIED</h2>
+    <p class="sub">Every pre-registered test of a new idea, scored once on data the idea had never seen. Each dot is the change in log-loss the idea made (left of 0 = forecasts got better) and each line its 95% interval. An idea was kept only when its whole interval sat left of 0; when the interval straddles 0, the gain could be noise, and when it is narrow and hugs 0, even the best case is too small to matter. Hover a row for the reason.</p>
+    <div class="legend" id="leg-tried"></div>
+    <div class="chart" id="c-tried"></div>
+    <p class="note" id="tried-note"></p>
+    <details><summary>Table: every test</summary><div class="scroll"><table id="t-tried"></table></div></details>
+  </section>
+
+  <section aria-labelledby="h-live">
+    <h2 id="h-live">THE LIVE TEST (2026-27)</h2>
+    <p class="sub" id="live-sub"></p>
+    <div class="scroll"><table id="t-live"></table></div>
+  </section>
+</main>
+
+<footer>
+  <a href="./">Back to the pitch</a> · <a href="matches.html">Match explorer</a> · <a href="notebook.html">Model notebook</a>.
+  Descriptive only: the confirmatory reads are pre-registered in the project's protocol. Nothing here is betting advice.
+</footer>
+
+<script>
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  var C = { tabet: "var(--s-tabet)", close: "var(--s-close)", pre: "var(--s-pre)" };
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function f4(x) { return x == null ? "–" : (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(4); }
+  function ci(c) { return c && c.ci_95 ? "[" + f4(c.ci_95[0]) + ", " + f4(c.ci_95[1]) + "]" : "interval once enough fortnights are in"; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function legend(id, items) {
+    document.getElementById(id).innerHTML = items.map(function (it) {
+      return '<span><i class="' + (it.dot ? "dot" : "") + '" style="background:' + it.color + '"></i>' + esc(it.label) + "</span>";
+    }).join("");
+  }
+  function niceTicks(lo, hi, n) {
+    var step = Math.pow(10, Math.floor(Math.log10((hi - lo) / n))), err = (hi - lo) / n / step;
+    step *= err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1;
+    var t = [], v = Math.ceil(lo / step) * step;
+    for (; v <= hi + 1e-12; v += step) t.push(+v.toFixed(10));
+    return t;
+  }
+  function frame(host, h, m) {
+    host.innerHTML = "";
+    var w = Math.max(300, host.clientWidth);
+    var svg = el("svg", { viewBox: "0 0 " + w + " " + h, role: "img" }, host);
+    var tip = document.createElement("div"); tip.className = "tip"; host.appendChild(tip);
+    return { svg: svg, tip: tip, w: w, h: h, x0: m.l, x1: w - m.r, y0: h - m.b, y1: m.t };
+  }
+  function yAxis(f, lo, hi, fmt, label) {
+    var ys = function (v) { return f.y0 - (v - lo) / (hi - lo) * (f.y0 - f.y1); };
+    niceTicks(lo, hi, 5).forEach(function (t) {
+      el("line", { x1: f.x0, x2: f.x1, y1: ys(t), y2: ys(t), stroke: Math.abs(t) < 1e-12 ? "var(--zero)" : "var(--grid)", "stroke-width": 1 }, f.svg);
+      el("text", { x: f.x0 - 8, y: ys(t) + 4, "text-anchor": "end" }, f.svg).textContent = fmt(t);
+    });
+    if (label) el("text", { x: f.x0, y: f.y1 - 10 }, f.svg).textContent = label;
+    return ys;
+  }
+  function showTip(f, html, x, y) {
+    f.tip.innerHTML = html; f.tip.style.display = "block";
+    f.tip.style.left = Math.min(Math.max(x / f.w * 100, 12), 88) + "%"; f.tip.style.top = y + "px";
+  }
+
+  /* ---- cumulative gap: two lines on one axis, crosshair tooltip ---- */
+  function drawCum(b) {
+    var MIN_N = 100;      /* a cumulative mean of a few matches is noise: start once 100 are in */
+    var host = document.getElementById("c-cum"), pts = b.cumulative.filter(function (p) { return p.n >= MIN_N; });
+    var f = frame(host, 300, { l: 64, r: 92, t: 26, b: 34 });
+    var vals = []; pts.forEach(function (p) { vals.push(p.vs_close); if (p.vs_pre != null) vals.push(p.vs_pre); });
+    var lo = Math.min(0, Math.min.apply(null, vals)), hi = Math.max.apply(null, vals);
+    var pad = (hi - lo) * .08; lo -= pad; hi += pad;
+    var ys = yAxis(f, lo, hi, f4, "gap (log-loss)");
+    var t0 = Date.parse(pts[0].date), t1 = Date.parse(pts[pts.length - 1].date);
+    var xs = function (d) { return f.x0 + (Date.parse(d) - t0) / (t1 - t0) * (f.x1 - f.x0); };
+    ["2023", "2024", "2025", "2026"].forEach(function (y) {
+      var x = xs(y + "-01-01"); if (x > f.x0 && x < f.x1) el("text", { x: x, y: f.y0 + 20, "text-anchor": "middle" }, f.svg).textContent = y;
+    });
+    function path(key) {
+      return pts.filter(function (p) { return p[key] != null; }).map(function (p, i) { return (i ? "L" : "M") + xs(p.date).toFixed(1) + " " + ys(p[key]).toFixed(1); }).join("");
+    }
+    var series = [{ key: "vs_pre", color: C.pre, label: "vs earlier odds" }, { key: "vs_close", color: C.close, label: "vs closing odds" }];
+    var last = pts[pts.length - 1], labY = {};
+    series.forEach(function (s) { labY[s.key] = ys(last[s.key]) + 4; });
+    if (Math.abs(labY.vs_close - labY.vs_pre) < 16) {          /* push overlapping end labels apart */
+      var mid = (labY.vs_close + labY.vs_pre) / 2, up = last.vs_close >= last.vs_pre;
+      labY.vs_close = mid + (up ? -8 : 8); labY.vs_pre = mid + (up ? 8 : -8);
+    }
+    series.forEach(function (s) {
+      el("path", { d: path(s.key), fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, f.svg);
+      el("circle", { cx: xs(last.date), cy: ys(last[s.key]), r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }, f.svg);
+      el("text", { x: xs(last.date) + 8, y: labY[s.key], style: "fill:var(--ink)" }, f.svg).textContent = f4(last[s.key]);
+    });
+    var cross = el("line", { y1: f.y1, y2: f.y0, stroke: "var(--axis)", "stroke-width": 1, visibility: "hidden" }, f.svg);
+    var hit = el("rect", { x: f.x0, y: f.y1, width: f.x1 - f.x0, height: f.y0 - f.y1, fill: "transparent" }, f.svg);
+    function move(ev) {
+      var r = f.svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * f.w;
+      var t = t0 + (x - f.x0) / (f.x1 - f.x0) * (t1 - t0), best = pts[0];
+      pts.forEach(function (p) { if (Math.abs(Date.parse(p.date) - t) < Math.abs(Date.parse(best.date) - t)) best = p; });
+      cross.setAttribute("x1", xs(best.date)); cross.setAttribute("x2", xs(best.date)); cross.setAttribute("visibility", "visible");
+      showTip(f, "<b>" + best.date + "</b> · " + best.n + " matches<div class='row'><i style='background:" + C.close + "'></i>vs closing " + f4(best.vs_close) +
+        "</div><div class='row'><i style='background:" + C.pre + "'></i>vs earlier " + f4(best.vs_pre) + "</div>", xs(best.date), ys(best.vs_close) / f.h * host.clientHeight);
+    }
+    hit.addEventListener("pointermove", move);
+    hit.addEventListener("pointerleave", function () { f.tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); });
+    legend("leg-cum", series.slice().reverse());
+  }
+
+  /* ---- dot and whisker rows (one series: no legend) ---- */
+  function drawRows(hostId, rows, color) {
+    var host = document.getElementById(hostId);
+    var narrow = host.clientWidth < 560;      /* phones: labels above each row, fewer ticks */
+    var rowH = narrow ? 56 : 46;
+    var f = frame(host, rowH * rows.length + 46, { l: narrow ? 12 : 190, r: narrow ? 16 : 30, t: 10, b: 30 });
+    var vals = [0]; rows.forEach(function (r) { vals.push(r.mean); if (r.ci_95) vals.push(r.ci_95[0], r.ci_95[1]); });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * .1; lo -= pad; hi += pad;
+    var xs = function (v) { return f.x0 + (v - lo) / (hi - lo) * (f.x1 - f.x0); };
+    niceTicks(lo, hi, narrow ? 3 : 5).forEach(function (t) {
+      el("line", { x1: xs(t), x2: xs(t), y1: f.y1, y2: f.y0, stroke: Math.abs(t) < 1e-12 ? "var(--zero)" : "var(--grid)", "stroke-width": 1 }, f.svg);
+      el("text", { x: xs(t), y: f.y0 + 18, "text-anchor": "middle" }, f.svg).textContent = f4(t);
+    });
+    rows.forEach(function (r, i) {
+      var y = f.y1 + (narrow ? 34 : 23) + i * rowH;
+      if (narrow) el("text", { x: f.x0, y: y - 12, style: "fill:var(--ink)" }, f.svg).textContent = r.label + " (" + r.n + ")";
+      else el("text", { x: f.x0 - 12, y: y + 4, "text-anchor": "end", style: "fill:var(--ink)" }, f.svg).textContent = r.label + " (" + r.n + ")";
+      if (r.ci_95) el("line", { x1: xs(r.ci_95[0]), x2: xs(r.ci_95[1]), y1: y, y2: y, stroke: color, "stroke-width": 2, "stroke-linecap": "round" }, f.svg);
+      el("circle", { cx: xs(r.mean), cy: y, r: 5, fill: color, stroke: "var(--surface)", "stroke-width": 2 }, f.svg);
+      var hit = el("rect", { x: f.x0, y: y - (narrow ? 26 : 18), width: f.x1 - f.x0, height: narrow ? 44 : 36, fill: "transparent" }, f.svg);
+      hit.addEventListener("pointermove", function () {
+        showTip(f, "<b>" + esc(r.label) + "</b><br>gap " + f4(r.mean) + " " + ci(r) + "<br>" + r.n + " matches", xs(r.mean), (y - 8) / f.h * host.clientHeight);
+      });
+      hit.addEventListener("pointerleave", function () { f.tip.style.display = "none"; });
+    });
+  }
+
+  /* ---- what we tried: dot + 95% interval per test, colored by what happened, clipped wide intervals ---- */
+  var ST = { kept: { c: "var(--st-kept)", t: "Kept" }, live: { c: "var(--st-live)", t: "Still testing live" }, dropped: { c: "var(--st-dropped)", t: "Dropped" } };
+  function drawTried(x) {
+    var host = document.getElementById("c-tried"), rows = x.rows;
+    var narrow = host.clientWidth < 560, rowH = narrow ? 50 : 30, LO = -0.015, HI = 0.012;
+    var f = frame(host, rowH * rows.length + 62, { l: narrow ? 12 : 290, r: narrow ? 16 : 24, t: 28, b: 30 });
+    var cl = function (v) { return Math.max(LO, Math.min(HI, v)); };
+    var xs = function (v) { return f.x0 + (cl(v) - LO) / (HI - LO) * (f.x1 - f.x0); };
+    niceTicks(LO, HI, narrow ? 3 : 6).forEach(function (t) {
+      el("line", { x1: xs(t), x2: xs(t), y1: f.y1, y2: f.y0, stroke: Math.abs(t) < 1e-12 ? "var(--zero)" : "var(--grid)", "stroke-width": 1 }, f.svg);
+      el("text", { x: xs(t), y: f.y0 + 18, "text-anchor": "middle" }, f.svg).textContent = f4(t);
+    });
+    el("text", { x: xs(0) - 8, y: f.y1 - 10, "text-anchor": "end" }, f.svg).textContent = "← forecasts better";
+    el("text", { x: xs(0) + 8, y: f.y1 - 10 }, f.svg).textContent = "worse →";
+    rows.forEach(function (r, i) {
+      var y = f.y1 + (narrow ? 32 : 16) + i * rowH, col = ST[r.status].c;
+      var lab = narrow ? el("text", { x: f.x0, y: y - 12, style: "fill:var(--ink)" }, f.svg)
+                       : el("text", { x: f.x0 - 12, y: y + 4, "text-anchor": "end", style: "fill:var(--ink)" }, f.svg);
+      lab.textContent = r.idea;
+      el("line", { x1: xs(r.lo), x2: xs(r.hi), y1: y, y2: y, stroke: col, "stroke-width": 2, "stroke-linecap": "round" }, f.svg);
+      [[r.lo, -1], [r.hi, 1]].forEach(function (e) {        /* an arrowhead where the interval runs off the axis */
+        if (cl(e[0]) !== e[0]) { var ex = xs(e[0]); el("path", { d: "M" + (ex + 6 * e[1]) + " " + y + "L" + ex + " " + (y - 4) + "L" + ex + " " + (y + 4) + "Z", fill: col }, f.svg); }
+      });
+      el("circle", { cx: xs(r.mean), cy: y, r: 5, fill: col, stroke: "var(--surface)", "stroke-width": 2 }, f.svg);
+      var hit = el("rect", { x: 0, y: y - rowH / 2 - (narrow ? 8 : 0), width: f.w, height: rowH, fill: "transparent" }, f.svg);
+      hit.addEventListener("pointermove", function () {
+        showTip(f, "<b>" + esc(r.idea) + "</b> (" + esc(r.section) + ")<br>" + esc(r.comparison) + "<br>" + f4(r.mean) + " [" + f4(r.lo) + ", " + f4(r.hi) + "]" +
+          (r.n ? " · " + r.n.toLocaleString("en-GB") + " matches" : "") + "<br><span class='row'><i style='background:" + col + "'></i>" + ST[r.status].t + "</span>" +
+          "<span style='white-space:normal;display:block;max-width:300px'>" + esc(r.why) + "</span>", xs(r.mean), (y - 8) / f.h * host.clientHeight);
+      });
+      hit.addEventListener("pointerleave", function () { f.tip.style.display = "none"; });
+    });
+    legend("leg-tried", ["kept", "live", "dropped"].map(function (k) { return { label: ST[k].t, color: ST[k].c, dot: true }; }));
+  }
+  function triedText(x) {
+    document.getElementById("tried-note").textContent = "Intervals wider than the axis end in an arrow. Withdrawn before any test (worse on development data, so never scored): " +
+      x.withdrawn.map(function (w) { return w.idea + " (" + w.section + ")"; }).join(", ") + ". Section numbers refer to the project's improvement brief.";
+    document.getElementById("t-tried").innerHTML = "<tr><th>Idea</th><th>Comparison</th><th>Change</th><th>95% interval</th><th>Matches</th><th>Outcome</th><th>Why</th></tr>" +
+      x.rows.map(function (r) {
+        return "<tr><td>" + esc(r.idea) + "</td><td>" + esc(r.comparison) + "</td><td>" + f4(r.mean) + "</td><td>[" + f4(r.lo) + ", " + f4(r.hi) + "]</td><td>" +
+          (r.n ? r.n.toLocaleString("en-GB") : "–") + "</td><td>" + ST[r.status].t + "</td><td style='text-align:left;white-space:normal;min-width:220px'>" + esc(r.why) + "</td></tr>";
+      }).join("");
+  }
+
+  /* ---- calibration: two dot series + diagonal ---- */
+  function drawCal(b) {
+    var host = document.getElementById("c-cal");
+    var size = Math.min(host.clientWidth, 520);
+    var f = frame(host, size, { l: 56, r: 20, t: 26, b: 40 });
+    var span = Math.min(f.x1 - f.x0, f.y0 - f.y1); f.x1 = f.x0 + span; f.y1 = f.y0 - span;
+    var sx = function (v) { return f.x0 + v * span; }, sy = function (v) { return f.y0 - v * span; };
+    [0, .2, .4, .6, .8, 1].forEach(function (t) {
+      el("line", { x1: sx(t), x2: sx(t), y1: f.y1, y2: f.y0, stroke: "var(--grid)" }, f.svg);
+      el("line", { x1: f.x0, x2: f.x1, y1: sy(t), y2: sy(t), stroke: "var(--grid)" }, f.svg);
+      el("text", { x: sx(t), y: f.y0 + 18, "text-anchor": "middle" }, f.svg).textContent = Math.round(t * 100) + "%";
+      el("text", { x: f.x0 - 8, y: sy(t) + 4, "text-anchor": "end" }, f.svg).textContent = Math.round(t * 100) + "%";
+    });
+    el("text", { x: (f.x0 + f.x1) / 2, y: f.y0 + 36, "text-anchor": "middle" }, f.svg).textContent = "forecast probability";
+    el("text", { x: f.x0, y: f.y1 - 10 }, f.svg).textContent = "how often it happened";
+    el("line", { x1: sx(0), y1: sy(0), x2: sx(1), y2: sy(1), stroke: "var(--zero)", "stroke-width": 1 }, f.svg);
+    var series = [{ name: "TaBet (V2x)", color: C.tabet, label: "TaBet (V2x)", dot: true }, { name: "Closing odds", color: C.close, label: "Closing odds", dot: true }];
+    series.forEach(function (s) {
+      var pts = b.calibration.filter(function (c) { return c.model === s.name; });
+      el("path", { d: pts.map(function (p, i) { return (i ? "L" : "M") + sx(p.predicted) + " " + sy(p.observed); }).join(""), fill: "none", stroke: s.color, "stroke-width": 2, opacity: .6 }, f.svg);
+      pts.forEach(function (p) {
+        el("circle", { cx: sx(p.predicted), cy: sy(p.observed), r: 4.5, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }, f.svg);
+        var hit = el("circle", { cx: sx(p.predicted), cy: sy(p.observed), r: 12, fill: "transparent" }, f.svg);
+        hit.addEventListener("pointermove", function () {
+          showTip(f, "<b>" + esc(s.name) + "</b><br>forecast " + (p.predicted * 100).toFixed(1) + "% · happened " + (p.observed * 100).toFixed(1) + "%<br>" + p.n + " outcomes",
+                  sx(p.predicted), (sy(p.observed) - 6) / f.h * host.clientHeight);
+        });
+        hit.addEventListener("pointerleave", function () { f.tip.style.display = "none"; });
+      });
+    });
+    legend("leg-cal", series);
+  }
+
+  function tables(d) {
+    var b = d.backtest;
+    document.getElementById("t-season").innerHTML = "<tr><th>Season</th><th>Matches</th><th>Gap to closing</th><th>95% interval</th></tr>" +
+      b.by_season.map(function (s) { return "<tr><td>" + s.season + "</td><td>" + s.n + "</td><td>" + f4(s.mean) + "</td><td>" + ci(s) + "</td></tr>"; }).join("");
+    var rows = {}; b.calibration.forEach(function (c) { (rows[c.bin] = rows[c.bin] || {})[c.model] = c; });
+    document.getElementById("t-cal").innerHTML = "<tr><th>Bin</th><th>TaBet forecast</th><th>TaBet happened</th><th>Closing forecast</th><th>Closing happened</th></tr>" +
+      Object.keys(rows).sort(function (a, z) { return a - z; }).map(function (k) {
+        var t = rows[k]["TaBet (V2x)"], c = rows[k]["Closing odds"], p = function (x, key) { return x ? (x[key] * 100).toFixed(1) + "%" : "–"; };
+        return "<tr><td>" + k * 10 + "–" + (k * 10 + 10) + "%</td><td>" + p(t, "predicted") + "</td><td>" + p(t, "observed") + "</td><td>" + p(c, "predicted") + "</td><td>" + p(c, "observed") + "</td></tr>";
+      }).join("");
+    var l = d.live;
+    document.getElementById("live-sub").innerHTML = "Forecasts logged about 24 hours before kickoff, against the market at that moment (Pinnacle). " +
+      l.logged + " of " + l.played + " played matches logged since gameweek " + l.from_gameweek + ". <strong>Far too few matches to judge yet</strong>: the protocol's first read is after gameweek 29.";
+    document.getElementById("t-live").innerHTML = "<tr><th>Match</th><th>GW</th><th>Forecast</th><th>TaBet</th><th>Market</th><th>Gap</th></tr>" +
+      l.matches.slice().reverse().map(function (m) {
+        return "<tr><td>" + esc(m.match) + "</td><td>" + m.gameweek + "</td><td>" + m.forecast + "</td><td>" + m.ll.toFixed(3) + "</td><td>" +
+          (m.ll_market == null ? "–" : m.ll_market.toFixed(3)) + "</td><td>" + (m.ll_market == null ? "–" : f4(m.ll - m.ll_market)) + "</td></tr>";
+      }).join("");
+  }
+
+  function tilesHtml(d) {
+    var b = d.backtest, l = d.live;
+    var t = [
+      ["Backtest vs closing odds", f4(b.vs_close.mean), ci(b.vs_close) + " · " + b.vs_close.n + " matches"],
+      ["Backtest vs earlier odds", f4(b.vs_pre.mean), ci(b.vs_pre) + " · " + b.vs_pre.n + " matches"],
+      ["Live: logged vs market", l.vs_market ? f4(l.vs_market.mean) : "–", (l.vs_market ? l.vs_market.n + " matches · " : "") + ci(l.vs_market)],
+      ["Live coverage since GW" + l.from_gameweek, l.logged + " / " + l.played, l.primary + " primary records · " + l.missing + " missed"],
+      ["S2 shadow records", String(l.shadow_records), l.shadow_errors + " errors · decided end of 2027-28"],
+      ["Kickoff records", String(l.kickoff_records), "confirmed lineups, 10–50 min before kickoff"]
+    ];
+    document.getElementById("tiles").innerHTML = t.map(function (x) {
+      return "<div class='tile'><div class='k'>" + esc(x[0]) + "</div><div class='v'>" + esc(x[1]) + "</div><div class='d'>" + esc(x[2]) + "</div></div>";
+    }).join("");
+  }
+
+  var DATA = null;
+  function drawAll() {
+    if (!DATA) return;
+    drawCum(DATA.backtest);
+    drawRows("c-season", DATA.backtest.by_season.map(function (s) { return Object.assign({ label: s.season }, s); }), C.close);
+    drawCal(DATA.backtest);
+    var pe = DATA.backtest.promoted_early;
+    drawRows("c-promo", Object.keys(pe).map(function (k) { return Object.assign({ label: k }, pe[k]); }), C.close);
+    if (DATA.experiments) drawTried(DATA.experiments);
+  }
+  fetch("data/research.json").then(function (r) { return r.json(); }).then(function (d) {
+    DATA = d;
+    document.getElementById("built").textContent = "Updated " + new Date(d.built_utc).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC. " + d.note;
+    tilesHtml(d); tables(d); if (d.experiments) triedText(d.experiments); drawAll();
+  }).catch(function () { document.getElementById("built").textContent = "The research data didn't load. Refresh the page to try again."; });
+  var t; window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(drawAll, 150); });
+})();
+</script>
+</body>
+</html>
