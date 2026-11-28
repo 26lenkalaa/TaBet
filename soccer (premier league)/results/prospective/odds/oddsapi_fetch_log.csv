@@ -40,3 +40,4 @@ retrieved_utc,status,credits_remaining,credits_used,last_cost,n_events,n_upcomin
 2026-11-28T00:01:01+00:00,ok,420,80,2,19,19,0,,supabase:odds-archive/oddsapi/raw/20261128T000101Z.json.gz,
 2026-11-28T04:31:02+00:00,ok,418,82,2,19,19,0,114,supabase:odds-archive/oddsapi/raw/20261128T043102Z.json.gz,
 2026-11-28T06:31:03+00:00,ok,416,84,2,19,19,0,112;113;115;120,supabase:odds-archive/oddsapi/raw/20261128T063103Z.json.gz,
+2026-11-28T09:01:03+00:00,ok,414,86,2,19,19,0,111,supabase:odds-archive/oddsapi/raw/20261128T090103Z.json.gz,
